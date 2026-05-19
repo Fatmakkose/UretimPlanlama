@@ -15,5 +15,6 @@ namespace UretimPlanlama.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Workshop> Workshops { get; set; }
         public DbSet<Fabricator> Fabricators { get; set; }
+        public DbSet<ColorDef> ColorDefs { get; set; }
     }
 }
