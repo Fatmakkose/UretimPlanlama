@@ -42,7 +42,8 @@
                             <span><i class="fa-solid fa-layer-group"></i> Tanımlar</span>
                             <i class="fa-solid fa-chevron-down submenu-icon" style="font-size: 0.8rem; margin-right: 0;"></i>
                         </a>
-                        <ul class="submenu" style="display: @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Definitions" ? "block" : "none"); list-style: none; padding-left: 10px; margin-top: 5px;">
+                        <ul class="submenu" style="display: @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Definitions" || ViewContext.RouteData.Values["Controller"]?.ToString() == "ColorDef" ? "block" : "none"); list-style: none; padding-left: 10px; margin-top: 5px;">
+                            <li><a href="/ColorDef/Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ColorDef" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-palette" style="font-size: 0.9rem;"></i> Renk (Option) Tanımı</a></li>
                             <li><a href="/Definitions/Workshops" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Workshops" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-industry" style="font-size: 0.9rem;"></i> Atölye Tanımı</a></li>
                             <li><a href="/Definitions/Fabricators" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Fabricators" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-truck" style="font-size: 0.9rem;"></i> Kumaşçı Tanımı</a></li>
                             <li><a href="/Definitions/Customers" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Customers" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-building" style="font-size: 0.9rem;"></i> Müşteri Tanımı</a></li>

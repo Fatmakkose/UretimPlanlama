@@ -7,9 +7,9 @@ namespace UretimPlanlama.Models
     {
         [Required]
         [MaxLength(100)]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         [MaxLength(100)]
-        public string RoleTitle { get; set; }
+        public string RoleTitle { get; set; } = string.Empty;
     }
 }

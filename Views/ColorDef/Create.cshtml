@@ -1,0 +1,31 @@
+@model UretimPlanlama.Models.ColorDef
+@{
+    ViewData["Title"] = "Yeni Renk Ekle";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Yeni Renk Ekle</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Sistemde kullanılmak üzere yeni bir renk tanımlayın.</p>
+    </div>
+</div>
+
+<div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 600px;">
+    <form asp-action="Create" method="post">
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Renk Adı</label>
+            <input asp-for="Name" class="form-control" placeholder="Örn: Haki Yeşil" required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 24px;">
+            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Açıklama (Opsiyonel)</label>
+            <input asp-for="Description" class="form-control" placeholder="Örn: Yazlık kumaş rengi" />
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <a href="/ColorDef/Index" class="btn-secondary" style="padding: 10px 20px; text-decoration:none;">İptal</a>
+            <button type="submit" class="btn-planner" style="padding: 10px 24px;">Kaydet</button>
+        </div>
+    </form>
+</div>

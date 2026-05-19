@@ -8,15 +8,15 @@ namespace UretimPlanlama.Models
 
         [Required(ErrorMessage = "Atölye adı zorunludur.")]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Atölye tipi zorunludur.")]
         [MaxLength(50)]
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Yetkili kişi zorunludur.")]
         [MaxLength(100)]
-        public string AuthorizedPerson { get; set; }
+        public string AuthorizedPerson { get; set; } = string.Empty;
 
         [MaxLength(500)]
         public string? Address { get; set; }

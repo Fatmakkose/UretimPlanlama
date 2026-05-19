@@ -1,114 +1,417 @@
+@model List<UretimPlanlama.Models.Order>
 @{
-    ViewData["Title"] = "Üretim Planlama";
+    ViewData["Title"] = "Üretim Planlama & Takip";
+    var workshops = ViewBag.Workshops as List<UretimPlanlama.Models.Workshop>;
+    var fabricators = ViewBag.Fabricators as List<UretimPlanlama.Models.Fabricator>;
 }
 
+<style>
+    .premium-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .premium-table tr:hover {
+        background-color: #f8fafc;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-warning { background-color: #fef08a; color: #854d0e; }
+    .status-success { background-color: #bbf7d0; color: #166534; }
+    .status-danger { background-color: #fecaca; color: #991b1b; }
+    
+    .timeline-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+    }
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--text-muted);
+    }
+    .timeline-step.active {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    .timeline-step.completed {
+        color: #10b981;
+    }
+    .timeline-line {
+        height: 2px;
+        width: 20px;
+        background-color: var(--border-color);
+        margin-top: -15px;
+    }
+    .timeline-line.active {
+        background-color: #10b981;
+    }
+</style>
+
 <div class="dashboard-header" style="margin-bottom: 25px;">
-    <h1 style="font-size: 1.8rem; margin: 0; color: #111827;">Üretim Planlama Detayları</h1>
-    <p style="color: #6b7280; margin-top: 5px;">Sipariş detayları, malzeme hesaplama, fason atölye atamaları ve maliyet analizi.</p>
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Üretim Planlama (MRP)</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Siparişlerin kumaş terminleri, atölye atamaları ve üretim adımlarının takibi.</p>
+    </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px;">
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
 
-    <div class="glass-table-container">
-        <h2 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">Sipariş Planlama Formu</h2>
-        
-        <form>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Sipariş Kodu</label>
-                    <input type="text" class="form-control" value="PO-10452" readonly />
-                </div>
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Müşteri / Model</label>
-                    <input type="text" class="form-control" value="LCW / Erkek Basic Tişört" readonly />
-                </div>
-                
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Üretim Yeri (Atölye)</label>
-                    <select class="form-control">
-                        <option>Atölye A (Kapasite: %80)</option>
-                        <option>Atölye B (Kapasite: %45)</option>
-                        <option>Atölye C (Kapasite: %95)</option>
-                        <option>Dahili Üretim</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Kumaş Geliş / Dikiş Tarihi</label>
-                    <input type="date" class="form-control" value="2026-05-20" />
-                </div>
-                
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Hedef Metraj (m)</label>
-                    <input type="number" class="form-control" value="2000" />
-                </div>
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Gelen Kumaş Metrajı (m)</label>
-                    <input type="number" class="form-control" value="1978" style="border-color: #f59e0b;" />
-                    <small style="color: #d97706; display: block; margin-top: 5px;"><i class="fa-solid fa-triangle-exclamation"></i> 22m Eksik (Kabul edilebilir sınırda mı?)</small>
-                </div>
-                
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Birim Maliyet (Kumaş + İşçilik)</label>
-                    <input type="text" class="form-control" value="45.50 ₺" />
-                </div>
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Hedef Kâr Oranı (%)</label>
-                    <input type="number" class="form-control" value="25" />
-                </div>
-            </div>
+<div class="schedule-list" style="overflow-x: auto; background: transparent; border: none; padding: 0;">
+    <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+        <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;">
+                <th style="padding: 14px 16px;">Sipariş Bilgisi</th>
+                <th style="padding: 14px 16px;">Kumaş Durumu</th>
+                <th style="padding: 14px 16px;">Üretim Süreci (Kesim & Dikim)</th>
+                <th style="padding: 14px 16px;">Finans / Kâr</th>
+                <th style="padding: 14px 16px; text-align: center; min-width: 120px;">Aksiyon</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 16px;">
+                        <strong style="color: var(--text-main); font-size: 0.95rem; display: block;">@order.OrderCode</strong>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">@order.ModelName - <span style="color:#0284c7; font-weight:600;">@order.Color</span></span>
+                        <div style="margin-top: 4px; font-size: 0.8rem;">
+                            <span class="badge" style="background-color: #f1f5f9; color: #475569;">@(order.Quantity) Adet</span>
+                        </div>
+                    </td>
+                    
+                    <td style="padding: 16px;">
+                        <div style="font-size: 0.85rem;">
+                            @if (!string.IsNullOrEmpty(order.FabricSupplier))
+                            {
+                                <strong><i class="fa-solid fa-truck" style="margin-right:4px;"></i>@order.FabricSupplier</strong>
+                                <br />
+                            }
+                            else
+                            {
+                                <span style="color:var(--danger-text);">Kumaşçı Atanmadı</span>
+                                <br />
+                            }
+                            
+                            @if(order.FabricArrivalAgreedDate.HasValue)
+                            {
+                                <span style="color:var(--text-muted);">Hedef: @order.FabricArrivalAgreedDate.Value.ToString("dd.MM.yyyy")</span>
+                            }
+                        </div>
+                    </td>
+                    
+                    <td style="padding: 16px;">
+                        <div class="timeline-container">
+                            <div class="timeline-step @(order.CuttingStartDate.HasValue ? "completed" : "")">
+                                <i class="fa-solid fa-scissors" style="font-size: 1.1rem; margin-bottom: 4px;"></i>
+                                <span>Kesim</span>
+                            </div>
+                            <div class="timeline-line @(order.CuttingEndDate.HasValue ? "active" : "")"></div>
+                            
+                            <div class="timeline-step @(order.SewingStartDate.HasValue ? "completed" : "")">
+                                <i class="fa-solid fa-shirt" style="font-size: 1.1rem; margin-bottom: 4px;"></i>
+                                <span>Dikim</span>
+                                @if(!string.IsNullOrEmpty(order.SewingWorkshop))
+                                {
+                                    <span style="font-size: 0.65rem; background: #e0f2fe; padding: 2px 4px; border-radius: 4px; margin-top:2px;">@order.SewingWorkshop</span>
+                                }
+                            </div>
+                            <div class="timeline-line @(order.SewingEndDate.HasValue ? "active" : "")"></div>
+                            
+                            <div class="timeline-step @(order.PackagingStartDate.HasValue ? "completed" : "")">
+                                <i class="fa-solid fa-box" style="font-size: 1.1rem; margin-bottom: 4px;"></i>
+                                <span>Paket</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td style="padding: 16px;">
+                        @if(order.UnitCost.HasValue && order.UnitPrice.HasValue)
+                        {
+                            var totalCost = order.UnitCost.Value * order.Quantity;
+                            var totalPrice = order.UnitPrice.Value * order.Quantity;
+                            var profit = totalPrice - totalCost;
+                            var profitMargin = (profit / totalPrice) * 100;
+                            
+                            <div style="font-size: 0.85rem;">
+                                <div>Satış: <strong>@totalPrice.ToString("N2") ₺</strong></div>
+                                <div>Maliyet: <span style="color:#dc2626;">@totalCost.ToString("N2") ₺</span></div>
+                                <div style="color:#16a34a; font-weight:600;">Kâr: @profit.ToString("N2") ₺ (%@profitMargin.ToString("N1"))</div>
+                            </div>
+                        }
+                        else
+                        {
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Maliyet girilmedi</span>
+                        }
+                    </td>
+                    
+                    <td style="padding: 16px; text-align: center;">
+                        <button type="button" class="btn-planner btnOpenPlanModal" data-id="@order.Id" data-order='@Json.Serialize(order)' style="border-radius: 6px; padding: 6px 12px; font-size: 0.85rem;">
+                            <i class="fa-solid fa-calendar-days"></i> Planla
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Planlama Modal -->
+<div class="modal-overlay" id="planModalOverlay">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <h3 style="margin: 0; color: var(--text-main);">Sipariş Planlama & Takip <span id="modalOrderCodeTitle" style="color:var(--primary-color);"></span></h3>
+            <button type="button" class="close-modal" id="btnClosePlanModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        <form id="planForm" method="post" action="/Planning/UpdatePlan">
+            <input type="hidden" name="Id" id="planOrderId" />
             
-            <div class="form-group" style="margin-top: 15px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ürün Her Detayı (Aksesuar, Düğme, İp vs.)</label>
-                <textarea class="form-control" rows="4">Düğme rengi siyah (12 boy), dikiş ipi No:120 siyah, yaka etiketi LCW standart, yıkama talimatı eklenecek.</textarea>
+            <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-height: 70vh; overflow-y: auto;">
+                
+                <!-- 1. Kumaş & Tedarik -->
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h4 style="margin-top:0; color:#0f172a; border-bottom:1px solid #cbd5e1; padding-bottom:8px;"><i class="fa-solid fa-layer-group" style="margin-right:6px; color:#64748b;"></i> 1. Kumaş & Tedarik</h4>
+                    
+                    <div class="form-group">
+                        <label>Kumaşçı (Tedarikçi)</label>
+                        <select name="FabricSupplier" id="planFabricSupplier" class="form-control">
+                            <option value="">-- Kumaşçı Seçin --</option>
+                            @if(fabricators != null) {
+                                foreach(var f in fabricators) {
+                                    <option value="@f.Name">@f.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>Anlaşılan Sevk (Hedef)</label>
+                            <input type="date" name="FabricArrivalAgreedDate" id="planFabricAgreed" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Gerçekleşen Geliş</label>
+                            <input type="date" name="FabricArrivalActualDate" id="planFabricActual" class="form-control" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Gelen Metraj (m)</label>
+                        <input type="number" step="0.01" name="FabricMeterage" id="planFabricMeterage" class="form-control" placeholder="Örn: 2000" />
+                    </div>
+                </div>
+
+                <!-- 2. Üretim (Kesim & Dikim) -->
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h4 style="margin-top:0; color:#0f172a; border-bottom:1px solid #cbd5e1; padding-bottom:8px;"><i class="fa-solid fa-scissors" style="margin-right:6px; color:#64748b;"></i> 2. Üretim (Kesim/Dikim)</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>Kesim Başlangıç</label>
+                            <input type="date" name="CuttingStartDate" id="planCuttingStart" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Kesim Bitiş</label>
+                            <input type="date" name="CuttingEndDate" id="planCuttingEnd" class="form-control" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Dikim Atölyesi (Hedef)</label>
+                        <select name="SewingWorkshop" id="planSewingWorkshop" class="form-control">
+                            <option value="">-- Atölye Seçin --</option>
+                            @if(workshops != null) {
+                                foreach(var w in workshops) {
+                                    <option value="@w.Name">@w.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom:0;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Dikim Başlangıç</label>
+                            <input type="date" name="SewingStartDate" id="planSewingStart" class="form-control" />
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Dikim Bitiş</label>
+                            <input type="date" name="SewingEndDate" id="planSewingEnd" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Paket & Sevk -->
+                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h4 style="margin-top:0; color:#0f172a; border-bottom:1px solid #cbd5e1; padding-bottom:8px;"><i class="fa-solid fa-box" style="margin-right:6px; color:#64748b;"></i> 3. Paket & Sevk</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>Son Inspection</label>
+                            <input type="date" name="LastInspectionDate" id="planInspc" class="form-control" />
+                        </div>
+                        <div></div> <!-- Boşluk -->
+                        
+                        <div class="form-group">
+                            <label>Paket Başlangıç</label>
+                            <input type="date" name="PackagingStartDate" id="planPackStart" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Paket Bitiş</label>
+                            <input type="date" name="PackagingEndDate" id="planPackEnd" class="form-control" />
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Yola Çıkış</label>
+                            <input type="date" name="DepartureDate" id="planDepart" class="form-control" />
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Depo Varış</label>
+                            <input type="date" name="WarehouseArrivalDate" id="planArrive" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Finans & Maliyet -->
+                <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                    <h4 style="margin-top:0; color:#166534; border-bottom:1px solid #bbf7d0; padding-bottom:8px;"><i class="fa-solid fa-money-bill-trend-up" style="margin-right:6px;"></i> 4. Finans (Birim)</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>Birim Maliyet (₺)</label>
+                            <input type="number" step="0.01" name="UnitCost" id="planCost" class="form-control" placeholder="Örn: 150.50" />
+                        </div>
+                        <div class="form-group">
+                            <label>Birim Satış Fiyatı (₺)</label>
+                            <input type="number" step="0.01" name="UnitPrice" id="planPrice" class="form-control" placeholder="Örn: 220.00" />
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 16px; padding: 12px; background: white; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Tahmini Kâr Marjı</div>
+                        <div id="liveProfitCalc" style="font-size: 1.25rem; font-weight: bold; color: #16a34a;">% 0.0</div>
+                    </div>
+                </div>
+
             </div>
-            
-            <div style="margin-top: 20px; text-align: right;">
-                <button type="button" class="btn-primary" style="background: var(--text-muted);">İptal</button>
-                <button type="button" class="btn-primary">Planlamayı Kaydet</button>
+            <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; background: #f8fafc; border-radius: 0 0 8px 8px;">
+                <button type="button" class="btn-secondary" id="btnCancelPlanModal">İptal</button>
+                <button type="submit" class="btn-planner">Planı Kaydet</button>
             </div>
         </form>
     </div>
-    
-    
-    <div>
-        <div class="glass-table-container" style="margin-bottom: 20px;">
-            <h3 style="font-size: 1.1rem; margin-top: 0; margin-bottom: 15px;">Malzeme İhtiyaç Hesaplama</h3>
-            <ul style="list-style: none; padding: 0; margin: 0;">
-                <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <span style="color: var(--text-muted);">Ana Kumaş:</span>
-                    <strong>2000m <span class="badge badge-success">Stok Yeterli</span></strong>
-                </li>
-                <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <span style="color: var(--text-muted);">Düğme (Siyah):</span>
-                    <strong>8000 Adet <span class="badge badge-warning">Siparişte</span></strong>
-                </li>
-                <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <span style="color: var(--text-muted);">Dikiş İpi:</span>
-                    <strong>50 Bobin <span class="badge badge-success">Stok Yeterli</span></strong>
-                </li>
-                <li style="display: flex; justify-content: space-between; padding: 10px 0;">
-                    <span style="color: var(--text-muted);">Etiket:</span>
-                    <strong>2000 Adet <span class="badge badge-success">Stok Yeterli</span></strong>
-                </li>
-            </ul>
-        </div>
-        
-        <div class="glass-table-container">
-            <h3 style="font-size: 1.1rem; margin-top: 0; margin-bottom: 15px;">Maliyet ve Kâr Analizi</h3>
-            <div style="background: linear-gradient(135deg, #fdfbfb, #ebedee); padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: var(--text-muted);">Toplam Maliyet:</span>
-                    <strong>91,000.00 ₺</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: var(--text-muted);">Satış Fiyatı (Toplam):</span>
-                    <strong>113,750.00 ₺</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #d1d5db;">
-                    <span style="color: var(--text-main); font-weight: 600;">Beklenen Kâr:</span>
-                    <strong style="color: #10b981; font-size: 1.1rem;">22,750.00 ₺</strong>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+    .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            
+            // Tarih formatlama fonksiyonu (YYYY-MM-DD for input type="date")
+            function formatDateForInput(dateString) {
+                if (!dateString) return "";
+                var d = new Date(dateString);
+                var month = '' + (d.getMonth() + 1),
+                    day = '' + d.getDate(),
+                    year = d.getFullYear();
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+                return [year, month, day].join('-');
+            }
+
+            $('.btnOpenPlanModal').click(function() {
+                var order = $(this).data('order');
+                
+                $('#planOrderId').val(order.id);
+                $('#modalOrderCodeTitle').text(" - " + order.orderCode);
+                
+                // Form Doldurma
+                $('#planFabricSupplier').val(order.fabricSupplier || "");
+                $('#planFabricAgreed').val(formatDateForInput(order.fabricArrivalAgreedDate));
+                $('#planFabricActual').val(formatDateForInput(order.fabricArrivalActualDate));
+                $('#planFabricMeterage').val(order.fabricMeterage || "");
+                
+                $('#planCuttingStart').val(formatDateForInput(order.cuttingStartDate));
+                $('#planCuttingEnd').val(formatDateForInput(order.cuttingEndDate));
+                
+                $('#planSewingWorkshop').val(order.sewingWorkshop || "");
+                $('#planSewingStart').val(formatDateForInput(order.sewingStartDate));
+                $('#planSewingEnd').val(formatDateForInput(order.sewingEndDate));
+                
+                $('#planInspc').val(formatDateForInput(order.lastInspectionDate));
+                $('#planPackStart').val(formatDateForInput(order.packagingStartDate));
+                $('#planPackEnd').val(formatDateForInput(order.packagingEndDate));
+                $('#planDepart').val(formatDateForInput(order.departureDate));
+                $('#planArrive').val(formatDateForInput(order.warehouseArrivalDate));
+                
+                $('#planCost').val(order.unitCost || "");
+                $('#planPrice').val(order.unitPrice || "");
+                
+                calculateLiveProfit();
+                
+                $('#planModalOverlay').addClass('active');
+            });
+
+            $('#btnClosePlanModal, #btnCancelPlanModal').click(function() {
+                $('#planModalOverlay').removeClass('active');
+            });
+            
+            // Kâr Hesaplama
+            function calculateLiveProfit() {
+                var cost = parseFloat($('#planCost').val()) || 0;
+                var price = parseFloat($('#planPrice').val()) || 0;
+                
+                if (price > 0 && cost > 0) {
+                    var margin = ((price - cost) / price) * 100;
+                    $('#liveProfitCalc').text('% ' + margin.toFixed(1));
+                    if(margin < 0) {
+                        $('#liveProfitCalc').css('color', '#dc2626');
+                    } else {
+                        $('#liveProfitCalc').css('color', '#16a34a');
+                    }
+                } else {
+                    $('#liveProfitCalc').text('% 0.0');
+                    $('#liveProfitCalc').css('color', '#16a34a');
+                }
+            }
+            
+            $('#planCost, #planPrice').on('input', calculateLiveProfit);
+        });
+    </script>
+}

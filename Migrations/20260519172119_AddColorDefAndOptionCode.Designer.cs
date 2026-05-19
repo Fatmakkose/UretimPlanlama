@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UretimPlanlama.Data;
 
@@ -11,9 +12,11 @@ using UretimPlanlama.Data;
 namespace UretimPlanlama.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519172119_AddColorDefAndOptionCode")]
+    partial class AddColorDefAndOptionCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -347,26 +350,8 @@ namespace UretimPlanlama.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("CuttingEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("CuttingStartDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("DeliveryPlace")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DepartureDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FabricArrivalActualDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FabricArrivalAgreedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double?>("FabricMeterage")
-                        .HasColumnType("float");
 
                     b.Property<decimal?>("FabricPrice")
                         .HasColumnType("decimal(18,2)");
@@ -388,9 +373,6 @@ namespace UretimPlanlama.Migrations
 
                     b.Property<bool>("IsJIT")
                         .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastInspectionDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("ManufacturerCode")
                         .HasColumnType("nvarchar(max)");
@@ -415,12 +397,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("PackagingEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PackagingStartDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
 
@@ -431,15 +407,6 @@ namespace UretimPlanlama.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("SalesRegion")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("SewingEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("SewingStartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SewingWorkshop")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Size2XL")
@@ -472,17 +439,8 @@ namespace UretimPlanlama.Migrations
                     b.Property<decimal?>("TotalAmountWithVat")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("UnitCost")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal?>("VatAmount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("WarehouseArrivalDate")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

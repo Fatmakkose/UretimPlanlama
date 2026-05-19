@@ -1,0 +1,79 @@
+@model List<UretimPlanlama.Models.ColorDef>
+@{
+    ViewData["Title"] = "Renk Tanımlamaları";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Renk (Option) Tanımlamaları</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Sistemde kullanılacak renkleri buradan tanımlayabilirsiniz.</p>
+    </div>
+    <div class="header-actions">
+        <a href="/ColorDef/Create" class="btn-planner" style="border-radius: 8px; font-size: 0.95rem; padding: 10px 18px; text-decoration:none;"><i class="fa-solid fa-plus"></i> Yeni Renk Ekle</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="schedule-list" style="overflow-x: auto; background: transparent; border: none; padding: 0;">
+    <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+        <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;">
+                <th style="padding: 14px 16px;">Renk Adı</th>
+                <th style="padding: 14px 16px;">Açıklama</th>
+                <th style="padding: 14px 16px; text-align: center; width: 100px;">İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var color in Model)
+                {
+                    <tr style="border-bottom: 1px solid var(--border-color);" id="color-row-@color.Id">
+                        <td style="padding: 16px;">
+                            <strong style="color: var(--text-main);">@color.Name</strong>
+                        </td>
+                        <td style="padding: 16px; color: var(--text-muted);">
+                            @(string.IsNullOrEmpty(color.Description) ? "-" : color.Description)
+                        </td>
+                        <td style="padding: 16px; text-align: center;">
+                            <button class="btnDelete" data-id="@color.Id" style="background: none; border: none; color: #dc2626; cursor: pointer;" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        Henüz hiç renk tanımlanmamış.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $(".btnDelete").click(function() {
+                if (confirm("Bu rengi silmek istediğinize emin misiniz?")) {
+                    var id = $(this).data("id");
+                    $.post("/ColorDef/Delete", { id: id }, function(res) {
+                        if (res.success) {
+                            $("#color-row-" + id).fadeOut();
+                        } else {
+                            alert(res.message);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
