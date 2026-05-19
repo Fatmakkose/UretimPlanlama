@@ -1,0 +1,35 @@
+@model UretimPlanlama.Models.Fabricator
+@{
+    ViewData["Title"] = "Yeni Kumaşçı Ekle";
+}
+
+<form action="/Definitions/CreateFabricator" method="post">
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Yeni Kumaşçı Ekle</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Sisteme yeni bir ham kumaş veya iplik tedarikçisi tanımlayın</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/Fabricators" class="btn-secondary" style="text-decoration: none;">İptal</a>
+        <button type="submit" class="btn-planner"><i class="fa-solid fa-save"></i> Kaydet</button>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Kumaşçı Bilgileri</h2>
+                <p>Kumaşçı firmasının temel bilgilerini giriniz.</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+            <div class="form-group">
+                <label>Kumaşçı Adı</label>
+                <input type="text" name="Name" class="form-control" placeholder="Örn: Bossa Ticaret A.Ş." required />
+            </div>
+        </div>
+    </div>
+</div>
+</form>

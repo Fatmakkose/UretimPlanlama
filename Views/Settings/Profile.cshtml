@@ -1,0 +1,65 @@
+@model UretimPlanlama.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Profili Düzenle";
+}
+
+<form action="/Settings/Profile" method="post">
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Profili Düzenle</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Kişisel bilgilerinizi ve hesap ayarlarınızı güncelleyin</p>
+    </div>
+    <div class="header-actions">
+        <a href="/" class="btn-secondary" style="text-decoration: none;">İptal</a>
+        <button type="submit" class="btn-planner"><i class="fa-solid fa-save"></i> Değişiklikleri Kaydet</button>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Kişisel Bilgiler</h2>
+                <p>Sistemde görünecek temel profil detaylarınız.</p>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px solid var(--border-color);">
+            <img src="https://ui-avatars.com/api/?name=@Model?.FullName&background=00c29f&color=fff&size=100" alt="Profile Photo" style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+            <div>
+                <button type="button" class="btn-secondary" style="margin-bottom: 8px;"><i class="fa-solid fa-camera"></i> Fotoğrafı Değiştir</button>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">JPG, GIF veya PNG. Maksimum boyut 2MB.</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="form-group">
+                <label>Ad Soyad</label>
+                <input type="text" name="FullName" class="form-control" value="@Model?.FullName" required />
+            </div>
+
+            <div class="form-group">
+                <label>Görev / Unvan</label>
+                <input type="text" name="RoleTitle" class="form-control" value="@Model?.RoleTitle" />
+            </div>
+
+            <div class="form-group">
+                <label>E-Posta Adresi</label>
+                <input type="email" name="Email" class="form-control" value="@Model?.Email" />
+            </div>
+
+            <div class="form-group">
+                <label>Telefon Numarası</label>
+                <input type="text" name="Phone" class="form-control" value="@Model?.PhoneNumber" placeholder="05XX XXX XX XX" />
+            </div>
+        </div>
+    </div>
+</div>
+</form>
