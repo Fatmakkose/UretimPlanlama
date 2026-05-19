@@ -1,0 +1,79 @@
+@model List<UretimPlanlama.Models.Workshop>
+@{
+    ViewData["Title"] = "Atölye Tanımı";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Atölye Tanımı</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Üretim atölyelerinin listesi ve yönetim işlemleri</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/CreateWorkshop" class="btn-planner" style="text-decoration: none;"><i class="fa-solid fa-plus"></i> Yeni Atölye Ekle</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Mevcut Atölyeler</h2>
+                <p>Sistemde tanımlı fason ve dahili üretim atölyeleri</p>
+            </div>
+            <div class="search-box" style="width: 300px; margin-top: -10px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="Atölye ara..." />
+            </div>
+        </div>
+
+        <div class="schedule-list">
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="schedule-item" style="justify-content: center; padding: 40px;">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-industry" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p style="font-size: 1.1rem; margin: 0;">Henüz kayıtlı bir atölye bulunmuyor.</p>
+                        <p style="font-size: 0.9rem; margin-top: 5px;">Yeni bir atölye tanımlamak için sağ üstteki butonu kullanabilirsiniz.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600;">
+                                <th style="padding: 12px 16px;">Atölye Adı</th>
+                                <th style="padding: 12px 16px;">Atölye Tipi</th>
+                                <th style="padding: 12px 16px;">Yetkili Kişi</th>
+                                <th style="padding: 12px 16px;">Adres</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var w in Model)
+                            {
+                                <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;">
+                                    <td style="padding: 16px; font-weight: 600; color: var(--text-main);">@w.Name</td>
+                                    <td style="padding: 16px;">
+                                        <span class="badge @(w.Type.Contains("Dahili") ? "badge-progress" : "badge-scheduled")">
+                                            @w.Type
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px; color: var(--text-main);">@w.AuthorizedPerson</td>
+                                    <td style="padding: 16px; color: var(--text-muted); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@w.Address</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,114 @@
+@{
+    ViewData["Title"] = "Üretim Planlama";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <h1 style="font-size: 1.8rem; margin: 0; color: #111827;">Üretim Planlama Detayları</h1>
+    <p style="color: #6b7280; margin-top: 5px;">Sipariş detayları, malzeme hesaplama, fason atölye atamaları ve maliyet analizi.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px;">
+
+    <div class="glass-table-container">
+        <h2 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">Sipariş Planlama Formu</h2>
+        
+        <form>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Sipariş Kodu</label>
+                    <input type="text" class="form-control" value="PO-10452" readonly />
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Müşteri / Model</label>
+                    <input type="text" class="form-control" value="LCW / Erkek Basic Tişört" readonly />
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Üretim Yeri (Atölye)</label>
+                    <select class="form-control">
+                        <option>Atölye A (Kapasite: %80)</option>
+                        <option>Atölye B (Kapasite: %45)</option>
+                        <option>Atölye C (Kapasite: %95)</option>
+                        <option>Dahili Üretim</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Kumaş Geliş / Dikiş Tarihi</label>
+                    <input type="date" class="form-control" value="2026-05-20" />
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Hedef Metraj (m)</label>
+                    <input type="number" class="form-control" value="2000" />
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Gelen Kumaş Metrajı (m)</label>
+                    <input type="number" class="form-control" value="1978" style="border-color: #f59e0b;" />
+                    <small style="color: #d97706; display: block; margin-top: 5px;"><i class="fa-solid fa-triangle-exclamation"></i> 22m Eksik (Kabul edilebilir sınırda mı?)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Birim Maliyet (Kumaş + İşçilik)</label>
+                    <input type="text" class="form-control" value="45.50 ₺" />
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Hedef Kâr Oranı (%)</label>
+                    <input type="number" class="form-control" value="25" />
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Ürün Her Detayı (Aksesuar, Düğme, İp vs.)</label>
+                <textarea class="form-control" rows="4">Düğme rengi siyah (12 boy), dikiş ipi No:120 siyah, yaka etiketi LCW standart, yıkama talimatı eklenecek.</textarea>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" class="btn-primary" style="background: var(--text-muted);">İptal</button>
+                <button type="button" class="btn-primary">Planlamayı Kaydet</button>
+            </div>
+        </form>
+    </div>
+    
+    
+    <div>
+        <div class="glass-table-container" style="margin-bottom: 20px;">
+            <h3 style="font-size: 1.1rem; margin-top: 0; margin-bottom: 15px;">Malzeme İhtiyaç Hesaplama</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <span style="color: var(--text-muted);">Ana Kumaş:</span>
+                    <strong>2000m <span class="badge badge-success">Stok Yeterli</span></strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <span style="color: var(--text-muted);">Düğme (Siyah):</span>
+                    <strong>8000 Adet <span class="badge badge-warning">Siparişte</span></strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <span style="color: var(--text-muted);">Dikiş İpi:</span>
+                    <strong>50 Bobin <span class="badge badge-success">Stok Yeterli</span></strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; padding: 10px 0;">
+                    <span style="color: var(--text-muted);">Etiket:</span>
+                    <strong>2000 Adet <span class="badge badge-success">Stok Yeterli</span></strong>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="glass-table-container">
+            <h3 style="font-size: 1.1rem; margin-top: 0; margin-bottom: 15px;">Maliyet ve Kâr Analizi</h3>
+            <div style="background: linear-gradient(135deg, #fdfbfb, #ebedee); padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--text-muted);">Toplam Maliyet:</span>
+                    <strong>91,000.00 ₺</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: var(--text-muted);">Satış Fiyatı (Toplam):</span>
+                    <strong>113,750.00 ₺</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #d1d5db;">
+                    <span style="color: var(--text-main); font-weight: 600;">Beklenen Kâr:</span>
+                    <strong style="color: #10b981; font-size: 1.1rem;">22,750.00 ₺</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,94 @@
+@{
+    ViewData["Title"] = "Satın Alma & Kumaş";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <h1 style="font-size: 1.8rem; margin: 0; color: #111827;">Kumaş ve Aksesuar Yönetimi</h1>
+    <p style="color: #6b7280; margin-top: 5px;">Gelen kumaş karşılaştırmaları, aksesuar stok kontrolü ve sipariş eşleştirmeleri.</p>
+</div>
+
+<div class="stat-cards">
+    <div class="stat-card" style="border-left: 5px solid #3b82f6;">
+        <div class="stat-card-info">
+            <h3>Depo: %75</h3>
+            <p>Kumaş Deposu Doluluk</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-left: 5px solid #f59e0b;">
+        <div class="stat-card-info">
+            <h3>4 Sipariş</h3>
+            <p>Kumaş Bekleyenler</p>
+        </div>
+    </div>
+    <div class="stat-card" style="border-left: 5px solid #10b981;">
+        <div class="stat-card-info">
+            <h3>12 Top</h3>
+            <p>Bugün Gelen Kumaş</p>
+        </div>
+    </div>
+</div>
+
+<div class="glass-table-container" style="margin-top: 30px;">
+    <h2 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 20px;">Gelen Kumaş Karşılaştırması (Gerçekleşen vs Hedef)</h2>
+    <table class="glass-table">
+        <thead>
+            <tr>
+                <th>SİPARİŞ KODU</th>
+                <th>KUMAŞ CİNSİ</th>
+                <th>HEDEF METRAJ</th>
+                <th>GELEN METRAJ</th>
+                <th>FARK</th>
+                <th>DURUM</th>
+                <th>İŞLEM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>PO-10452</td>
+                <td>%100 Pamuk Süprem</td>
+                <td>2000 m</td>
+                <td>1978 m</td>
+                <td><span style="color: #ef4444; font-weight: bold;">-22 m</span></td>
+                <td><span class="badge badge-warning">Eksik Kabul</span></td>
+                <td><button class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">Kalite Kontrol Formu</button></td>
+            </tr>
+            <tr>
+                <td>PO-10455</td>
+                <td>Keten Dokuma</td>
+                <td>1200 m</td>
+                <td>1200 m</td>
+                <td><span style="color: #10b981; font-weight: bold;">0 m</span></td>
+                <td><span class="badge badge-success">Tam</span></td>
+                <td><button class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">Depoya Al</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="glass-table-container" style="margin-top: 30px;">
+    <h2 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 20px;">Aksesuar Stok İhtiyacı</h2>
+    <table class="glass-table">
+        <thead>
+            <tr>
+                <th>AKSESUAR</th>
+                <th>İHTİYAÇ (SİPARİŞ)</th>
+                <th>MEVCUT STOK</th>
+                <th>DURUM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Düğme (Siyah 12 Boy)</td>
+                <td>8000 Adet (PO-10452)</td>
+                <td>2000 Adet</td>
+                <td><span class="badge badge-danger">Satın Alınmalı (6000 eksik)</span></td>
+            </tr>
+            <tr>
+                <td>Fermuar (Metal 15cm)</td>
+                <td>1500 Adet (PO-10453)</td>
+                <td>2500 Adet</td>
+                <td><span class="badge badge-success">Yeterli</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

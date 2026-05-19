@@ -1,0 +1,197 @@
+@model UretimPlanlama.Models.Order
+
+@{
+    ViewData["Title"] = "Yeni Sipariş Ekle (LCW)";
+}
+
+<div class="dashboard-header">
+    <div class="header-title">
+        <h1>Yeni Sipariş (LCW Formu)</h1>
+        <p>Sisteme yeni bir üretim kaydı ekleyin</p>
+    </div>
+    <div class="header-actions">
+        <a href="/" class="btn-secondary" style="text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> Geri Dön</a>
+    </div>
+</div>
+
+<form asp-action="Create" method="post">
+    
+    <div class="schedule-section" style="margin-bottom: 24px;">
+        <div class="section-header">
+            <h2>Genel Bilgiler</h2>
+        </div>
+        <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Sipariş Tarihi</label>
+                <input asp-for="OrderDate" class="form-control" type="date" />
+            </div>
+            <div class="form-group">
+                <label>Sipariş Kodu</label>
+                <input asp-for="OrderCode" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Ödeme Şekli</label>
+                <select asp-for="PaymentMethod" class="form-control" id="paymentmethod">
+                    <option value="">-Seçiniz-</option>
+                    <option value="">Peşin</option>
+                    <option value="">Nakit</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Üretici Cari Kod</label>
+                <input asp-for="ManufacturerCode" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Üretici Firma</label>
+                <input asp-for="ManufacturerCompany" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Alıcı</label>
+                <input asp-for="Customer" class="form-control" value="LC Waikiki" readonly />
+            </div>
+        </div>
+    </div>
+
+
+    <div class="schedule-section" style="margin-bottom: 24px;">
+        <div class="section-header">
+            <h2>Ürün & Operasyon Bilgileri</h2>
+        </div>
+        <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Model Adı</label>
+                <input asp-for="ModelName" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Renk / Option</label>
+                <input asp-for="Color" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Mal Tanımı</label>
+                <input asp-for="GoodsDescription" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Marka</label>
+                <input asp-for="Brand" class="form-control" value="LC WAIKIKI" />
+            </div>
+            <div class="form-group">
+                <label>Inspection Tipi</label>
+                <select asp-for="InspectionType" class="form-control" id="inspectionType">
+                    <option value="">-- Seçiniz --</option>
+                    <option value="Yurt İçi">Yurt İçi (Yİ)</option>
+                    <option value="Yurt Dışı">Yurt Dışı (YD)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Inspection Tarihi</label>
+                <input asp-for="InspectionDate" class="form-control" type="date" id="inspectionDate" disabled />
+            </div>
+            <div class="form-group">
+                <label>Üretim Yeri (Atölye)</label>
+                <select asp-for="ProductionPlace" class="form-control" required>
+                    <option value="">-- Seçiniz --</option>
+                    @if (ViewBag.Workshops != null)
+                    {
+                        foreach (var w in (List<UretimPlanlama.Models.Workshop>)ViewBag.Workshops)
+                        {
+                            <option value="@w.Name">@w.Name (@w.Type)</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Kumaşçı</label>
+                <select asp-for="FabricSupplier" class="form-control" required>
+                    <option value="">-- Seçiniz --</option>
+                    @if (ViewBag.Fabricators != null)
+                    {
+                        foreach (var f in (List<UretimPlanlama.Models.Fabricator>)ViewBag.Fabricators)
+                        {
+                            <option value="@f.Name">@f.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Teslim Yeri</label>
+                <input asp-for="DeliveryPlace" class="form-control" value="LCWaikiki Depoları" />
+            </div>
+            <div class="form-group">
+                <label>Hedef Kumaş Miktarı (Kg)</label>
+                <input asp-for="TargetFabricQty" class="form-control" type="number" step="0.01" placeholder="Örn: 500.00" />
+            </div>
+            <div class="form-group">
+                <label>Gerçekleşen Kumaş Miktarı (Kg)</label>
+                <input asp-for="ActualFabricQty" class="form-control" type="number" step="0.01" placeholder="Örn: 480.00" />
+            </div>
+        </div>
+    </div>
+
+   
+    <div class="schedule-section" style="margin-bottom: 24px;">
+        <div class="section-header">
+            <h2>Finansal Bilgiler</h2>
+        </div>
+        <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Toplam Sipariş Miktarı</label>
+                <input asp-for="Quantity" class="form-control calc-trigger" type="number" id="qty" />
+            </div>
+            <div class="form-group">
+                <label>Komponent Birim Fiyatı (₺)</label>
+                <input asp-for="ComponentUnitPrice" class="form-control calc-trigger" type="number" step="0.01" id="unitPrice" />
+            </div>
+            <div class="form-group">
+                <label>Kumaş Fiyatı</label>
+                <input asp-for="FabricPrice" class="form-control" type="number" step="0.01" />
+            </div>
+            
+            <div class="form-group">
+                <label>Toplam Tutar (₺)</label>
+                <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" id="totalAmt" readonly />
+            </div>
+            <div class="form-group">
+                <label>%10 KDV (₺)</label>
+                <input asp-for="VatAmount" class="form-control" type="number" step="0.01" id="vatAmt" readonly />
+            </div>
+            <div class="form-group">
+                <label style="color:var(--primary-color);">KDV'li Toplam Tutar (₺)</label>
+                <input asp-for="TotalAmountWithVat" class="form-control" type="number" step="0.01" id="grandTotal" readonly style="border-color:var(--primary-color); font-weight:bold; color:var(--primary-color); background:#ccfbf1;" />
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: right; margin-bottom: 40px;">
+        <button type="submit" class="btn-planner" style="font-size: 1.1rem; padding: 14px 30px;"><i class="fa-solid fa-save"></i> Formu Kaydet ve Plana Al</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            
+            $('#inspectionType').change(function() {
+                if($(this).val()) {
+                    $('#inspectionDate').prop('disabled', false);
+                } else {
+                    $('#inspectionDate').prop('disabled', true);
+                    $('#inspectionDate').val('');
+                }
+            });
+
+           
+            $('.calc-trigger').on('input', function() {
+                var qty = parseFloat($('#qty').val()) || 0;
+                var price = parseFloat($('#unitPrice').val()) || 0;
+                
+                var total = qty * price;
+                var vat = total * 0.10; 
+                var grand = total + vat;
+
+                $('#totalAmt').val(total.toFixed(2));
+                $('#vatAmt').val(vat.toFixed(2));
+                $('#grandTotal').val(grand.toFixed(2));
+            });
+        });
+    </script>
+}

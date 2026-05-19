@@ -1,0 +1,65 @@
+@model List<UretimPlanlama.Models.Fabricator>
+@{
+    ViewData["Title"] = "Kumaşçı Tanımı";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Kumaşçı Tanımı</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Tedarikçi ve kumaşçı listesi</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/CreateFabricator" class="btn-planner" style="text-decoration: none;"><i class="fa-solid fa-plus"></i> Yeni Kumaşçı Ekle</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Mevcut Kumaşçılar</h2>
+                <p>Sistemde tanımlı tedarikçiler ve hammadde sağlayıcıları</p>
+            </div>
+            <div class="search-box" style="width: 300px; margin-top: -10px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="Kumaşçı ara..." />
+            </div>
+        </div>
+
+        <div class="schedule-list">
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="schedule-item" style="justify-content: center; padding: 40px;">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-truck" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p style="font-size: 1.1rem; margin: 0;">Henüz kayıtlı bir kumaşçı bulunmuyor.</p>
+                        <p style="font-size: 0.9rem; margin-top: 5px;">Yeni bir kumaşçı tanımlamak için sağ üstteki butonu kullanabilirsiniz.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var f in Model)
+                {
+                    <div class="schedule-item" style="padding: 16px 24px;">
+                        <div class="time-slot" style="margin-right: 20px;">
+                            <span style="color: var(--primary-color);"><i class="fa-solid fa-truck fa-lg"></i></span>
+                        </div>
+                        <div class="job-info" style="flex-grow: 1;">
+                            <div class="job-title" style="margin: 0;">
+                                <span class="job-id" style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">@f.Name</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

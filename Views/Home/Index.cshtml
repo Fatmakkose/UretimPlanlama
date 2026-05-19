@@ -1,0 +1,174 @@
+@model List<UretimPlanlama.Models.Order>
+@{
+    ViewData["Title"] = "Üretim Planlama Dashboard";
+}
+
+<div class="dashboard-header">
+    <div class="header-title">
+        <h1>Sipariş & Üretim Planlama</h1>
+        <p>Gelen LCW siparişleri, atölye kaynak yönetimi ve kumaş metraj karşılaştırma paneli</p>
+    </div>
+</div>
+
+<div class="stat-cards">
+    <div class="stat-card">
+        <div class="stat-icon icon-teal">
+            <i class="fa-regular fa-calendar-check"></i>
+        </div>
+        <div class="stat-title">Planlanan Siparişler</div>
+        <div class="stat-value">@ViewBag.PlannedOrdersCount</div>
+        <div class="stat-desc">Sistemde kayıtlı toplam sipariş</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon icon-light-teal">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+        </div>
+        <div class="stat-title">Kumaş Karşılama Performansı</div>
+        <div class="stat-value">@ViewBag.FabricMatchRate%</div>
+        <div class="stat-desc text-success">Gerçekleşen / Hedef oranı</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon icon-light-teal">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-title">Aktif Atölye Sayısı</div>
+        <div class="stat-value">@ViewBag.ActiveWorkshopsCount / @ViewBag.TotalWorkshopsCount</div>
+        <div class="stat-desc">Üretimde aktif olanlar</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon icon-light-teal" style="background: #fef3c7; color: #d97706;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <div class="stat-title">Kumaş Eksik & Bekleyen</div>
+        <div class="stat-value">@ViewBag.MissingFabricCount</div>
+        <div class="stat-desc text-warning">Dikkat gerektiren siparişler</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- SOL TARAF: AKTİF SİPARİŞ LİSTESİ -->
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Üretim Planı (LCW Siparişleri)</h2>
+                <p>Sistemdeki en güncel üretim kayıtları ve durumları</p>
+            </div>
+        </div>
+        
+        <div class="schedule-list">
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="schedule-item" style="justify-content: center; padding: 60px;">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-clipboard-list" style="font-size: 3.5rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p style="font-size: 1.2rem; margin: 0;">Henüz aktif bir sipariş kaydı bulunmuyor.</p>
+                        <p style="font-size: 0.95rem; margin-top: 5px;">Yeni bir sipariş oluşturarak planlamaya başlayabilirsiniz.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var order in Model)
+                {
+                    <div class="schedule-item">
+                        <div class="time-slot" style="min-width: 140px;">
+                            <span>Sipariş Kodu</span>
+                            <strong>@order.OrderCode</strong>
+                            <span style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">@order.OrderDate.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <div class="job-info" style="flex-grow: 1; margin-left: 20px;">
+                            <div class="job-title" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span class="job-id" style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">@order.ModelName</span>
+                                <span class="badge badge-progress" style="background-color: var(--primary-bg); color: var(--primary-color);">@order.Color</span>
+                                <span class="badge badge-scheduled">@order.Brand</span>
+                                @if (order.TargetFabricQty.HasValue && order.ActualFabricQty.HasValue)
+                                {
+                                    var diff = order.TargetFabricQty.Value - order.ActualFabricQty.Value;
+                                    if (diff > 0)
+                                    {
+                                        <span class="badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Eksik: @Math.Round(diff, 1) kg
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge" style="background-color: #ecfdf5; color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                            <i class="fa-solid fa-circle-check"></i> Kumaş Tam
+                                        </span>
+                                    }
+                                }
+                            </div>
+                            <div class="machine-info" style="margin-top: 8px; color: var(--text-muted); font-size: 0.9rem; display: flex; flex-direction: column; gap: 4px;">
+                                <div>
+                                    <i class="fa-solid fa-industry" style="margin-right: 6px; opacity: 0.7;"></i> Üretim Yeri: <strong>@order.ProductionPlace</strong>
+                                    <span style="margin: 0 8px; opacity: 0.5;">•</span>
+                                    <i class="fa-solid fa-truck" style="margin-right: 6px; opacity: 0.7;"></i> Kumaşçı: <strong>@order.FabricSupplier</strong>
+                                </div>
+                                <div style="display: flex; gap: 12px; margin-top: 4px; background: rgba(0,0,0,0.02); padding: 6px 10px; border-radius: 6px;">
+                                    <span>Adet: <strong>@order.Quantity.ToString("N0")</strong></span>
+                                    <span style="opacity: 0.5;">|</span>
+                                    <span>Hedef Kumaş: <strong>@(order.TargetFabricQty?.ToString("N1") ?? "-") kg</strong></span>
+                                    <span style="opacity: 0.5;">|</span>
+                                    <span>Gelen Kumaş: <strong>@(order.ActualFabricQty?.ToString("N1") ?? "-") kg</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    
+    <!-- SAĞ TARAF: ATÖLYE BAZLI KUMAŞ TAKİP PANELİ -->
+    <div class="resources-section">
+        <div class="section-header">
+            <div>
+                <h2>Atölye Bazlı Kumaş Takibi</h2>
+                <p>Hedeflenen kumaş ihtiyacının gerçekleşen sevkiyatla karşılaştırılması</p>
+            </div>
+        </div>
+        
+        <div class="resource-list">
+            @if (ViewBag.WorkshopSummaries == null || ((List<UretimPlanlama.Controllers.HomeController.WorkshopFabricSummary>)ViewBag.WorkshopSummaries).Count == 0)
+            {
+                <div style="text-align: center; color: var(--text-muted); padding: 40px 10px;">
+                    <i class="fa-solid fa-chart-pie" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4;"></i>
+                    <p style="font-size: 0.95rem; margin: 0;">Henüz atölye atamalı aktif sipariş bulunmuyor.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var summary in (List<UretimPlanlama.Controllers.HomeController.WorkshopFabricSummary>)ViewBag.WorkshopSummaries)
+                {
+                    var matchRate = summary.MatchRate;
+                    var barColor = matchRate >= 98 ? "var(--primary-color)" : matchRate >= 90 ? "#eab308" : "#ef4444";
+                    var rateBadgeColor = matchRate >= 98 ? "badge-progress" : matchRate >= 90 ? "badge-medium" : "badge-high";
+
+                    <div class="resource-item" style="border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-bottom: 14px; background: white; transition: transform 0.2s, box-shadow 0.2s;">
+                        <div class="resource-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <strong style="font-size: 1rem; color: var(--text-main);"><i class="fa-solid fa-industry" style="margin-right: 6px; color: var(--text-muted);"></i> @summary.WorkshopName</strong>
+                            <span class="badge @rateBadgeColor" style="font-weight: bold;">%@Math.Round(matchRate, 1) Karşılama</span>
+                        </div>
+                        <div class="progress-bar" style="height: 10px; background: rgba(0, 0, 0, 0.06); border-radius: 6px; overflow: hidden; margin: 10px 0;">
+                            <div class="progress-fill" style="width: @(Math.Min(matchRate, 100))%; background: @barColor; height: 100%; border-radius: 6px; transition: width 0.6s;"></div>
+                        </div>
+                        <div class="resource-desc" style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                            <span>Hedef Kumaş: <strong>@summary.TotalTarget.ToString("N1") kg</strong></span>
+                            <span>Gerçekleşen: <strong style="color: var(--text-main);">@summary.TotalActual.ToString("N1") kg</strong></span>
+                        </div>
+                        @if (matchRate < 95)
+                        {
+                            <div style="margin-top: 10px; font-size: 0.8rem; background-color: #fef2f2; color: #ef4444; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>Kritik kumaş açığı tespit edildi! Fire oranını kontrol edin.</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,140 @@
+@using Microsoft.AspNetCore.Identity
+@using UretimPlanlama.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var fullName = currentUser?.FullName ?? "Misafir";
+    var roleTitle = currentUser?.RoleTitle ?? "Kullanıcı";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CPS Üretim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="wrapper">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon">C</div>
+                <div class="logo-text">
+                    <span class="logo-text-main">CPS Platform</span>
+                    <span class="logo-text-sub">Sipariş & Üretim</span>
+                </div>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"><i class="fa-solid fa-shapes"></i> Dashboard</a></li>
+                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" ? "active" : "")"><i class="fa-regular fa-calendar"></i> Planlama</a></li>
+                <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")"><i class="fa-solid fa-briefcase"></i> Siparişler (LCW)</a></li>
+
+                <li><a href="/Inventory" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Inventory" ? "active" : "")"><i class="fa-solid fa-box"></i> Depo / Kumaş</a></li>
+                <li><a href="/Reports" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")"><i class="fa-solid fa-chart-line"></i> Raporlar</a></li>
+                
+                @if (User.IsInRole("Admin"))
+                {
+                    <li class="nav-item-has-submenu">
+                        <a href="#" class="menu-toggle @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Definitions" ? "active" : "")" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span><i class="fa-solid fa-layer-group"></i> Tanımlar</span>
+                            <i class="fa-solid fa-chevron-down submenu-icon" style="font-size: 0.8rem; margin-right: 0;"></i>
+                        </a>
+                        <ul class="submenu" style="display: @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Definitions" ? "block" : "none"); list-style: none; padding-left: 10px; margin-top: 5px;">
+                            <li><a href="/Definitions/Workshops" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Workshops" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-industry" style="font-size: 0.9rem;"></i> Atölye Tanımı</a></li>
+                            <li><a href="/Definitions/Fabricators" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Fabricators" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-truck" style="font-size: 0.9rem;"></i> Kumaşçı Tanımı</a></li>
+                            <li><a href="/Definitions/Customers" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Customers" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-building" style="font-size: 0.9rem;"></i> Müşteri Tanımı</a></li>
+                        </ul>
+                    </li>
+                }
+            </ul>
+            <ul class="sidebar-menu" style="flex-grow: 0; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top:0;">
+                @if (User.IsInRole("Admin"))
+                {
+                    <li><a href="/Maintenance"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+                    <li><a href="/Settings"><i class="fa-solid fa-gear"></i> Settings</a></li>
+                }
+            </ul>
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <div class="status-main">
+                        <div class="status-dot"></div> All Systems Operational
+                    </div>
+                    <div class="status-sub">
+                        92 machines connected • 0 alerts
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+     
+        <main class="main-content">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="btn-planner">Production Planner <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem;"></i></button>
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" placeholder="Search jobs, machines, operators..." />
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="bell-btn"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-profile dropdown" style="position: relative; cursor: pointer;">
+                        <img src="https://ui-avatars.com/api/?name=@fullName&background=00c29f&color=fff" alt="User Profile" />
+                        <div style="display: flex; flex-direction: column;">
+                            <span class="user-name">@fullName</span>
+                            <span class="user-role">@roleTitle</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down" style="color: var(--text-muted); font-size: 0.8rem; margin-left: 5px;"></i>
+                        
+                        <div class="dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 1000; padding: 8px 0; margin-top: 10px;">
+                            <a href="/Settings/Profile" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 0.9rem;"><i class="fa-solid fa-user" style="margin-right: 8px; color: var(--text-muted);"></i> Profili Düzenle</a>
+                            <div style="border-top: 1px solid var(--border-color); margin: 4px 0;"></div>
+                            <a href="/Account/Logout" style="display: block; padding: 10px 16px; color: var(--danger-text); text-decoration: none; font-size: 0.9rem;"><i class="fa-solid fa-right-from-bracket" style="margin-right: 8px;"></i> Çıkış Yap</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function() {
+            $('.menu-toggle').click(function(e) {
+                e.preventDefault();
+                const submenu = $(this).next('.submenu');
+                const icon = $(this).find('.submenu-icon');
+                submenu.slideToggle(200);
+                if (icon.hasClass('fa-chevron-down')) {
+                    icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                } else {
+                    icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                }
+            });
+            
+            if ($('.submenu').is(':visible')) {
+                $('.submenu').prev('.menu-toggle').find('.submenu-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            }
+
+            // Profile dropdown toggle
+            $('.user-profile').click(function(e) {
+                e.stopPropagation();
+                $(this).find('.dropdown-menu').fadeToggle(150);
+            });
+            $(document).click(function() {
+                $('.user-profile .dropdown-menu').fadeOut(150);
+            });
+            $('.user-profile .dropdown-menu').click(function(e) {
+                e.stopPropagation();
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
