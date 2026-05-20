@@ -133,8 +133,10 @@ namespace UretimPlanlama.Controllers
                 worksheet.Cell(currentRow, 19).Value = "Nihai Toplam Miktar";
                 worksheet.Cell(currentRow, 20).Value = "Bölge";
                 worksheet.Cell(currentRow, 21).Value = "JIT";
+                worksheet.Cell(currentRow, 22).Value = "Dinamik Açık Adet Dağılımı";
+                worksheet.Cell(currentRow, 23).Value = "Dinamik Asorti Dağılımı";
 
-                var headerRange = worksheet.Range(1, 1, 1, 21);
+                var headerRange = worksheet.Range(1, 1, 1, 23);
                 headerRange.Style.Font.Bold = true;
                 headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
 
@@ -166,6 +168,8 @@ namespace UretimPlanlama.Controllers
                     worksheet.Cell(currentRow, 19).Value = order.Quantity;
                     worksheet.Cell(currentRow, 20).Value = order.SalesRegion;
                     worksheet.Cell(currentRow, 21).Value = order.IsJIT ? "Evet" : "Hayır";
+                    worksheet.Cell(currentRow, 22).Value = FormatJsonDistribution(order.SizeDistributionJson, order, false);
+                    worksheet.Cell(currentRow, 23).Value = FormatJsonDistribution(order.AsortiDistributionJson, order, true);
                 }
 
                 worksheet.Columns().AdjustToContents();
@@ -176,6 +180,44 @@ namespace UretimPlanlama.Controllers
                     var content = stream.ToArray();
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Siparisler.xlsx");
                 }
+            }
+        }
+
+        private string FormatJsonDistribution(string? json, Order order, bool isAsorti)
+        {
+            if (string.IsNullOrEmpty(json))
+            {
+                var list = new List<string>();
+                if (isAsorti)
+                {
+                    if (order.AsortiSizeS > 0) list.Add($"S: {order.AsortiSizeS}");
+                    if (order.AsortiSizeM > 0) list.Add($"M: {order.AsortiSizeM}");
+                    if (order.AsortiSizeL > 0) list.Add($"L: {order.AsortiSizeL}");
+                    if (order.AsortiSizeXL > 0) list.Add($"XL: {order.AsortiSizeXL}");
+                    if (order.AsortiSize2XL > 0) list.Add($"2XL: {order.AsortiSize2XL}");
+                    if (order.AsortiSize3XL > 0) list.Add($"3XL: {order.AsortiSize3XL}");
+                }
+                else
+                {
+                    if (order.SizeS > 0) list.Add($"S: {order.SizeS}");
+                    if (order.SizeM > 0) list.Add($"M: {order.SizeM}");
+                    if (order.SizeL > 0) list.Add($"L: {order.SizeL}");
+                    if (order.SizeXL > 0) list.Add($"XL: {order.SizeXL}");
+                    if (order.Size2XL > 0) list.Add($"2XL: {order.Size2XL}");
+                    if (order.Size3XL > 0) list.Add($"3XL: {order.Size3XL}");
+                }
+                return string.Join(", ", list);
+            }
+            
+            try
+            {
+                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(json);
+                if (dict == null || dict.Count == 0) return string.Empty;
+                return string.Join(", ", dict.Select(kv => $"{kv.Key}: {kv.Value}"));
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
     }

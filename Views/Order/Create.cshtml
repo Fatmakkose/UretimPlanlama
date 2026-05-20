@@ -33,13 +33,13 @@
                 <label>Ödeme Şekli</label>
                 <select asp-for="PaymentMethod" class="form-control" id="paymentmethod">
                     <option value="">-Seçiniz-</option>
-                    <option value="">Peşin</option>
-                    <option value="">Nakit</option>
+                    <option value="Peşin">Peşin</option>
+                    <option value="Vadeli">Vadeli</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Üretici Cari Kod</label>
-                <input asp-for="ManufacturerCode" class="form-control" />
+                <input asp-for="ManufacturerCode" class="form-control" value="S0.TRLC-S0013909" readonly />
             </div>
             <div class="form-group">
                 <label>Üretici Firma</label>
@@ -67,7 +67,7 @@
                 <input asp-for="Color" class="form-control" />
             </div>
             <div class="form-group">
-                <label>Mal Tanımı</label>
+                <label>Model Detay</label>
                 <input asp-for="GoodsDescription" class="form-control" />
             </div>
             <div class="form-group">

@@ -62,6 +62,8 @@ namespace UretimPlanlama.Models
         public string? Color { get; set; }
 
         public string? OptionCode { get; set; } // Renk bazlı model/varyant numarası
+        public string? SizeDistributionJson { get; set; } // Dinamik Açık Beden Dağılımı JSON
+        public string? AsortiDistributionJson { get; set; } // Dinamik Asorti Dağılımı JSON
         public string? FabricStatus { get; set; } 
         public string? ProductionPlace { get; set; } 
         public string? Status { get; set; } 

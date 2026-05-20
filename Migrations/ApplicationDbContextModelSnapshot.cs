@@ -316,6 +316,9 @@ namespace UretimPlanlama.Migrations
                     b.Property<int>("AsortiCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("AsortiDistributionJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("AsortiSize2XL")
                         .HasColumnType("int");
 
@@ -447,6 +450,9 @@ namespace UretimPlanlama.Migrations
 
                     b.Property<int>("Size3XL")
                         .HasColumnType("int");
+
+                    b.Property<string>("SizeDistributionJson")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SizeL")
                         .HasColumnType("int");

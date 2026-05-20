@@ -168,7 +168,6 @@
     </table>
 </div>
 
-<!-- Planlama Modal -->
 <div class="modal-overlay" id="planModalOverlay">
     <div class="modal-content" style="max-width: 900px;">
         <div class="modal-header">
@@ -180,7 +179,7 @@
             
             <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-height: 70vh; overflow-y: auto;">
                 
-                <!-- 1. Kumaş & Tedarik -->
+             
                 <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <h4 style="margin-top:0; color:#0f172a; border-bottom:1px solid #cbd5e1; padding-bottom:8px;"><i class="fa-solid fa-layer-group" style="margin-right:6px; color:#64748b;"></i> 1. Kumaş & Tedarik</h4>
                     
@@ -213,7 +212,8 @@
                     </div>
                 </div>
 
-                <!-- 2. Üretim (Kesim & Dikim) -->
+             
+
                 <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <h4 style="margin-top:0; color:#0f172a; border-bottom:1px solid #cbd5e1; padding-bottom:8px;"><i class="fa-solid fa-scissors" style="margin-right:6px; color:#64748b;"></i> 2. Üretim (Kesim/Dikim)</h4>
                     
@@ -252,7 +252,6 @@
                     </div>
                 </div>
 
-                <!-- 3. Paket & Sevk -->
                 <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <h4 style="margin-top:0; color:#0f172a; border-bottom:1px solid #cbd5e1; padding-bottom:8px;"><i class="fa-solid fa-box" style="margin-right:6px; color:#64748b;"></i> 3. Paket & Sevk</h4>
                     
@@ -261,7 +260,7 @@
                             <label>Son Inspection</label>
                             <input type="date" name="LastInspectionDate" id="planInspc" class="form-control" />
                         </div>
-                        <div></div> <!-- Boşluk -->
+                        <div></div> 
                         
                         <div class="form-group">
                             <label>Paket Başlangıç</label>
@@ -283,7 +282,7 @@
                     </div>
                 </div>
 
-                <!-- 4. Finans & Maliyet -->
+             
                 <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; border: 1px solid #bbf7d0;">
                     <h4 style="margin-top:0; color:#166534; border-bottom:1px solid #bbf7d0; padding-bottom:8px;"><i class="fa-solid fa-money-bill-trend-up" style="margin-right:6px;"></i> 4. Finans (Birim)</h4>
                     
@@ -342,8 +341,7 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            
-            // Tarih formatlama fonksiyonu (YYYY-MM-DD for input type="date")
+           
             function formatDateForInput(dateString) {
                 if (!dateString) return "";
                 var d = new Date(dateString);
@@ -361,7 +359,7 @@
                 $('#planOrderId').val(order.id);
                 $('#modalOrderCodeTitle').text(" - " + order.orderCode);
                 
-                // Form Doldurma
+                
                 $('#planFabricSupplier').val(order.fabricSupplier || "");
                 $('#planFabricAgreed').val(formatDateForInput(order.fabricArrivalAgreedDate));
                 $('#planFabricActual').val(formatDateForInput(order.fabricArrivalActualDate));
@@ -392,7 +390,7 @@
                 $('#planModalOverlay').removeClass('active');
             });
             
-            // Kâr Hesaplama
+            
             function calculateLiveProfit() {
                 var cost = parseFloat($('#planCost').val()) || 0;
                 var price = parseFloat($('#planPrice').val()) || 0;

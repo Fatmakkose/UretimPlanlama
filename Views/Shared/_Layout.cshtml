@@ -29,9 +29,9 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"><i class="fa-solid fa-shapes"></i> Dashboard</a></li>
-                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" ? "active" : "")"><i class="fa-regular fa-calendar"></i> Planlama</a></li>
+               
                 <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")"><i class="fa-solid fa-briefcase"></i> Siparişler (LCW)</a></li>
-
+                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" ? "active" : "")"><i class="fa-regular fa-calendar"></i> Planlama</a></li>
                 <li><a href="/Inventory" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Inventory" ? "active" : "")"><i class="fa-solid fa-box"></i> Depo / Kumaş</a></li>
                 <li><a href="/Reports" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")"><i class="fa-solid fa-chart-line"></i> Raporlar</a></li>
                 
