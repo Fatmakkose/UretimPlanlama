@@ -19,17 +19,27 @@ namespace UretimPlanlama.Controllers
 
         public IActionResult Index()
         {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
+            ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             return View(orders);
         }
 
         public IActionResult Create()
         {
+            if (!User.HasPermission("Write"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             return View();
         }
 
@@ -37,23 +47,32 @@ namespace UretimPlanlama.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Order order)
         {
+            if (!User.HasPermission("Write"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             if (ModelState.IsValid)
             {
                 order.Status = "Yeni Kayıt";
                 order.FabricStatus = "Bekleniyor";
                 _context.Add(order);
                 _context.SaveChanges();
-                TempData["SuccessMessage"] = "Yeni sipariş başarıyla eklendi.";
+                TempData["SuccessMessage"] = "Sipariş oluşturuldu";
                 return RedirectToAction(nameof(Index)); // Redirect directly to the order management page
             }
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             return View(order);
         }
 
         [HttpPost]
         public IActionResult CreateMultiple([FromBody] List<Order> orders)
         {
+            if (!User.HasPermission("Write"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
             if (orders == null || orders.Count == 0)
                 return Json(new { success = false, message = "Hiç sipariş satırı gönderilmedi." });
 
@@ -66,7 +85,7 @@ namespace UretimPlanlama.Controllers
                     _context.Add(order);
                 }
                 _context.SaveChanges();
-                TempData["SuccessMessage"] = $"{orders.Count} adet yeni renk/sipariş başarıyla oluşturuldu.";
+                TempData["SuccessMessage"] = "Sipariş oluşturuldu";
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -78,6 +97,10 @@ namespace UretimPlanlama.Controllers
         [HttpPost]
         public IActionResult UpdateStatus(int id, string status)
         {
+            if (!User.HasPermission("Write"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
             var order = _context.Orders.Find(id);
             if (order != null)
             {
@@ -91,6 +114,10 @@ namespace UretimPlanlama.Controllers
         [HttpPost]
         public IActionResult UpdateFabricStatus(int id, string status)
         {
+            if (!User.HasPermission("Write"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
             var order = _context.Orders.Find(id);
             if (order != null)
             {
@@ -102,8 +129,27 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpGet]
+        public IActionResult GetDetail(int id)
+        {
+            if (!User.HasPermission("View"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
+            var order = _context.Orders.Find(id);
+            if (order == null)
+            {
+                return Json(new { success = false, message = "Sipariş bulunamadı." });
+            }
+            return Json(new { success = true, data = order });
+        }
+
+        [HttpGet]
         public IActionResult ExportToExcel()
         {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
 
             using (var workbook = new XLWorkbook())
@@ -129,7 +175,7 @@ namespace UretimPlanlama.Controllers
                 worksheet.Cell(currentRow, 15).Value = "XL Beden (Asorti)";
                 worksheet.Cell(currentRow, 16).Value = "2XL Beden (Asorti)";
                 worksheet.Cell(currentRow, 17).Value = "3XL Beden (Asorti)";
-                worksheet.Cell(currentRow, 18).Value = "Asorti Çarpanı";
+                worksheet.Cell(currentRow, 18).Value = "Asorti Sayısı";
                 worksheet.Cell(currentRow, 19).Value = "Nihai Toplam Miktar";
                 worksheet.Cell(currentRow, 20).Value = "Bölge";
                 worksheet.Cell(currentRow, 21).Value = "JIT";

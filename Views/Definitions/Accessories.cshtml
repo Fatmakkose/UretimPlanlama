@@ -1,0 +1,91 @@
+@using UretimPlanlama.Models
+@model List<Accessory>
+@{
+    ViewData["Title"] = "Aksesuar Tanımı";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Aksesuar Tanımı</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Üretimde kullanılan düğme, fermuar, etiket, iplik vb. aksesuarların yönetimi</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/CreateAccessory" class="btn-planner" style="text-decoration: none;"><i class="fa-solid fa-plus"></i> Yeni Aksesuar Ekle</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Mevcut Aksesuarlar</h2>
+                <p>Sistemde tanımlı olan aksesuar çeşitleri ve detayları</p>
+            </div>
+            <div class="search-box" style="width: 300px; margin-top: -10px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="accessorySearchInput" placeholder="Aksesuar ara..." onkeyup="filterAccessories()" />
+            </div>
+        </div>
+
+        <div class="schedule-list" id="accessoryList">
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var accessory in Model)
+                {
+                    <div class="schedule-item accessory-item" data-name="@accessory.Name.ToLower()" data-type="@accessory.Type.ToLower()">
+                        <div class="time-slot">
+                            <span style="color: var(--primary-color);"><i class="fa-solid fa-tags fa-lg"></i></span>
+                        </div>
+                        <div class="job-info">
+                            <div class="job-title">
+                                <span class="job-id" style="font-size: 1.1rem;">@accessory.Name</span>
+                                <span class="badge badge-progress">@accessory.Type</span>
+                                <span class="badge badge-scheduled">Birim: @accessory.Unit</span>
+                            </div>
+                            <div class="machine-info">
+                                Stok Kodu: @(string.IsNullOrEmpty(accessory.StockCode) ? "-" : accessory.StockCode)
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-modify"><i class="fa-solid fa-pen"></i> Düzenle</button>
+                            <button class="btn-modify" style="color: var(--danger-text); border-color: var(--danger-text);"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="schedule-item" style="justify-content: center; padding: 40px;">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-tags" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p style="font-size: 1.1rem; margin: 0;">Henüz kayıtlı bir aksesuar bulunmuyor.</p>
+                        <p style="font-size: 0.9rem; margin-top: 5px;">Yeni bir aksesuar tanımlamak için sağ üstteki butonu kullanabilirsiniz.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterAccessories() {
+        const query = document.getElementById("accessorySearchInput").value.toLowerCase();
+        const items = document.querySelectorAll(".accessory-item");
+        items.forEach(item => {
+            const name = item.getAttribute("data-name") || "";
+            const type = item.getAttribute("data-type") || "";
+            if (name.includes(query) || type.includes(query)) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+</script>

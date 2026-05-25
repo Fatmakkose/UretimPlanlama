@@ -1,0 +1,59 @@
+@{
+    ViewData["Title"] = "Yeni Firma Ekle";
+}
+
+<form action="/Definitions/CreateCompany" method="post">
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Yeni Firma Ekle</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Sisteme yeni bir iş ortağı firma veya tedarikçi tanımlayın</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/Companies" class="btn-secondary" style="text-decoration: none;">İptal</a>
+        <button type="submit" class="btn-planner"><i class="fa-solid fa-save"></i> Kaydet</button>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Firma Bilgileri</h2>
+                <p>Firmanın temel bilgilerini, fatura ve iletişim detaylarını giriniz.</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="form-group">
+                <label>Firma Adı</label>
+                <input type="text" name="Name" class="form-control" placeholder="Örn: Özkan Tekstil Ltd. Şti." required />
+            </div>
+
+            <div class="form-group">
+                <label>Telefon</label>
+                <input type="text" name="Phone" class="form-control" placeholder="0212 XXX XX XX" />
+            </div>
+
+            <div class="form-group">
+                <label>E-Posta</label>
+                <input type="email" name="Email" class="form-control" placeholder="info@firma.com" />
+            </div>
+
+            <div class="form-group">
+                <label>Vergi Dairesi</label>
+                <input type="text" name="TaxOffice" class="form-control" placeholder="Örn: Merter Vergi Dairesi" />
+            </div>
+
+            <div class="form-group">
+                <label>Vergi Numarası</label>
+                <input type="text" name="TaxNumber" class="form-control" placeholder="10 Haneli Vergi No" maxlength="10" />
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Firma Adresi</label>
+                <textarea name="Address" class="form-control" rows="3" placeholder="Açık adres bilgisi giriniz..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+</form>

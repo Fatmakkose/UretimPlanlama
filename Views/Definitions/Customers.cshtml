@@ -50,10 +50,6 @@
                             </div>
                             <div class="machine-info">
                                 Telefon: @(string.IsNullOrEmpty(customer.Phone) ? "-" : customer.Phone) • Email: @(string.IsNullOrEmpty(customer.Email) ? "-" : customer.Email)
-                                @if(!string.IsNullOrEmpty(customer.TaxInfo))
-                                {
-                                    <text>• V.D: @customer.TaxInfo</text>
-                                }
                             </div>
                         </div>
                         <div style="display: flex; gap: 8px;">

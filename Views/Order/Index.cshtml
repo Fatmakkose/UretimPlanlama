@@ -134,7 +134,7 @@
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;" class="order-row">
                            
                             <td style="padding: 16px;">
-                                <strong style="color: var(--text-main); font-size: 0.95rem; display: block;">@order.OrderCode</strong>
+                                 <a href="#" class="view-order-detail" data-id="@order.Id" style="color: var(--text-main); font-size: 0.95rem; font-weight: 700; display: block; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='var(--text-main)';">@order.OrderCode</a>
                                 <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 4px;">
                                     <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>@order.OrderDate.ToString("dd.MM.yyyy")
                                 </span>
@@ -235,6 +235,266 @@
 </div>
 
 
+<!-- Sipariş Detay Modal -->
+<div id="orderDetailModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; transition: all 0.3s ease;">
+    <div class="modal-content" style="background: white; width: 90%; max-width: 1000px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; transform: scale(0.95); transition: transform 0.3s ease; display: flex; flex-direction: column; max-height: 90%;">
+        
+        <!-- Header -->
+        <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-folder-open" style="color: var(--primary-color);"></i> Sipariş Detayı: <span id="detOrderCode" style="color: var(--primary-color);">...</span>
+                </h3>
+                <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
+                    <i class="fa-regular fa-calendar"></i> Sipariş Tarihi: <span id="detOrderDate">...</span>
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-right: 20px;">
+                <span id="detStatusBadge" class="badge" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; font-weight: 600;">...</span>
+                <span id="detFabricBadge" class="badge" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; font-weight: 600;">...</span>
+                <span id="detJITBadge" class="badge" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; font-weight: 600; display: none;">JIT</span>
+            </div>
+            <button id="btnCloseDetailModal" style="background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Body -->
+        <div style="overflow-y: auto; padding: 24px; flex-grow: 1;">
+            
+            <!-- Grid Layout: Genel Bilgiler & Finans -->
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-bottom: 24px;">
+                
+                <!-- Genel & Ürün Bilgileri Kartı -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                    <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                        <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Ürün ve Genel Bilgiler
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 0.9rem;">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-shirt" style="margin-right: 8px; width: 14px;"></i>Model Adı</span>
+                            <strong id="detModelName" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-tag" style="margin-right: 8px; width: 14px;"></i>Model No</span>
+                            <strong id="detModelNo" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-palette" style="margin-right: 8px; width: 14px;"></i>Renk / Option</span>
+                            <strong id="detColor" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-copyright" style="margin-right: 8px; width: 14px;"></i>Marka</span>
+                            <strong id="detBrand" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-user-tie" style="margin-right: 8px; width: 14px;"></i>Alıcı (Müşteri)</span>
+                            <strong id="detCustomer" style="color: var(--text-main);">LC Waikiki</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-nodes" style="margin-right: 8px; width: 14px;"></i>Bölge</span>
+                            <strong id="detRegion" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-magnifying-glass-chart" style="margin-right: 8px; width: 14px;"></i>Inspection Tipi</span>
+                            <strong id="detInspectionType" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-calendar-check" style="margin-right: 8px; width: 14px;"></i>Inspection Tarihi</span>
+                            <strong id="detInspectionDate" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-map-location-dot" style="margin-right: 8px; width: 14px;"></i>Teslim Yeri</span>
+                            <strong id="detDeliveryPlace" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-comment-dots" style="margin-right: 8px; width: 14px;"></i>Açıklama</span>
+                            <strong id="detDescription" style="color: var(--text-main); font-weight: 500; text-align: right; max-width: 250px; display: block; word-wrap: break-word;">...</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finansal Bilgiler Kartı -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column;">
+                    <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                        <i class="fa-solid fa-coins" style="margin-right: 6px;"></i> Finansal Bilgiler & Maliyetler
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 0.9rem; flex-grow: 1;">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-boxes-stacked" style="margin-right: 8px; width: 14px;"></i>Toplam Sipariş</span>
+                            <strong id="detQuantity" style="color: var(--text-main); font-size: 1rem;">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-tag" style="margin-right: 8px; width: 14px;"></i>Birim Fiyatı</span>
+                            <strong id="detUnitPrice" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-money-bill-wave" style="margin-right: 8px; width: 14px;"></i>KDV'siz Toplam</span>
+                            <strong id="detTotalAmount" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-percent" style="margin-right: 8px; width: 14px;"></i>KDV Tutarı (%10)</span>
+                            <strong id="detVatAmount" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-credit-card" style="margin-right: 8px; width: 14px;"></i>Ödeme Şekli</span>
+                            <strong id="detPaymentMethod" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-id-card" style="margin-right: 8px; width: 14px;"></i>Üretici Cari Kodu</span>
+                            <strong id="detManufacturerCode" style="color: var(--text-main);">...</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-building" style="margin-right: 8px; width: 14px;"></i>Üretici Firma</span>
+                            <strong id="detManufacturerCompany" style="color: var(--text-main);">...</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- KDV Dahil Vurgulanan Toplam Kutu -->
+                    <div style="background: #e6fcf5; border: 1px solid rgba(13, 148, 136, 0.2); border-radius: 8px; padding: 12px; margin-top: 15px; text-align: center;">
+                        <div style="font-size: 0.75rem; color: #0d9488; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">KDV Dahil Toplam Tutar</div>
+                        <div id="detTotalWithVat" style="font-size: 1.4rem; font-weight: 700; color: #0d9488; margin-top: 2px;">...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Beden Dağılımı Kartı -->
+            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 24px;">
+                <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <i class="fa-solid fa-layer-group" style="margin-right: 6px;"></i> Detaylı Beden & Asorti Dağılımları
+                </h4>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-muted);">
+                                <th style="padding: 8px; text-align: left;">Beden Türü</th>
+                                <th style="padding: 8px;">S</th>
+                                <th style="padding: 8px;">M</th>
+                                <th style="padding: 8px;">L</th>
+                                <th style="padding: 8px;">XL</th>
+                                <th style="padding: 8px;">2XL</th>
+                                <th style="padding: 8px;">3XL</th>
+                                <th style="padding: 8px; border-left: 1px solid var(--border-color); color: var(--text-main);">Toplam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Açık Adetler Satırı -->
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #0284c7;">Açık Adet</td>
+                                <td id="detSizeS" style="padding: 12px 8px;">0</td>
+                                <td id="detSizeM" style="padding: 12px 8px;">0</td>
+                                <td id="detSizeL" style="padding: 12px 8px;">0</td>
+                                <td id="detSizeXL" style="padding: 12px 8px;">0</td>
+                                <td id="detSize2XL" style="padding: 12px 8px;">0</td>
+                                <td id="detSize3XL" style="padding: 12px 8px;">0</td>
+                                <td id="detOpenTotal" style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #0284c7; background: #e0f2fe;">0</td>
+                            </tr>
+                            <!-- Asorti Oranları Satırı -->
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #16a34a;">Asorti Oran</td>
+                                <td id="detAsSizeS" style="padding: 12px 8px;">0</td>
+                                <td id="detAsSizeM" style="padding: 12px 8px;">0</td>
+                                <td id="detAsSizeL" style="padding: 12px 8px;">0</td>
+                                <td id="detAsSizeXL" style="padding: 12px 8px;">0</td>
+                                <td id="detAsSize2XL" style="padding: 12px 8px;">0</td>
+                                <td id="detAsSize3XL" style="padding: 12px 8px;">0</td>
+                                <td id="detAsRatioTotal" style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #16a34a; background: #dcfce7;">0</td>
+                            </tr>
+                            <!-- Asorti Çarpımı ve Toplam Asorti Satırı -->
+                            <tr>
+                                <td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #15803d;">Asorti Toplam</td>
+                                <td colspan="6" style="padding: 12px 8px; text-align: right; color: var(--text-muted); font-style: italic;">
+                                    Asorti Sayısı: <strong id="detAsortiCount" style="color: var(--text-main); font-style: normal; margin-right: 15px;">0</strong> 
+                                    (Kutu Sayısı × Asorti Oran Toplamı) =
+                                </td>
+                                <td id="detAsortiFinalQty" style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #15803d; background: #bbf7d0;">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Planlama & Takip Süreçleri Kartı -->
+            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <i class="fa-regular fa-calendar-days" style="margin-right: 6px;"></i> Üretim Planlama & İş Takvimi
+                </h4>
+                
+                <!-- 5 Ana Aşama Grid Yapısı -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px;">
+                    
+                    <!-- 1. Kumaş & Tedarik -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                        <div style="color: #4f46e5; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-truck"></i> 1. Kumaş & Tedarik
+                        </div>
+                        <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div>Kumaşçı: <strong id="detFabricSupplier">...</strong></div>
+                            <div>Hedef: <strong id="detTargetFabric">... kg</strong></div>
+                            <div>Gelen: <strong id="detActualFabric">... kg</strong></div>
+                            <div>Anlaşılan Tarih: <span id="detFabricAgreedDate" style="font-weight: 500;">...</span></div>
+                            <div>Geliş Tarihi: <span id="detFabricActualDate" style="font-weight: 500;">...</span></div>
+                            <div>Metraj: <strong id="detFabricMeterage">... m</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Kesim -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                        <div style="color: #d97706; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-scissors"></i> 2. Kesim Aşaması
+                        </div>
+                        <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div>Başlangıç: <span id="detCuttingStart" style="font-weight: 500;">...</span></div>
+                            <div>Bitiş: <span id="detCuttingEnd" style="font-weight: 500;">...</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Dikim -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                        <div style="color: #0d9488; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-shirt"></i> 3. Dikim (Atölye)
+                        </div>
+                        <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div>Atölye: <strong id="detProductionPlace">...</strong></div>
+                            <div>Dikim Atölyesi: <strong id="detSewingWorkshop">...</strong></div>
+                            <div>Başlangıç: <span id="detSewingStart" style="font-weight: 500;">...</span></div>
+                            <div>Bitiş: <span id="detSewingEnd" style="font-weight: 500;">...</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Paket & Kalite (Inspection) -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                        <div style="color: #db2777; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-box-open"></i> 4. Paket & Kalite
+                        </div>
+                        <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div>Paket Başlangıç: <span id="detPackagingStart" style="font-weight: 500;">...</span></div>
+                            <div>Paket Bitiş: <span id="detPackagingEnd" style="font-weight: 500;">...</span></div>
+                            <div>Son Muayene (Insp.): <span id="detLastInspection" style="font-weight: 500;">...</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Sevkiyat & Depo -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                        <div style="color: #2563eb; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-circle-check"></i> 5. Sevkiyat & Depo
+                        </div>
+                        <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div>Yola Çıkış: <span id="detDepartureDate" style="font-weight: 500;">...</span></div>
+                            <div>Depo Giriş: <span id="detWarehouseDate" style="font-weight: 500;">...</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; background: #fafafa;">
+            <button type="button" id="btnCloseDetailModalBottom" class="btn-secondary" style="padding: 10px 24px; border-radius: 8px;">Kapat</button>
+        </div>
+    </div>
+</div>
+
 <div id="newOrderModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; transition: all 0.3s ease;">
     <div class="modal-content" style="background: white; width: 85%; max-width: 900px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; transform: scale(0.95); transition: transform 0.3s ease; display: flex; flex-direction: column; max-height: 90%;">
         
@@ -279,11 +539,20 @@
                         </div>
                         <div class="form-group">
                             <label>Üretici Firma</label>
-                            <input name="ManufacturerCompany" class="form-control" placeholder="Örn: CPS Tekstil" />
+                            <input name="ManufacturerCompany" class="form-control" placeholder="Örn: Kanuni Tekstil" />
                         </div>
                         <div class="form-group">
-                            <label>Alıcı</label>
-                            <input name="Customer" class="form-control" value="LC Waikiki" readonly />
+                            <label>Alıcı (Müşteri)</label>
+                            <select name="Customer" class="form-control" required>
+                                <option value="">-- Müşteri Seçin --</option>
+                                @if (ViewBag.Customers != null)
+                                {
+                                    foreach (var c in (List<UretimPlanlama.Models.Customer>)ViewBag.Customers)
+                                    {
+                                        <option value="@c.Name">@c.Name</option>
+                                    }
+                                }
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -360,7 +629,7 @@
                         </div>
                     </div>
 
-                    <!-- Özel Beden Tanımlama Alanı -->
+                
                     <div id="customSizeContainer" style="display: none; align-items: center; gap: 8px; margin-bottom: 16px; background: #f0fdf4; border: 1px dashed #bbf7d0; padding: 10px; border-radius: 8px; flex-wrap: wrap;">
                         <span style="font-size: 0.85rem; font-weight: 600; color: #16a34a;">Özel Beden Ekle:</span>
                         <input type="text" id="txtCustomSize" class="form-control" placeholder="Örn: 4XL" style="width: 100px; font-size: 0.85rem; padding: 4px 8px; height: auto; display: inline-block;" />
@@ -455,7 +724,7 @@
                 }
             });
 
-            // --- DİNAMİK BEDEN SİSTEMİ ---
+            
             var sizeTemplates = {
                 standart: ["S", "M", "L", "XL", "2XL", "3XL"],
                 genis_standart: ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
@@ -466,7 +735,7 @@
             };
             var activeSizes = [...sizeTemplates.standart];
 
-            // Get saved data from existing rows to avoid losing typed values when template changes
+            
             function getSavedRowsData() {
                 var data = [];
                 $(".color-row").each(function() {
@@ -484,7 +753,7 @@
                 return data;
             }
 
-            // Create row HTML based on active sizes
+            
             function createRowHtml(savedData) {
                 var color = savedData ? savedData.color : "";
                 var jit = savedData ? savedData.jit : "false";
@@ -575,7 +844,7 @@
                 return rowElement;
             }
 
-            // Re-render all rows preserving values
+            
             function reRenderAllRows() {
                 var savedData = getSavedRowsData();
                 $("#colorRowsContainer").empty();
@@ -592,7 +861,7 @@
                 }
             }
 
-            // Template selector change
+           
             $("#globalSizeTemplate").change(function() {
                 var template = $(this).val();
                 if (template === "ozel") {
@@ -605,7 +874,7 @@
                 reRenderAllRows();
             });
 
-            // Add custom size
+           
             $("#btnApplyCustomSize").click(function() {
                 var newSize = $("#txtCustomSize").val().trim().toUpperCase();
                 if (!newSize) return;
@@ -614,7 +883,7 @@
                     sizeTemplates.ozel.push(newSize);
                     activeSizes = [...sizeTemplates.ozel];
                     
-                    // Render badges
+                    
                     var badgesHtml = "";
                     sizeTemplates.ozel.forEach(function(size, idx) {
                         badgesHtml += `<span class="badge" style="background:#bbf7d0; color:#16a34a; font-weight:600; padding: 6px 12px; border-radius: 12px; display:flex; align-items:center; gap:6px;">
@@ -631,13 +900,13 @@
                 }
             });
 
-            // Remove custom size badge
+            
             $(document).on("click", ".btnRemoveCustomSize", function() {
                 var idx = $(this).data("index");
                 sizeTemplates.ozel.splice(idx, 1);
                 activeSizes = [...sizeTemplates.ozel];
                 
-                // Re-render badges
+                
                 var badgesHtml = "";
                 sizeTemplates.ozel.forEach(function(size, i) {
                     badgesHtml += `<span class="badge" style="background:#bbf7d0; color:#16a34a; font-weight:600; padding: 6px 12px; border-radius: 12px; display:flex; align-items:center; gap:6px;">
@@ -653,28 +922,28 @@
                 var openSizes = row.data('openSizes') || {};
                 var asortiSizes = row.data('asortiSizes') || {};
 
-                // Açık Adetlerin Toplamı
+               
                 var openQty = 0;
                 Object.keys(openSizes).forEach(function(key) {
                     openQty += (parseInt(openSizes[key]) || 0);
                 });
                 row.find('.row-open-total').val(openQty);
                 
-                // Asorti Oranlarının Toplamı (Toplam Asorti Sayısı)
+              
                 var asortiRatioSum = 0;
                 Object.keys(asortiSizes).forEach(function(key) {
                     asortiRatioSum += (parseInt(asortiSizes[key]) || 0);
                 });
                 row.find('.row-asorti-total').val(asortiRatioSum);
                 
-                // Toplam Asorti Adet (Çarpan)
+                
                 var asortiMultiplier = parseInt(row.find('.row-asorti-count').val()) || 0;
                 
-                // Toplam Asorti Sipariş
+               
                 var totalAsortiQty = asortiRatioSum * asortiMultiplier;
                 row.find('.row-asorti-final').val(totalAsortiQty);
                 
-                // Toplam Adet
+             
                 var rowTotal = openQty + totalAsortiQty;
                 row.find('.row-total-qty').val(rowTotal);
                 
@@ -722,10 +991,10 @@
                 calculateRowTotals(rowElement);
             });
 
-            // İlk satırı otomatik ekle
+            
             $("#btnAddColorRow").click();
 
-            // Form Gönderimini AJAX ile Toplu Gönderme
+          
             $("#newOrderForm").on("submit", function(e) {
                 e.preventDefault();
                 
@@ -748,7 +1017,7 @@
                     orderObj.IsJIT = row.find('.row-jit').val() === "true";
                     orderObj.SalesRegion = row.find('.row-region').val();
                     
-                    // JSON Sizing
+                    
                     var openDist = Object.assign({}, row.data('openSizes') || {});
                     Object.keys(openDist).forEach(function(key) {
                         if ((parseInt(openDist[key]) || 0) <= 0) {
@@ -765,7 +1034,7 @@
                     });
                     orderObj.AsortiDistributionJson = JSON.stringify(asortiDist);
 
-                    // Backward compatible fields
+                 
                     orderObj.SizeS = openDist["S"] || 0;
                     orderObj.SizeM = openDist["M"] || 0;
                     orderObj.SizeL = openDist["L"] || 0;
@@ -804,7 +1073,7 @@
                 });
             });
 
-            // Finansal Tetikleyiciler
+           
             $('.calc-trigger-modal').on('input', function() {
                 var qty = parseFloat($('#modalQty').val()) || 0;
                 var price = parseFloat($('#modalUnitPrice').val()) || 0;
@@ -936,6 +1205,157 @@
                         $(this).remove();
                     });
                 }, 3000);
+            }
+
+            // Sipariş Detay Modalı İşlemleri
+            $(document).on("click", ".view-order-detail", function(e) {
+                e.preventDefault();
+                var orderId = $(this).data("id");
+                
+                $.ajax({
+                    url: "/Order/GetDetail",
+                    type: "GET",
+                    data: { id: orderId },
+                    success: function(response) {
+                        if (response.success) {
+                            var order = response.data;
+                            
+                            // Genel Bilgiler
+                            $("#detOrderCode").text(order.orderCode || "-");
+                            $("#detOrderDate").html(formatDetailDate(order.orderDate));
+                            $("#detModelName").text(order.modelName || "-");
+                            $("#detModelNo").text(order.modelNo || "-");
+                            $("#detColor").text(order.color || "-");
+                            $("#detBrand").text(order.brand || "-");
+                            $("#detCustomer").text(order.customer || "LC Waikiki");
+                            $("#detRegion").text(order.salesRegion || "-");
+                            $("#detInspectionType").text(order.inspectionType || "-");
+                            $("#detInspectionDate").html(formatDetailDate(order.inspectionDate));
+                            $("#detDeliveryPlace").text(order.deliveryPlace || "-");
+                            $("#detDescription").text(order.goodsDescription || "-");
+                            
+                            // Rozetler (Badges)
+                            var status = order.status || "Yeni Kayıt";
+                            $("#detStatusBadge").text(status);
+                            $("#detStatusBadge").removeClass("badge-progress badge-medium badge-high badge-scheduled");
+                            if (status === "Tamamlandı") $("#detStatusBadge").addClass("badge-progress");
+                            else if (status === "İptal Edildi") $("#detStatusBadge").addClass("badge-high");
+                            else if (status === "Yeni Kayıt") $("#detStatusBadge").addClass("badge-scheduled");
+                            else $("#detStatusBadge").addClass("badge-medium");
+
+                            var fStatus = order.fabricStatus || "Bekleniyor";
+                            $("#detFabricBadge").text("Kumaş: " + fStatus);
+                            $("#detFabricBadge").removeClass("badge-progress badge-medium badge-high badge-scheduled");
+                            if (fStatus === "Tamamlandı" || fStatus === "Kumaş Tam") $("#detFabricBadge").addClass("badge-progress");
+                            else if (fStatus === "Kısmi Geldi" || fStatus === "Gecikti") $("#detFabricBadge").addClass("badge-medium");
+                            else $("#detFabricBadge").addClass("badge-high");
+
+                            if (order.isJIT) {
+                                $("#detJITBadge").show().addClass("badge-high").text("JIT");
+                            } else {
+                                $("#detJITBadge").hide();
+                            }
+
+                            // Finansal Bilgiler
+                            $("#detQuantity").text((order.quantity || 0).toLocaleString('tr-TR') + " Adet");
+                            $("#detUnitPrice").html(formatCurrency(order.componentUnitPrice));
+                            $("#detTotalAmount").html(formatCurrency(order.totalAmount));
+                            $("#detVatAmount").html(formatCurrency(order.vatAmount));
+                            $("#detPaymentMethod").text(order.paymentMethod || "-");
+                            $("#detManufacturerCode").text(order.manufacturerCode || "-");
+                            $("#detManufacturerCompany").text(order.manufacturerCompany || "-");
+                            $("#detTotalWithVat").html(formatCurrency(order.totalAmountWithVat));
+
+                            // Beden Dağılımı (Açık Adet)
+                            $("#detSizeS").text(order.sizeS || 0);
+                            $("#detSizeM").text(order.sizeM || 0);
+                            $("#detSizeL").text(order.sizeL || 0);
+                            $("#detSizeXL").text(order.sizeXL || 0);
+                            $("#detSize2XL").text(order.size2XL || 0);
+                            $("#detSize3XL").text(order.size3XL || 0);
+                            var openTotal = (order.sizeS || 0) + (order.sizeM || 0) + (order.sizeL || 0) + (order.sizeXL || 0) + (order.size2XL || 0) + (order.size3XL || 0);
+                            $("#detOpenTotal").text(openTotal);
+
+                            // Beden Dağılımı (Asorti Oran)
+                            $("#detAsSizeS").text(order.asortiSizeS || 0);
+                            $("#detAsSizeM").text(order.asortiSizeM || 0);
+                            $("#detAsSizeL").text(order.asortiSizeL || 0);
+                            $("#detAsSizeXL").text(order.asortiSizeXL || 0);
+                            $("#detAsSize2XL").text(order.asortiSize2XL || 0);
+                            $("#detAsSize3XL").text(order.asortiSize3XL || 0);
+                            var asortiRatioTotal = (order.asortiSizeS || 0) + (order.asortiSizeM || 0) + (order.asortiSizeL || 0) + (order.asortiSizeXL || 0) + (order.asortiSize2XL || 0) + (order.asortiSize3XL || 0);
+                            $("#detAsRatioTotal").text(asortiRatioTotal);
+
+                            // Toplam Asorti
+                            $("#detAsortiCount").text(order.asortiCount || 0);
+                            var asortiFinalQty = asortiRatioTotal * (order.asortiCount || 0);
+                            $("#detAsortiFinalQty").text(asortiFinalQty);
+
+                            // Planlama & İş Takvimi
+                            // 1. Kumaş
+                            $("#detFabricSupplier").text(order.fabricSupplier || "-");
+                            $("#detTargetFabric").text(order.targetFabricQty ? parseFloat(order.targetFabricQty).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + " kg" : "-");
+                            $("#detActualFabric").text(order.actualFabricQty ? parseFloat(order.actualFabricQty).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + " kg" : "-");
+                            $("#detFabricAgreedDate").html(formatDetailDate(order.fabricArrivalAgreedDate));
+                            $("#detFabricActualDate").html(formatDetailDate(order.fabricArrivalActualDate));
+                            $("#detFabricMeterage").text(order.fabricMeterage ? order.fabricMeterage.toLocaleString('tr-TR') + " m" : "-");
+
+                            // 2. Kesim
+                            $("#detCuttingStart").html(formatDetailDate(order.cuttingStartDate));
+                            $("#detCuttingEnd").html(formatDetailDate(order.cuttingEndDate));
+
+                            // 3. Dikim
+                            $("#detProductionPlace").text(order.productionPlace || "-");
+                            $("#detSewingWorkshop").text(order.sewingWorkshop || "-");
+                            $("#detSewingStart").html(formatDetailDate(order.sewingStartDate));
+                            $("#detSewingEnd").html(formatDetailDate(order.sewingEndDate));
+
+                            // 4. Paket & Kalite
+                            $("#detPackagingStart").html(formatDetailDate(order.packagingStartDate));
+                            $("#detPackagingEnd").html(formatDetailDate(order.packagingEndDate));
+                            $("#detLastInspection").html(formatDetailDate(order.lastInspectionDate));
+
+                            // 5. Sevkiyat
+                            $("#detDepartureDate").html(formatDetailDate(order.departureDate));
+                            $("#detWarehouseDate").html(formatDetailDate(order.warehouseArrivalDate));
+
+                            // Modalı Aç
+                            $("#orderDetailModal").css("display", "flex").hide().fadeIn(200, function() {
+                                $(this).addClass("active");
+                            });
+                        } else {
+                            showToast("Hata: " + response.message, "danger");
+                        }
+                    },
+                    error: function() {
+                        showToast("Sipariş detayları alınırken bir hata oluştu.", "danger");
+                    }
+                });
+            });
+
+            function closeDetailModal() {
+                $("#orderDetailModal").removeClass("active").fadeOut(200);
+            }
+
+            $("#btnCloseDetailModal, #btnCloseDetailModalBottom, #orderDetailModal").click(function(e) {
+                if (e.target === this || $(e.target).closest('#btnCloseDetailModal, #btnCloseDetailModalBottom').length > 0) {
+                    closeDetailModal();
+                }
+            });
+
+            function formatDetailDate(dateStr) {
+                if (!dateStr) return '<span style="color:var(--text-muted); font-size:0.8rem;">Girilmedi</span>';
+                var d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '<span style="color:var(--text-muted); font-size:0.8rem;">-</span>';
+                var day = String(d.getDate()).padStart(2, '0');
+                var month = String(d.getMonth() + 1).padStart(2, '0');
+                var year = d.getFullYear();
+                return `${day}.${month}.${year}`;
+            }
+
+            function formatCurrency(val) {
+                if (val === null || val === undefined) return '<span style="color:var(--text-muted);">Girilmedi</span>';
+                return "₺ " + parseFloat(val).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
         });
     </script>

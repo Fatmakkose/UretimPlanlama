@@ -6,6 +6,7 @@ using UretimPlanlama.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Data Source=localhost;Initial Catalog=UretimPlanlamaDb;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Command Timeout=0";
@@ -47,6 +48,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapHub<UretimPlanlama.Hubs.NotificationHub>("/notificationHub");
+
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -59,6 +62,20 @@ using (var scope = app.Services.CreateScope())
     if (!roleManager.RoleExistsAsync("User").Result)
     {
         roleManager.CreateAsync(new IdentityRole("User")).Wait();
+    }
+
+    var userRole = roleManager.FindByNameAsync("User").Result;
+    if (userRole != null)
+    {
+        var roleClaims = roleManager.GetClaimsAsync(userRole).Result;
+        if (!roleClaims.Any(c => c.Type == "Permission" && c.Value == "View"))
+        {
+            roleManager.AddClaimAsync(userRole, new System.Security.Claims.Claim("Permission", "View")).Wait();
+        }
+        if (!roleClaims.Any(c => c.Type == "Permission" && c.Value == "Write"))
+        {
+            roleManager.AddClaimAsync(userRole, new System.Security.Claims.Claim("Permission", "Write")).Wait();
+        }
     }
 
     if (userManager.FindByEmailAsync("fatma@cps.com").Result == null)

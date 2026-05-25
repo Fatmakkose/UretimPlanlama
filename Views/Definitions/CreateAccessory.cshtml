@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "Yeni Aksesuar Ekle";
+}
+
+<form action="/Definitions/CreateAccessory" method="post">
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Yeni Aksesuar Ekle</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Sisteme yeni bir aksesuar çeşidi tanımlayın</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/Accessories" class="btn-secondary" style="text-decoration: none;">İptal</a>
+        <button type="submit" class="btn-planner"><i class="fa-solid fa-save"></i> Kaydet</button>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Aksesuar Bilgileri</h2>
+                <p>Aksesuarın temel bilgilerini, tipini ve takip birimini giriniz.</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="form-group">
+                <label>Aksesuar Adı</label>
+                <input type="text" name="Name" class="form-control" placeholder="Örn: 20mm Kemik Düğme" required />
+            </div>
+
+            <div class="form-group">
+                <label>Aksesuar Tipi</label>
+                <select name="Type" class="form-control" required>
+                    <option value="">- Seçiniz -</option>
+                    <option value="Düğme">Düğme</option>
+                    <option value="Fermuar">Fermuar</option>
+                    <option value="Etiket">Etiket</option>
+                    <option value="İplik">İplik</option>
+                    <option value="Lastik">Lastik</option>
+                    <option value="Astar">Astar</option>
+                    <option value="Paket Malzemesi">Paket Malzemesi</option>
+                    <option value="Diğer">Diğer</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Takip Birimi</label>
+                <select name="Unit" class="form-control" required>
+                    <option value="">- Seçiniz -</option>
+                    <option value="Adet">Adet</option>
+                    <option value="Metre">Metre</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Top">Top</option>
+                    <option value="Paket">Paket</option>
+                    <option value="Kutu">Kutu</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Stok Kodu</label>
+                <input type="text" name="StockCode" class="form-control" placeholder="Örn: AKS-DGM-001" />
+            </div>
+        </div>
+    </div>
+</div>
+</form>

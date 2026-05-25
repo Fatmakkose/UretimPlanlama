@@ -1,6 +1,6 @@
 :root {
-    --primary-color: #00c29f;
-    --primary-hover: #00a88a;
+    --primary-color: #0047bb;
+    --primary-hover: #003996;
     --bg-color: #f3f6f8;
     --card-bg: #ffffff;
     --sidebar-bg: #ffffff;
@@ -577,7 +577,7 @@ body {
 .form-control:focus {
     border-color: var(--primary-color);
     background-color: white;
-    box-shadow: 0 0 0 3px rgba(0, 194, 159, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 71, 187, 0.1);
 }
 
 .form-control:disabled, .form-control[readonly] {

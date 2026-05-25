@@ -22,6 +22,18 @@ namespace UretimPlanlama.Controllers
             return View(workshops);
         }
 
+        [HttpGet]
+        public IActionResult GetWorkshopDetail(int id)
+        {
+            var workshop = _context.Workshops.Find(id);
+            if (workshop == null)
+            {
+                return Json(new { success = false, message = "Atölye bulunamadı." });
+            }
+            var orders = _context.Orders.Where(o => o.SewingWorkshop == workshop.Name).OrderByDescending(o => o.OrderDate).ToList();
+            return Json(new { success = true, workshop = workshop, orders = orders });
+        }
+
         public IActionResult CreateWorkshop()
         {
             return View();
@@ -84,6 +96,56 @@ namespace UretimPlanlama.Controllers
                 _context.SaveChanges();
                 TempData["SuccessMessage"] = "Müşteri veritabanına başarıyla eklendi.";
                 return RedirectToAction("Customers");
+            }
+            return View(model);
+        }
+
+        // --- FIRMA (COMPANY) TANIMLARI ---
+        public IActionResult Companies()
+        {
+            var companies = _context.Companies.ToList();
+            return View(companies);
+        }
+
+        public IActionResult CreateCompany()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CreateCompany(Company model)
+        {
+            if (ModelState.IsValid && !string.IsNullOrEmpty(model.Name))
+            {
+                _context.Companies.Add(model);
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Firma başarıyla veritabanına eklendi.";
+                return RedirectToAction("Companies");
+            }
+            return View(model);
+        }
+
+        // --- AKSESUAR (ACCESSORY) TANIMLARI ---
+        public IActionResult Accessories()
+        {
+            var accessories = _context.Accessories.ToList();
+            return View(accessories);
+        }
+
+        public IActionResult CreateAccessory()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CreateAccessory(Accessory model)
+        {
+            if (ModelState.IsValid && !string.IsNullOrEmpty(model.Name))
+            {
+                _context.Accessories.Add(model);
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Aksesuar başarıyla veritabanına eklendi.";
+                return RedirectToAction("Accessories");
             }
             return View(model);
         }

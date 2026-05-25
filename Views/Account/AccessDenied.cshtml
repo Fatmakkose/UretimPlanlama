@@ -1,0 +1,146 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Yetkisiz Erişim";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yetkisiz Erişim - Kanuni Tekstil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary-color: #0047bb;
+            --danger-text: #dc2626;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .error-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .warning-icon {
+            width: 72px;
+            height: 72px;
+            background: #fef2f2;
+            color: var(--danger-text);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 24px auto;
+            border: 1px solid #fee2e2;
+        }
+
+        h2 {
+            margin: 0 0 12px 0;
+            color: var(--text-main);
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 71, 187, 0.15);
+        }
+
+        .btn-primary:hover {
+            background-color: #00b090;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <div class="warning-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+
+        <h2>Erişim Engellendi</h2>
+        <p>
+            Bu sayfayı görüntülemek veya bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır.<br />
+            Lütfen sistem yöneticinizle iletişime geçin.
+        </p>
+
+        <div class="actions">
+            <a href="/" class="btn btn-primary">
+                <i class="fa-solid fa-house"></i> Ana Sayfaya Dön
+            </a>
+            <a href="/Account/Logout" class="btn btn-secondary">
+                <i class="fa-solid fa-right-from-bracket"></i> Başka Hesapla Giriş Yap
+            </a>
+        </div>
+    </div>
+</body>
+</html>

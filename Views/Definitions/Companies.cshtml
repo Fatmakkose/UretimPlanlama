@@ -1,0 +1,98 @@
+@using UretimPlanlama.Models
+@model List<Company>
+@{
+    ViewData["Title"] = "Firma Tanımı";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Firma Tanımı</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Tedarikçi, fasoncu veya iş ortağı firmaların tanımlamaları</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/CreateCompany" class="btn-planner" style="text-decoration: none;"><i class="fa-solid fa-plus"></i> Yeni Firma Ekle</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Mevcut Firmalar</h2>
+                <p>Sistemde tanımlı olan fasoncu, kumaşçı ve tedarikçi firmalar</p>
+            </div>
+            <div class="search-box" style="width: 300px; margin-top: -10px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="companySearchInput" placeholder="Firma ara..." onkeyup="filterCompanies()" />
+            </div>
+        </div>
+
+        <div class="schedule-list" id="companyList">
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var company in Model)
+                {
+                    <div class="schedule-item company-item" data-name="@company.Name.ToLower()">
+                        <div class="time-slot">
+                            <span style="color: var(--primary-color);"><i class="fa-solid fa-building-user fa-lg"></i></span>
+                        </div>
+                        <div class="job-info">
+                            <div class="job-title">
+                                <span class="job-id" style="font-size: 1.1rem;">@company.Name</span>
+                                @if (!string.IsNullOrEmpty(company.TaxNumber))
+                                {
+                                    <span class="badge badge-scheduled">Vergi No: @company.TaxNumber</span>
+                                }
+                            </div>
+                            <div class="machine-info">
+                                Telefon: @(string.IsNullOrEmpty(company.Phone) ? "-" : company.Phone) • Email: @(string.IsNullOrEmpty(company.Email) ? "-" : company.Email) • V.Dairesi: @(string.IsNullOrEmpty(company.TaxOffice) ? "-" : company.TaxOffice)
+                            </div>
+                            @if (!string.IsNullOrEmpty(company.Address))
+                            {
+                                <div class="machine-info" style="margin-top: 4px; font-style: italic;">
+                                    Adres: @company.Address
+                                </div>
+                            }
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-modify"><i class="fa-solid fa-pen"></i> Düzenle</button>
+                            <button class="btn-modify" style="color: var(--danger-text); border-color: var(--danger-text);"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="schedule-item" style="justify-content: center; padding: 40px;">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-building-circle-arrow-right" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p style="font-size: 1.1rem; margin: 0;">Henüz kayıtlı bir firma bulunmuyor.</p>
+                        <p style="font-size: 0.9rem; margin-top: 5px;">Yeni bir firma tanımlamak için sağ üstteki butonu kullanabilirsiniz.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterCompanies() {
+        const query = document.getElementById("companySearchInput").value.toLowerCase();
+        const items = document.querySelectorAll(".company-item");
+        items.forEach(item => {
+            const name = item.getAttribute("data-name") || "";
+            if (name.includes(query)) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+</script>
