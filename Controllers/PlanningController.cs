@@ -43,18 +43,65 @@ namespace UretimPlanlama.Controllers
             {
                 return RedirectToAction("AccessDenied", "Account");
             }
+            var order = _context.Orders.Find(orderData.Id);
+            if (order != null)
+            {
+                order.FabricSupplier = orderData.FabricSupplier;
+                order.FabricArrivalAgreedDate = orderData.FabricArrivalAgreedDate;
+                
+                order.PlannedCuttingStartDate = orderData.PlannedCuttingStartDate;
+                order.PlannedCuttingEndDate = orderData.PlannedCuttingEndDate;
+
+                order.SewingWorkshop = orderData.SewingWorkshop;
+                order.PlannedSewingStartDate = orderData.PlannedSewingStartDate;
+                order.PlannedSewingEndDate = orderData.PlannedSewingEndDate;
+
+                order.PlannedPackagingStartDate = orderData.PlannedPackagingStartDate;
+                order.PlannedPackagingEndDate = orderData.PlannedPackagingEndDate;
+                order.PlannedLastInspectionDate = orderData.PlannedLastInspectionDate;
+
+                order.UnitCost = orderData.UnitCost;
+                order.UnitPrice = orderData.UnitPrice;
+
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "Planlama detayları başarıyla kaydedildi.";
+                return RedirectToAction(nameof(Index));
+            }
+            return NotFound();
+        }
+
+        [HttpGet]
+        public IActionResult Tracking()
+        {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
+            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            return View(orders);
+        }
+
+        [HttpPost]
+        public IActionResult UpdateTracking(Order orderData)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             var old = _context.Orders.AsNoTracking().FirstOrDefault(o => o.Id == orderData.Id);
             var order = _context.Orders.Find(orderData.Id);
             if (order != null)
             {
-                order.FabricArrivalAgreedDate = orderData.FabricArrivalAgreedDate;
                 order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
                 order.FabricMeterage = orderData.FabricMeterage;
+                order.ActualFabricQty = orderData.ActualFabricQty;
 
                 order.CuttingStartDate = orderData.CuttingStartDate;
                 order.CuttingEndDate = orderData.CuttingEndDate;
 
-                order.SewingWorkshop = orderData.SewingWorkshop;
                 order.SewingStartDate = orderData.SewingStartDate;
                 order.SewingEndDate = orderData.SewingEndDate;
 
@@ -64,15 +111,6 @@ namespace UretimPlanlama.Controllers
 
                 order.DepartureDate = orderData.DepartureDate;
                 order.WarehouseArrivalDate = orderData.WarehouseArrivalDate;
-
-                order.UnitCost = orderData.UnitCost;
-                order.UnitPrice = orderData.UnitPrice;
-                
-                // Ayrıca kumaşçı da güncellenebilir:
-                if (!string.IsNullOrEmpty(orderData.FabricSupplier))
-                {
-                    order.FabricSupplier = orderData.FabricSupplier;
-                }
 
                 _context.SaveChanges();
 
@@ -124,8 +162,8 @@ namespace UretimPlanlama.Controllers
                     }
                 }
 
-                TempData["SuccessMessage"] = "Planlama detayları başarıyla kaydedildi.";
-                return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] = "Takip detayları başarıyla kaydedildi.";
+                return RedirectToAction(nameof(Tracking));
             }
             return NotFound();
         }

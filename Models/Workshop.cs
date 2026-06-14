@@ -20,5 +20,9 @@ namespace UretimPlanlama.Models
 
         [MaxLength(500)]
         public string? Address { get; set; }
+
+        public int DailyCapacity { get; set; }
+        public int MonthlyCapacity { get; set; }
+        public int AnnualCapacity { get; set; }
     }
 }

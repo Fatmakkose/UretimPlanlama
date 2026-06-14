@@ -195,21 +195,21 @@ namespace UretimPlanlama.Controllers
                     worksheet.Cell(currentRow, 3).Value = order.ModelNo;
                     worksheet.Cell(currentRow, 4).Value = order.ModelName;
                     worksheet.Cell(currentRow, 5).Value = order.Color;
-                    
+
                     worksheet.Cell(currentRow, 6).Value = order.SizeS;
                     worksheet.Cell(currentRow, 7).Value = order.SizeM;
                     worksheet.Cell(currentRow, 8).Value = order.SizeL;
                     worksheet.Cell(currentRow, 9).Value = order.SizeXL;
                     worksheet.Cell(currentRow, 10).Value = order.Size2XL;
                     worksheet.Cell(currentRow, 11).Value = order.Size3XL;
-                    
+
                     worksheet.Cell(currentRow, 12).Value = order.AsortiSizeS;
                     worksheet.Cell(currentRow, 13).Value = order.AsortiSizeM;
                     worksheet.Cell(currentRow, 14).Value = order.AsortiSizeL;
                     worksheet.Cell(currentRow, 15).Value = order.AsortiSizeXL;
                     worksheet.Cell(currentRow, 16).Value = order.AsortiSize2XL;
                     worksheet.Cell(currentRow, 17).Value = order.AsortiSize3XL;
-                    
+
                     worksheet.Cell(currentRow, 18).Value = order.AsortiCount;
                     worksheet.Cell(currentRow, 19).Value = order.Quantity;
                     worksheet.Cell(currentRow, 20).Value = order.SalesRegion;
@@ -254,7 +254,7 @@ namespace UretimPlanlama.Controllers
                 }
                 return string.Join(", ", list);
             }
-            
+
             try
             {
                 var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(json);

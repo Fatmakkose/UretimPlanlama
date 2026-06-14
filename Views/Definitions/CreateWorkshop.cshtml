@@ -44,6 +44,21 @@
                 <input type="text" name="AuthorizedPerson" class="form-control" placeholder="Ad Soyad" required />
             </div>
 
+            <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label>Günlük Üretim Kapasitesi (Adet)</label>
+                    <input type="number" name="DailyCapacity" class="form-control" placeholder="Örn: 500" min="0" required />
+                </div>
+                <div class="form-group">
+                    <label>Aylık Üretim Kapasitesi (Adet)</label>
+                    <input type="number" name="MonthlyCapacity" class="form-control" placeholder="Örn: 12000" min="0" required />
+                </div>
+                <div class="form-group">
+                    <label>Yıllık Üretim Kapasitesi (Adet)</label>
+                    <input type="number" name="AnnualCapacity" class="form-control" placeholder="Örn: 120000" min="0" required />
+                </div>
+            </div>
+
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label>Adres</label>
                 <textarea name="Address" class="form-control" rows="3" placeholder="Açık adres bilgisi giriniz..."></textarea>

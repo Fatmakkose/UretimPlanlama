@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UretimPlanlama.Data;
 
@@ -11,9 +12,11 @@ using UretimPlanlama.Data;
 namespace UretimPlanlama.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260613130100_AddPlannedDatesToOrder")]
+    partial class AddPlannedDatesToOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -443,16 +446,10 @@ namespace UretimPlanlama.Migrations
                     b.Property<string>("Brand")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("CollarInterliningMeterage")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Color")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("ComponentUnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("CuffInterliningMeterage")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Customer")
@@ -492,24 +489,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<string>("GoodsDescription")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HasFifLabel")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasInnerBarcode")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasOtherCard")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasPriceCard")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasWashingInstruction")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasYokeLabel")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime?>("InspectionDate")
                         .HasColumnType("datetime2");
 
@@ -518,9 +497,6 @@ namespace UretimPlanlama.Migrations
 
                     b.Property<bool>("IsJIT")
                         .HasColumnType("bit");
-
-                    b.Property<int?>("LargeButtonCount")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastInspectionDate")
                         .HasColumnType("datetime2");
@@ -557,9 +533,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("PlacketInterliningMeterage")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime?>("PlannedCuttingEndDate")
                         .HasColumnType("datetime2");
 
@@ -581,9 +554,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<DateTime?>("PlannedSewingStartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("PocketFlapInterliningMeterage")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("ProductionPlace")
                         .HasColumnType("nvarchar(max)");
 
@@ -591,9 +561,6 @@ namespace UretimPlanlama.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("SalesRegion")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SelectedAccessoriesJson")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("SewingEndDate")
@@ -626,9 +593,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<int>("SizeXL")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SmallButtonCount")
-                        .HasColumnType("int");
-
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
@@ -642,9 +606,6 @@ namespace UretimPlanlama.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("UnitCost")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("UnitFabricMeterage")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("UnitPrice")
@@ -673,19 +634,10 @@ namespace UretimPlanlama.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("AnnualCapacity")
-                        .HasColumnType("int");
-
                     b.Property<string>("AuthorizedPerson")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("DailyCapacity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MonthlyCapacity")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()

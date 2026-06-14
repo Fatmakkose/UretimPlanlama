@@ -53,6 +53,9 @@
                                 <th style="padding: 12px 16px;">Atölye Adı</th>
                                 <th style="padding: 12px 16px;">Atölye Tipi</th>
                                 <th style="padding: 12px 16px;">Yetkili Kişi</th>
+                                <th style="padding: 12px 16px; text-align: right;">Günlük K.</th>
+                                <th style="padding: 12px 16px; text-align: right;">Aylık K.</th>
+                                <th style="padding: 12px 16px; text-align: right;">Yıllık K.</th>
                                 <th style="padding: 12px 16px;">Adres</th>
                             </tr>
                         </thead>
@@ -72,7 +75,10 @@
                                         </span>
                                     </td>
                                     <td style="padding: 16px; color: var(--text-main);">@w.AuthorizedPerson</td>
-                                    <td style="padding: 16px; color: var(--text-muted); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@w.Address</td>
+                                    <td style="padding: 16px; text-align: right; color: var(--text-main); font-weight: 600;">@w.DailyCapacity.ToString("N0")</td>
+                                    <td style="padding: 16px; text-align: right; color: var(--text-main); font-weight: 600;">@w.MonthlyCapacity.ToString("N0")</td>
+                                    <td style="padding: 16px; text-align: right; color: var(--text-main); font-weight: 600;">@w.AnnualCapacity.ToString("N0")</td>
+                                    <td style="padding: 16px; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@w.Address</td>
                                 </tr>
                             }
                         </tbody>
@@ -106,26 +112,63 @@
             <div style="display: grid; grid-template-columns: 1fr 2.2fr; gap: 24px;">
                 
                 <!-- Atölye Genel Bilgiler Kartı -->
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); height: fit-content;">
-                    <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-                        <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Genel Bilgiler
-                    </h4>
-                    <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.9rem;">
-                        <div>
-                            <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-industry" style="margin-right: 6px; width: 14px;"></i>Atölye Adı</span>
-                            <strong id="wDetCardName" style="color: var(--text-main); font-size: 1.15rem;">...</strong>
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); height: fit-content;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Genel Bilgiler
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.9rem;">
+                            <div>
+                                <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-industry" style="margin-right: 6px; width: 14px;"></i>Atölye Adı</span>
+                                <strong id="wDetCardName" style="color: var(--text-main); font-size: 1.15rem;">...</strong>
+                            </div>
+                            <div>
+                                <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-tags" style="margin-right: 6px; width: 14px;"></i>Atölye Tipi</span>
+                                <span id="wDetCardType" class="badge badge-scheduled" style="font-size: 0.85rem; padding: 4px 10px;">...</span>
+                            </div>
+                            <div>
+                                <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-user" style="margin-right: 6px; width: 14px;"></i>Yetkili Kişi</span>
+                                <strong id="wDetCardPerson" style="color: var(--text-main);">...</strong>
+                            </div>
+                            <div>
+                                <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-map-location-dot" style="margin-right: 6px; width: 14px;"></i>Adres</span>
+                                <span id="wDetCardAddress" style="color: var(--text-muted); line-height: 1.4; display: block; word-wrap: break-word;">...</span>
+                            </div>
                         </div>
-                        <div>
-                            <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-tags" style="margin-right: 6px; width: 14px;"></i>Atölye Tipi</span>
-                            <span id="wDetCardType" class="badge badge-scheduled" style="font-size: 0.85rem; padding: 4px 10px;">...</span>
-                        </div>
-                        <div>
-                            <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-user" style="margin-right: 6px; width: 14px;"></i>Yetkili Kişi</span>
-                            <strong id="wDetCardPerson" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div>
-                            <span style="color: var(--text-muted); display: block; font-size: 0.8rem; margin-bottom: 4px;"><i class="fa-solid fa-map-location-dot" style="margin-right: 6px; width: 14px;"></i>Adres</span>
-                            <span id="wDetCardAddress" style="color: var(--text-muted); line-height: 1.4; display: block; word-wrap: break-word;">...</span>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); height: fit-content;">
+                        <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            <i class="fa-solid fa-chart-line" style="margin-right: 6px;"></i> Üretim Kapasitesi & Doluluk
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.85rem;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: var(--text-muted);">Günlük Doluluk:</span>
+                                    <strong id="wDetDailyLabel">0 / 0 Adet</strong>
+                                </div>
+                                <div class="progress-bar" style="height: 6px; background: rgba(0, 0, 0, 0.06); border-radius: 3px; overflow: hidden; margin: 0;">
+                                    <div id="wDetDailyBar" style="width: 0%; background: var(--primary-color); height: 100%; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: var(--text-muted);">Aylık Doluluk:</span>
+                                    <strong id="wDetMonthlyLabel">0 / 0 Adet</strong>
+                                </div>
+                                <div class="progress-bar" style="height: 6px; background: rgba(0, 0, 0, 0.06); border-radius: 3px; overflow: hidden; margin: 0;">
+                                    <div id="wDetMonthlyBar" style="width: 0%; background: #eab308; height: 100%; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: var(--text-muted);">Yıllık Doluluk:</span>
+                                    <strong id="wDetAnnualLabel">0 / 0 Adet</strong>
+                                </div>
+                                <div class="progress-bar" style="height: 6px; background: rgba(0, 0, 0, 0.06); border-radius: 3px; overflow: hidden; margin: 0;">
+                                    <div id="wDetAnnualBar" style="width: 0%; background: #10b981; height: 100%; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -236,6 +279,53 @@
                             
                             $('#wDetCardPerson').text(w.authorizedPerson || '-');
                             $('#wDetCardAddress').text(w.address || 'Adres girilmedi.');
+
+                            // Kapasite ve Doluluk Hesapla
+                            var today = new Date();
+                            var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                            var currentYear = today.getFullYear();
+                            var currentMonth = today.getMonth(); // 0-indexed
+
+                            var dailyUsage = 0;
+                            var monthlyUsage = 0;
+                            var annualUsage = 0;
+
+                            orders.forEach(function(o) {
+                                if (o.status !== "İptal Edildi") {
+                                    var oDate = new Date(o.orderDate);
+                                    if (!isNaN(oDate.getTime())) {
+                                        var oYear = oDate.getFullYear();
+                                        var oMonth = oDate.getMonth();
+                                        var oDateStr = oYear + '-' + String(oMonth + 1).padStart(2, '0') + '-' + String(oDate.getDate()).padStart(2, '0');
+
+                                        if (oDateStr === todayStr) {
+                                            dailyUsage += o.quantity;
+                                        }
+                                        if (oYear === currentYear && oMonth === currentMonth) {
+                                            monthlyUsage += o.quantity;
+                                        }
+                                        if (oYear === currentYear) {
+                                            annualUsage += o.quantity;
+                                        }
+                                    }
+                                }
+                            });
+
+                            var dailyCap = w.dailyCapacity || 0;
+                            var monthlyCap = w.monthlyCapacity || 0;
+                            var annualCap = w.annualCapacity || 0;
+
+                            $('#wDetDailyLabel').text(dailyUsage.toLocaleString('tr-TR') + ' / ' + dailyCap.toLocaleString('tr-TR') + ' Adet');
+                            var dailyPct = dailyCap > 0 ? Math.min((dailyUsage / dailyCap) * 100, 100) : 0;
+                            $('#wDetDailyBar').css('width', dailyPct + '%');
+
+                            $('#wDetMonthlyLabel').text(monthlyUsage.toLocaleString('tr-TR') + ' / ' + monthlyCap.toLocaleString('tr-TR') + ' Adet');
+                            var monthlyPct = monthlyCap > 0 ? Math.min((monthlyUsage / monthlyCap) * 100, 100) : 0;
+                            $('#wDetMonthlyBar').css('width', monthlyPct + '%');
+
+                            $('#wDetAnnualLabel').text(annualUsage.toLocaleString('tr-TR') + ' / ' + annualCap.toLocaleString('tr-TR') + ' Adet');
+                            var annualPct = annualCap > 0 ? Math.min((annualUsage / annualCap) * 100, 100) : 0;
+                            $('#wDetAnnualBar').css('width', annualPct + '%');
                             
                             // Sipariş Bilgilerini Doldur
                             $('#wDetOrderCountBadge').text(orders.length + ' Sipariş');

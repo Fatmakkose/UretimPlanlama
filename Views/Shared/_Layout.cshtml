@@ -16,96 +16,76 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
-    <div class="wrapper">
-        
-        <nav class="sidebar">
-            <div class="sidebar-header" style="padding: 16px 24px; justify-content: center;">
-                <a href="/" style="display: flex; align-items: center; width: 100%; justify-content: center; text-decoration: none;">
-                    <img src="~/images/logo.jpg" alt="Kanuni Tekstil Logo" style="max-height: 48px; max-width: 100%; height: auto; object-fit: contain;" asp-append-version="true" />
+<body>    <div class="wrapper">
+        <header class="top-navbar">
+            <div class="navbar-logo">
+                <a href="/">
+                    <img src="~/images/logo.jpg" alt=" Kanuni Tekstil Logo " asp-append-version="true" />
                 </a>
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="/" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")"><i class="fa-solid fa-shapes"></i> Dashboard</a></li>
-               
-                <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")"><i class="fa-solid fa-briefcase"></i> Siparişler (LCW)</a></li>
-                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" ? "active" : "")"><i class="fa-regular fa-calendar"></i> Planlama</a></li>
-                <li><a href="/Reports" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")"><i class="fa-solid fa-chart-line"></i> Raporlar</a></li>
+            
+            <ul class="navbar-menu">
+                <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">Siparişler (LCW)</a></li>
+                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">Üretim Planlama</a></li>
+                <li><a href="/Planning/Tracking" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && ViewContext.RouteData.Values["Action"]?.ToString() == "Tracking" ? "active" : "")">Üretim Takip</a></li>
+                <li><a href="/Purchasing" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Purchasing" ? "active" : "")">Kumaş & Aksesuar</a></li>
+                <li><a href="/Reports" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")">Raporlar</a></li>
                 
                 @if (User.IsInRole("Admin"))
                 {
-                    <li class="nav-item-has-submenu">
-                        <a href="#" class="menu-toggle @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Definitions" ? "active" : "")" style="display: flex; justify-content: space-between; align-items: center;">
-                            <span><i class="fa-solid fa-layer-group"></i> Tanımlar</span>
-                            <i class="fa-solid fa-chevron-down submenu-icon" style="font-size: 0.8rem; margin-right: 0;"></i>
-                        </a>
-                        <ul class="submenu" style="display: @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Definitions" || ViewContext.RouteData.Values["Controller"]?.ToString() == "ColorDef" ? "block" : "none"); list-style: none; padding-left: 10px; margin-top: 5px;">
-                            <li><a href="/ColorDef/Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ColorDef" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-palette" style="font-size: 0.9rem;"></i> Renk (Option) Tanımı</a></li>
-                            <li><a href="/Definitions/Workshops" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Workshops" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-industry" style="font-size: 0.9rem;"></i> Atölye Tanımı</a></li>
-                            <li><a href="/Definitions/Fabricators" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Fabricators" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-truck" style="font-size: 0.9rem;"></i> Kumaşçı Tanımı</a></li>
-                            <li><a href="/Definitions/Customers" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Customers" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-building" style="font-size: 0.9rem;"></i> Müşteri Tanımı</a></li>
-                            <li><a href="/Definitions/Companies" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Companies" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-building-user" style="font-size: 0.9rem;"></i> Firma Tanımı</a></li>
-                            <li><a href="/Definitions/Accessories" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Accessories" ? "active" : "")" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-tags" style="font-size: 0.9rem;"></i> Aksesuar Tanımı</a></li>
+                    <li>
+                        <a href="#" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Definitions" || ViewContext.RouteData.Values["Controller"]?.ToString() == "ColorDef" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Authorization" ? "active" : "")">Yönetim <i class="fa-solid fa-chevron-down"></i></a>
+                        <ul class="submenu">
+                            <li><a href="/Authorization" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Authorization" ? "active" : "")"><i class="fa-solid fa-user-shield"></i> Yetkilendirme</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/ColorDef/Index" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ColorDef" ? "active" : "")"><i class="fa-solid fa-palette"></i> Renk Tanımı</a></li>
+                            <li><a href="/Definitions/Workshops" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Workshops" ? "active" : "")"><i class="fa-solid fa-industry"></i> Atölye Tanımı</a></li>
+                            <li><a href="/Definitions/Fabricators" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Fabricators" ? "active" : "")"><i class="fa-solid fa-truck"></i> Kumaşçı Tanımı</a></li>
+                            <li><a href="/Definitions/Customers" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Customers" ? "active" : "")"><i class="fa-solid fa-building"></i> Müşteri Tanımı</a></li>
+                            <li><a href="/Definitions/Companies" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Companies" ? "active" : "")"><i class="fa-solid fa-building-user"></i> Firma Tanımı</a></li>
+                            <li><a href="/Definitions/Accessories" class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "Accessories" ? "active" : "")"><i class="fa-solid fa-tags"></i> Aksesuar Tanımı</a></li>
                         </ul>
                     </li>
                 }
             </ul>
-            <ul class="sidebar-menu" style="flex-grow: 0; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top:0;">
-                @if (User.IsInRole("Admin"))
-                {
-                    <li><a href="/Authorization" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Authorization" ? "active" : "")"><i class="fa-solid fa-user-shield"></i> Yetkilendirme</a></li>
-                }
-            </ul>
-            <div class="sidebar-footer">
-            </div>
-        </nav>
 
-     
+            <div class="topbar-right">
+                <div class="notification-container">
+                    <button class="bell-btn" id="notificationBellBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
+                        <div class="notification-header">
+                            <span>Bildirimler</span>
+                            <button id="markAllReadBtn">Tümünü Okundu İşaretle</button>
+                        </div>
+                        <div class="notification-list" id="notificationList">
+                            <div class="notification-empty">
+                                <i class="fa-regular fa-bell-slash"></i>
+                                <p>Henüz bildiriminiz yok.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-profile dropdown" id="userProfileDropdown">
+                    <img src="https://ui-avatars.com/api/?name=@fullName&background=0047bb&color=fff" alt="User Profile" />
+                    <div class="user-info">
+                        <span class="user-name">@fullName</span>
+                        <span class="user-role">@roleTitle</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                    
+                    <div class="dropdown-menu" style="display: none;">
+                        <a href="/Settings/Profile"><i class="fa-solid fa-user"></i> Profili Düzenle</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/Account/Logout" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
         <main class="main-content">
-            <div class="topbar">
-                <div class="topbar-left">
-                    <button class="btn-planner">Production Planner <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem;"></i></button>
-                    <div class="search-box">
-                        <i class="fa-solid fa-search"></i>
-                        <input type="text" placeholder="Search jobs, machines, operators..." />
-                    </div>
-                </div>
-                <div class="topbar-right">
-                    <div class="notification-container" style="position: relative; margin-right: 5px;">
-                        <button class="bell-btn" id="notificationBellBtn" style="position: relative;">
-                            <i class="fa-regular fa-bell"></i>
-                            <span class="notification-badge" id="notificationBadge" style="display: none; position: absolute; top: -5px; right: -5px; background: var(--danger-text); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; border: 2px solid white; line-height: 1;">0</span>
-                        </button>
-                        <div class="notification-dropdown" id="notificationDropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 360px; z-index: 1000; padding: 0; margin-top: 10px; overflow: hidden;">
-                            <div class="notification-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
-                                <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">Bildirimler</span>
-                                <button id="markAllReadBtn" style="background: none; border: none; color: var(--primary-color); font-size: 0.8rem; font-weight: 600; cursor: pointer;">Tümünü Okundu İşaretle</button>
-                            </div>
-                            <div class="notification-list" id="notificationList" style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column;">
-                                <div style="text-align: center; padding: 30px; color: var(--text-muted);">
-                                    <i class="fa-regular fa-bell-slash" style="font-size: 2rem; opacity: 0.4; margin-bottom: 10px;"></i>
-                                    <p style="margin: 0; font-size: 0.85rem;">Henüz bildiriminiz yok.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user-profile dropdown" style="position: relative; cursor: pointer;">
-                        <img src="https://ui-avatars.com/api/?name=@fullName&background=0047bb&color=fff" alt="User Profile" />
-                        <div style="display: flex; flex-direction: column;">
-                            <span class="user-name">@fullName</span>
-                            <span class="user-role">@roleTitle</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-down" style="color: var(--text-muted); font-size: 0.8rem; margin-left: 5px;"></i>
-                        
-                        <div class="dropdown-menu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px; z-index: 1000; padding: 8px 0; margin-top: 10px;">
-                            <a href="/Settings/Profile" style="display: block; padding: 10px 16px; color: var(--text-main); text-decoration: none; font-size: 0.9rem;"><i class="fa-solid fa-user" style="margin-right: 8px; color: var(--text-muted);"></i> Profili Düzenle</a>
-                            <div style="border-top: 1px solid var(--border-color); margin: 4px 0;"></div>
-                            <a href="/Account/Logout" style="display: block; padding: 10px 16px; color: var(--danger-text); text-decoration: none; font-size: 0.9rem;"><i class="fa-solid fa-right-from-bracket" style="margin-right: 8px;"></i> Çıkış Yap</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             @RenderBody()
         </main>
     </div>
@@ -115,32 +95,35 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
-            $('.menu-toggle').click(function(e) {
-                e.preventDefault();
-                const submenu = $(this).next('.submenu');
-                const icon = $(this).find('.submenu-icon');
-                submenu.slideToggle(200);
-                if (icon.hasClass('fa-chevron-down')) {
-                    icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
-                } else {
-                    icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
-                }
-            });
-            
-            if ($('.submenu').is(':visible')) {
-                $('.submenu').prev('.menu-toggle').find('.submenu-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            }
+            // Dropdowns are styled via CSS hover in top navbar
 
             
-            $('.user-profile').click(function(e) {
+            $('#userProfileDropdown').click(function(e) {
                 e.stopPropagation();
-                $(this).find('.dropdown-menu').fadeToggle(150);
+                const $dropdownMenu = $(this).find('.dropdown-menu');
+                const isOpen = $dropdownMenu.is(':visible');
+                
+                // Close other dropdowns
                 $('#notificationDropdown').fadeOut(150);
+                $('#notificationBellBtn').removeClass('active');
+                
+                if (isOpen) {
+                    $dropdownMenu.fadeOut(150);
+                    $(this).removeClass('active');
+                } else {
+                    $dropdownMenu.fadeIn(150);
+                    $(this).addClass('active');
+                }
             });
+
             $(document).click(function() {
-                $('.user-profile .dropdown-menu').fadeOut(150);
+                $('#userProfileDropdown .dropdown-menu').fadeOut(150);
+                $('#userProfileDropdown').removeClass('active');
+                $('#notificationDropdown').fadeOut(150);
+                $('#notificationBellBtn').removeClass('active');
             });
-            $('.user-profile .dropdown-menu').click(function(e) {
+
+            $('#userProfileDropdown .dropdown-menu').click(function(e) {
                 e.stopPropagation();
             });
 
@@ -154,12 +137,19 @@
             // Toggle dropdown
             $bellBtn.on('click', function(e) {
                 e.stopPropagation();
-                $dropdown.fadeToggle(150);
-                $('.user-profile .dropdown-menu').fadeOut(150);
-            });
-            
-            $(document).on('click', function() {
-                $dropdown.fadeOut(150);
+                const isOpen = $dropdown.is(':visible');
+                
+                // Close other dropdowns
+                $('#userProfileDropdown .dropdown-menu').fadeOut(150);
+                $('#userProfileDropdown').removeClass('active');
+                
+                if (isOpen) {
+                    $dropdown.fadeOut(150);
+                    $bellBtn.removeClass('active');
+                } else {
+                    $dropdown.fadeIn(150);
+                    $bellBtn.addClass('active');
+                }
             });
             
             $dropdown.on('click', function(e) {
@@ -186,9 +176,9 @@
                 
                 if (!notifications || notifications.length === 0) {
                     $list.html(`
-                        <div style="text-align: center; padding: 30px; color: var(--text-muted);">
-                            <i class="fa-regular fa-bell-slash" style="font-size: 2rem; opacity: 0.4; margin-bottom: 10px;"></i>
-                            <p style="margin: 0; font-size: 0.85rem;">Henüz bildiriminiz yok.</p>
+                        <div class="notification-empty">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <p>Henüz bildiriminiz yok.</p>
                         </div>
                     `);
                     return;
@@ -218,19 +208,19 @@
                         color = '#db2777';
                     }
                     
-                    const unreadStyle = !notif.isRead ? 'background: #f0fdf4; border-left: 4px solid var(--primary-color);' : '';
+                    const unreadClass = !notif.isRead ? 'unread' : '';
                     
                     html += `
-                        <div class="notification-item" data-id="${notif.id}" style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; align-items: flex-start; cursor: pointer; transition: background 0.2s; ${unreadStyle}">
-                            <div style="width: 32px; height: 32px; border-radius: 8px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.95rem;">
+                        <div class="notification-item ${unreadClass}" data-id="${notif.id}">
+                            <div class="notification-icon-wrapper" style="background: ${bg}; color: ${color};">
                                 <i class="fa-solid ${icon}"></i>
                             </div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
-                                    <strong style="font-size: 0.85rem; color: var(--text-main); font-weight: 700;">${notif.title}</strong>
-                                    <span style="font-size: 0.7rem; color: var(--text-muted);">${notif.createdAt}</span>
+                            <div class="notification-info">
+                                <div class="notification-title-row">
+                                    <strong class="notification-title">${notif.title}</strong>
+                                    <span class="notification-time">${notif.createdAt}</span>
                                 </div>
-                                <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.3;">${notif.message}</p>
+                                <p class="notification-message">${notif.message}</p>
                             </div>
                         </div>
                     `;
@@ -246,7 +236,7 @@
                         type: 'POST',
                         data: { id: id },
                         success: function() {
-                            $item.css({ 'background': '', 'border-left': '' });
+                            $item.removeClass('unread');
                             loadNotifications();
                         }
                     });
@@ -301,30 +291,23 @@
                 
                 const toastId = 'toast-' + Date.now();
                 const $toast = $(`
-                    <div id="${toastId}" style="position: fixed; bottom: 20px; right: 20px; background: white; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 320px; padding: 16px; z-index: 10000; display: flex; gap: 12px; animation: slideInUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-                        <div style="width: 36px; height: 36px; border-radius: 50%; background: ${bg}; color: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <div id="${toastId}" class="live-toast">
+                        <div class="live-toast-icon" style="background: ${bg};">
                             <i class="fa-solid ${icon}"></i>
                         </div>
-                        <div style="flex-grow: 1;">
-                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
-                                <strong style="font-size: 0.9rem; color: var(--text-main); font-weight: 700;">${title}</strong>
-                                <button onclick="$('#${toastId}').fadeOut(300, function(){ $(this).remove(); })" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem; padding:0;"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="live-toast-content">
+                            <div class="live-toast-header">
+                                <strong class="live-toast-title">${title}</strong>
+                                <button class="live-toast-close" onclick="$('#${toastId}').fadeOut(300, function(){ $(this).remove(); })">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
                             </div>
-                            <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">${message}</p>
+                            <p class="live-toast-message">${message}</p>
                         </div>
                     </div>
                 `);
                 
                 $('body').append($toast);
-                
-                if ($('#toastAnimStyles').length === 0) {
-                    $('head').append(`<style id="toastAnimStyles">
-                        @@keyframes slideInUp {
-                            from { transform: translateY(100%); opacity: 0; }
-                            to { transform: translateY(0); opacity: 1; }
-                        }
-                    </style>`);
-                }
                 
                 setTimeout(function() {
                     $(`#${toastId}`).fadeOut(400, function() {

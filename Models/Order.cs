@@ -64,10 +64,11 @@ namespace UretimPlanlama.Models
         public string? OptionCode { get; set; } // Renk bazlı model/varyant numarası
         public string? SizeDistributionJson { get; set; } // Dinamik Açık Beden Dağılımı JSON
         public string? AsortiDistributionJson { get; set; } // Dinamik Asorti Dağılımı JSON
-        public string? FabricStatus { get; set; } 
-        public string? ProductionPlace { get; set; } 
-        public string? Status { get; set; } 
-        
+        public string? SelectedAccessoriesJson { get; set; } // Seçilen Aksesuarlar JSON
+        public string? FabricStatus { get; set; }
+        public string? ProductionPlace { get; set; }
+        public string? Status { get; set; }
+
         public bool IsJIT { get; set; }
         public string? SalesRegion { get; set; }
 
@@ -78,19 +79,32 @@ namespace UretimPlanlama.Models
         public DateTime? FabricArrivalActualDate { get; set; } // Kumaş Geliş Tarihi
         public double? FabricMeterage { get; set; } // Gelen Metraj (m)
 
-        // Kesim
-        public DateTime? CuttingStartDate { get; set; } // Kesim Başlangıç
-        public DateTime? CuttingEndDate { get; set; } // Kesim Bitiş
+        // Kesim - Planlanan
+        public DateTime? PlannedCuttingStartDate { get; set; } // Kesim Başlangıç Planlanan
+        public DateTime? PlannedCuttingEndDate { get; set; } // Kesim Bitiş Planlanan
 
-        // Dikim
+        // Kesim - Gerçekleşen
+        public DateTime? CuttingStartDate { get; set; } // Kesim Başlangıç Gerçekleşen
+        public DateTime? CuttingEndDate { get; set; } // Kesim Bitiş Gerçekleşen
+
+        // Dikim - Planlanan
+        public DateTime? PlannedSewingStartDate { get; set; } // Dikim Başlangıç Planlanan
+        public DateTime? PlannedSewingEndDate { get; set; } // Dikim Bitiş Planlanan
+
+        // Dikim - Gerçekleşen
         public string? SewingWorkshop { get; set; } // Dikim Atölyesi
-        public DateTime? SewingStartDate { get; set; } // Dikim Başlangıç
-        public DateTime? SewingEndDate { get; set; } // Dikim Bitiş
+        public DateTime? SewingStartDate { get; set; } // Dikim Başlangıç Gerçekleşen
+        public DateTime? SewingEndDate { get; set; } // Dikim Bitiş Gerçekleşen
 
-        // Paket ve Kalite
-        public DateTime? PackagingStartDate { get; set; } // Paket Başlangıç
-        public DateTime? PackagingEndDate { get; set; } // Paket Bitiş
-        public DateTime? LastInspectionDate { get; set; } // Son Inspection Tarihi
+        // Paket ve Kalite - Planlanan
+        public DateTime? PlannedPackagingStartDate { get; set; } // Paket Başlangıç Planlanan
+        public DateTime? PlannedPackagingEndDate { get; set; } // Paket Bitiş Planlanan
+        public DateTime? PlannedLastInspectionDate { get; set; } // Son Inspection Planlanan
+
+        // Paket ve Kalite - Gerçekleşen
+        public DateTime? PackagingStartDate { get; set; } // Paket Başlangıç Gerçekleşen
+        public DateTime? PackagingEndDate { get; set; } // Paket Bitiş Gerçekleşen
+        public DateTime? LastInspectionDate { get; set; } // Son Inspection Gerçekleşen
 
         // Sevkiyat
         public DateTime? DepartureDate { get; set; } // Yola Çıkış
@@ -115,14 +129,42 @@ namespace UretimPlanlama.Models
         public int AsortiSizeXL { get; set; } = 0;
         public int AsortiSize2XL { get; set; } = 0;
         public int AsortiSize3XL { get; set; } = 0;
-        
+
         // Toplam Asorti Kutusu / Sayısı
         public int AsortiCount { get; set; } = 0;
+
+        // --- MODEL DETAYLARI VE AKSESUAR / TELA BİLGİLERİ ---
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? UnitFabricMeterage { get; set; } // Birim Kumaş Metrajı (m)
+
+        public int? LargeButtonCount { get; set; } // Büyük Düğme Sayısı
+        public int? SmallButtonCount { get; set; } // Küçük Düğme Sayısı
+
+        // Diğer Aksesuarlar (1'er Adet)
+        public bool HasPriceCard { get; set; } // Fiyat Kartı
+        public bool HasWashingInstruction { get; set; } // Yıkama Talimatı
+        public bool HasInnerBarcode { get; set; } // İç Barkod
+        public bool HasYokeLabel { get; set; } // Roba Etiketi
+        public bool HasFifLabel { get; set; } // Fif Etiketi
+        public bool HasOtherCard { get; set; } // Diğer Kart
+
+        // Tela Bilgisi (Birim Metraj)
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? CollarInterliningMeterage { get; set; } // Yaka Telası (m)
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? CuffInterliningMeterage { get; set; } // Manşet Telası (m)
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? PlacketInterliningMeterage { get; set; } // Pat Telası (m)
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? PocketFlapInterliningMeterage { get; set; } // Cep Kapağı Telası (m)
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal? TargetFabricQty { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? ActualFabricQty { get; set; } 
+        public decimal? ActualFabricQty { get; set; }
     }
 }
