@@ -18,7 +18,7 @@ namespace UretimPlanlama.Controllers
             _roleManager = roleManager;
         }
 
-        // View Models
+        // Görünüm Modelleri (View Models)
         public class UserAuthorizationViewModel
         {
             public string UserId { get; set; } = string.Empty;
@@ -39,7 +39,7 @@ namespace UretimPlanlama.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // 1. Fetch all roles and their mapped claims (permissions)
+            // 1. Tüm rolleri ve bunlarla eşlenmiş yetkileri (claim'leri) getir
             var roles = _roleManager.Roles.ToList();
             var roleViewModels = new List<RoleAuthorizationViewModel>();
 
@@ -170,7 +170,7 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // 1. Update user's identity role
+            // 1. Kullanıcının kimlik (identity) rolünü güncelle
             var currentRoles = await _userManager.GetRolesAsync(user);
             if (!currentRoles.Contains(assignedRole))
             {
@@ -181,7 +181,7 @@ namespace UretimPlanlama.Controllers
                 }
             }
 
-            // 2. Update user's role title display field (e.g. Admin, Planner, Operator, User, etc.)
+            // 2. Kullanıcının rol başlığı görüntüleme alanını güncelle (örn. Yönetici, Planlamacı, Operatör vb.)
             user.RoleTitle = assignedRole switch
             {
                 "Admin" => "Sistem Yöneticisi",
@@ -190,7 +190,7 @@ namespace UretimPlanlama.Controllers
             };
             await _userManager.UpdateAsync(user);
 
-            // 3. Update user-specific custom permission claims
+            // 3. Kullanıcıya özel tanımlanmış yetki taleplerini (permission claims) güncelle
             var currentClaims = await _userManager.GetClaimsAsync(user);
             var permissionClaims = currentClaims.Where(c => c.Type == "Permission").ToList();
             
@@ -251,14 +251,14 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Prevent modification of system Admin role name to avoid issues
+            // Olası sorunları önlemek için sistem 'Admin' rol adının değiştirilmesini engelle
             if (role.Name != "Admin" && role.Name != "User" && !string.IsNullOrWhiteSpace(roleName) && role.Name != roleName)
             {
                 role.Name = roleName.Trim();
                 await _roleManager.UpdateAsync(role);
             }
 
-            // Update role claims (permissions)
+            // Rol yetkilerini (claim'lerini) güncelle
             var currentClaims = await _roleManager.GetClaimsAsync(role);
             var permissionClaims = currentClaims.Where(c => c.Type == "Permission").ToList();
             
@@ -289,7 +289,7 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Protect core system roles
+            // Çekirdek sistem rollerini koru
             if (role.Name == "Admin" || role.Name == "User")
             {
                 TempData["ErrorMessage"] = "Sistem rollerini ('Admin', 'User') silemezsiniz.";

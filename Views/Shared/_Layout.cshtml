@@ -25,10 +25,10 @@
             </div>
             
             <ul class="navbar-menu">
-                <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">Siparişler (LCW)</a></li>
+                <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">Siparişler</a></li>
                 <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">Üretim Planlama</a></li>
                 <li><a href="/Planning/Tracking" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && ViewContext.RouteData.Values["Action"]?.ToString() == "Tracking" ? "active" : "")">Üretim Takip</a></li>
-                <li><a href="/Purchasing" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Purchasing" ? "active" : "")">Kumaş & Aksesuar</a></li>
+                <li><a href="/WorkshopCapacity" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "WorkshopCapacity" ? "active" : "")">Atölye Takip</a></li>
                 <li><a href="/Reports" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")">Raporlar</a></li>
                 
                 @if (User.IsInRole("Admin"))
@@ -95,7 +95,7 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
-            // Dropdowns are styled via CSS hover in top navbar
+            // Açılır menüler (dropdown), üst gezinti çubuğunda CSS hover ile stillendirilmiştir
 
             
             $('#userProfileDropdown').click(function(e) {
@@ -103,7 +103,7 @@
                 const $dropdownMenu = $(this).find('.dropdown-menu');
                 const isOpen = $dropdownMenu.is(':visible');
                 
-                // Close other dropdowns
+                // Diğer açılır menüleri kapat
                 $('#notificationDropdown').fadeOut(150);
                 $('#notificationBellBtn').removeClass('active');
                 
@@ -127,19 +127,19 @@
                 e.stopPropagation();
             });
 
-            // --- Real-time Notification System JS ---
+            // --- Gerçek Zamanlı Bildirim Sistemi JS ---
             const $bellBtn = $('#notificationBellBtn');
             const $dropdown = $('#notificationDropdown');
             const $badge = $('#notificationBadge');
             const $list = $('#notificationList');
             const $markAllBtn = $('#markAllReadBtn');
             
-            // Toggle dropdown
+            // Açılır menüyü aç/kapat
             $bellBtn.on('click', function(e) {
                 e.stopPropagation();
                 const isOpen = $dropdown.is(':visible');
                 
-                // Close other dropdowns
+                // Diğer açılır menüleri kapat
                 $('#userProfileDropdown .dropdown-menu').fadeOut(150);
                 $('#userProfileDropdown').removeClass('active');
                 
@@ -156,7 +156,7 @@
                 e.stopPropagation();
             });
             
-            // Fetch notifications
+            // Bildirimleri getir
             function loadNotifications() {
                 $.ajax({
                     url: '/Notifications/GetUnread',
@@ -256,7 +256,7 @@
             
             loadNotifications();
             
-            // Setup SignalR
+            // SignalR Kurulumu
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/notificationHub")
                 .configureLogging(signalR.LogLevel.Information)

@@ -86,17 +86,17 @@ public class HomeController : Controller
             var primaryRate = w.MonthlyCapacity > 0 ? monthlyRate : (w.DailyCapacity > 0 ? dailyRate : 0);
             
             string statusLabel = "Boş / Müsait";
-            string statusClass = "badge-progress"; // Green
+            string statusClass = "badge-progress"; // Yeşil
             
             if (primaryRate >= 100)
             {
                 statusLabel = "Kapasite Dolu";
-                statusClass = "badge-high"; // Red
+                statusClass = "badge-high"; // Kırmızı
             }
             else if (primaryRate >= 75)
             {
                 statusLabel = "Yoğun Çalışıyor";
-                statusClass = "badge-medium"; // Yellow
+                statusClass = "badge-medium"; // Sarı
             }
 
             capacityStatuses.Add(new WorkshopCapacityStatus

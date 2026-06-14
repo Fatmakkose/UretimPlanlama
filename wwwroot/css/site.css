@@ -35,7 +35,7 @@ body {
     min-height: 100vh;
 }
 
-/* Top Navbar */
+/* Üst Gezinti Çubuğu (Navbar) */
 .top-navbar {
     height: 70px;
     width: 100%;
@@ -64,7 +64,7 @@ body {
 }
 
 .navbar-logo img {
-    max-height: 28px;
+    max-height: 45px;
     width: auto;
     object-fit: contain;
     transition: opacity 0.2s ease;
@@ -97,7 +97,7 @@ body {
     color: var(--text-muted);
     text-decoration: none;
     font-weight: 500;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     letter-spacing: 0.2px;
     transition: color 0.2s ease;
     position: relative;
@@ -116,7 +116,7 @@ body {
 }
 
 .navbar-menu a:hover {
-    color: var(--text-main);
+    color: var(--primary-color);
 }
 
 .navbar-menu a.active {
@@ -128,7 +128,7 @@ body {
     background: var(--primary-color);
 }
 
-/* Submenu / Dropdown */
+/* Alt Menü / Açılır Menü (Dropdown) */
 .navbar-menu .submenu {
     display: none;
     position: absolute;
@@ -215,11 +215,11 @@ body {
     display: block;
 }
 
-/* Main Content */
+/* Ana İçerik */
 .main-content {
     flex-grow: 1;
     margin-left: 0;
-    padding: 100px 40px 40px 40px; /* Spacing for fixed navbar */
+    padding: 100px 40px 40px 40px; /* Sabit navbar için boşluk */
 }
 
 .topbar-left {
@@ -321,7 +321,7 @@ body {
     gap: 16px;
 }
 
-/* Notification Container & Bell Button */
+/* Bildirim Kutusu ve Zil Butonu */
 .notification-container {
     position: relative;
 }
@@ -386,7 +386,7 @@ body {
     transform: scale(1.1);
 }
 
-/* Notification Dropdown */
+/* Bildirim Açılır Menüsü */
 .notification-dropdown {
     position: absolute;
     top: 100%;
@@ -525,7 +525,7 @@ body {
     line-height: 1.4;
 }
 
-/* User Profile */
+/* Kullanıcı Profili */
 .user-profile {
     display: flex;
     align-items: center;
@@ -664,7 +664,7 @@ body {
     background-color: rgba(220, 38, 38, 0.05);
 }
 
-/* Live Toast System */
+/* Canlı Bildirim (Toast) Sistemi */
 .live-toast {
     position: fixed;
     bottom: 24px;
@@ -744,7 +744,7 @@ body {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Dashboard Header */
+/* Panel (Dashboard) Başlığı */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -781,7 +781,7 @@ body {
     gap: 8px;
 }
 
-/* Stat Cards */
+/* İstatistik Kartları */
 .stat-cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

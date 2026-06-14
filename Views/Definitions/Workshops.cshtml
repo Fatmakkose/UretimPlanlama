@@ -57,6 +57,7 @@
                                 <th style="padding: 12px 16px; text-align: right;">Aylık K.</th>
                                 <th style="padding: 12px 16px; text-align: right;">Yıllık K.</th>
                                 <th style="padding: 12px 16px;">Adres</th>
+                                <th style="padding: 12px 16px; text-align: center; width: 100px;">İşlemler</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -79,6 +80,11 @@
                                     <td style="padding: 16px; text-align: right; color: var(--text-main); font-weight: 600;">@w.MonthlyCapacity.ToString("N0")</td>
                                     <td style="padding: 16px; text-align: right; color: var(--text-main); font-weight: 600;">@w.AnnualCapacity.ToString("N0")</td>
                                     <td style="padding: 16px; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@w.Address</td>
+                                    <td style="padding: 16px; text-align: center;">
+                                        <a href="/Definitions/EditWorkshop/@w.Id" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fa-solid fa-pen-to-square"></i> Düzenle
+                                        </a>
+                                    </td>
                                 </tr>
                             }
                         </tbody>

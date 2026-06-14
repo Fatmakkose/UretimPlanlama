@@ -275,7 +275,6 @@
 <div class="dashboard-header" style="margin-bottom: 25px;">
     <div class="header-title">
         <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Sistem Yetkilendirme Paneli</h1>
-        <p style="color: var(--text-muted); margin-top: 5px;">Kullanıcı rolleri atayın ve özel erişim yetkilerini (claims) esnek biçimde kontrol edin.</p>
     </div>
 </div>
 
@@ -387,10 +386,7 @@
                                                            @(user.AssignedRole == "Admin" ? "disabled" : "") />
                                                     <i class="fa-solid @p.Icon" style="font-size: 0.8rem;"></i>
                                                     <span>@p.Label</span>
-                                                    @if (hasInherited && !hasDirect && user.AssignedRole != "Admin")
-                                                    {
-                                                        <span class="badge inherited-badge" style="padding: 1px 6px; font-size: 0.6rem; margin-left: 2px;" title="Rolden miras alındı">Miras</span>
-                                                    }
+
                                                 </label>
                                             }
                                         </div>
@@ -663,15 +659,8 @@
                 
                 if (hasInherited) {
                     label.classList.add("checked");
-                    // dynamically append / show Miras badge
-                    let badge = label.querySelector(".inherited-badge");
-                    if (!badge) {
-                        label.insertAdjacentHTML('beforeend', '<span class="badge inherited-badge" style="padding: 1px 6px; font-size: 0.6rem; margin-left: 2px;" title="Rolden miras alındı">Miras</span>');
-                    }
                 } else {
                     label.classList.remove("checked");
-                    let badge = label.querySelector(".inherited-badge");
-                    if (badge) badge.remove();
                 }
             }
         });

@@ -58,7 +58,7 @@ namespace UretimPlanlama.Controllers
                 _context.Add(order);
                 _context.SaveChanges();
                 TempData["SuccessMessage"] = "Sipariş oluşturuldu";
-                return RedirectToAction(nameof(Index)); // Redirect directly to the order management page
+                return RedirectToAction(nameof(Index)); // Doğrudan sipariş yönetimi sayfasına yönlendir
             }
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
@@ -227,6 +227,97 @@ namespace UretimPlanlama.Controllers
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Siparisler.xlsx");
                 }
             }
+        }
+
+        [HttpPost]
+        public IActionResult Edit([FromBody] Order updatedOrder)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
+
+            if (updatedOrder == null)
+            {
+                return Json(new { success = false, message = "Geçersiz sipariş verisi." });
+            }
+
+            try
+            {
+                var existingOrder = _context.Orders.Find(updatedOrder.Id);
+                if (existingOrder == null)
+                {
+                    return Json(new { success = false, message = "Sipariş bulunamadı." });
+                }
+
+                // Genel özellikleri güncelle
+                existingOrder.OrderDate = updatedOrder.OrderDate;
+                existingOrder.OrderCode = updatedOrder.OrderCode;
+                existingOrder.PaymentMethod = updatedOrder.PaymentMethod;
+                existingOrder.ManufacturerCompany = updatedOrder.ManufacturerCompany;
+                existingOrder.Customer = updatedOrder.Customer;
+                existingOrder.ModelName = updatedOrder.ModelName;
+                existingOrder.GoodsDescription = updatedOrder.GoodsDescription;
+                existingOrder.InspectionType = updatedOrder.InspectionType;
+                existingOrder.InspectionDate = updatedOrder.InspectionDate;
+                existingOrder.FabricSupplier = updatedOrder.FabricSupplier;
+                existingOrder.DeliveryPlace = updatedOrder.DeliveryPlace;
+                existingOrder.Color = updatedOrder.Color;
+                existingOrder.IsJIT = updatedOrder.IsJIT;
+                existingOrder.SalesRegion = updatedOrder.SalesRegion;
+
+                // Beden ve miktar bilgilerini güncelle
+                existingOrder.SizeS = updatedOrder.SizeS;
+                existingOrder.SizeM = updatedOrder.SizeM;
+                existingOrder.SizeL = updatedOrder.SizeL;
+                existingOrder.SizeXL = updatedOrder.SizeXL;
+                existingOrder.Size2XL = updatedOrder.Size2XL;
+                existingOrder.Size3XL = updatedOrder.Size3XL;
+
+                existingOrder.AsortiSizeS = updatedOrder.AsortiSizeS;
+                existingOrder.AsortiSizeM = updatedOrder.AsortiSizeM;
+                existingOrder.AsortiSizeL = updatedOrder.AsortiSizeL;
+                existingOrder.AsortiSizeXL = updatedOrder.AsortiSizeXL;
+                existingOrder.AsortiSize2XL = updatedOrder.AsortiSize2XL;
+                existingOrder.AsortiSize3XL = updatedOrder.AsortiSize3XL;
+
+                existingOrder.AsortiCount = updatedOrder.AsortiCount;
+                existingOrder.Quantity = updatedOrder.Quantity;
+
+                existingOrder.SizeDistributionJson = updatedOrder.SizeDistributionJson;
+                existingOrder.AsortiDistributionJson = updatedOrder.AsortiDistributionJson;
+
+                // Finansal özellikleri güncelle
+                existingOrder.ComponentUnitPrice = updatedOrder.ComponentUnitPrice;
+                existingOrder.TotalAmount = updatedOrder.TotalAmount;
+                existingOrder.VatAmount = updatedOrder.VatAmount;
+                existingOrder.TotalAmountWithVat = updatedOrder.TotalAmountWithVat;
+
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Sipariş güncellendi";
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
+            var order = _context.Orders.Find(id);
+            if (order != null)
+            {
+                _context.Orders.Remove(order);
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            return Json(new { success = false, message = "Sipariş bulunamadı." });
         }
 
         private string FormatJsonDistribution(string? json, Order order, bool isAsorti)

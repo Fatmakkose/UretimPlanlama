@@ -52,6 +52,40 @@ namespace UretimPlanlama.Controllers
             return View(model);
         }
 
+        public IActionResult EditWorkshop(int id)
+        {
+            var workshop = _context.Workshops.Find(id);
+            if (workshop == null)
+            {
+                return NotFound();
+            }
+            return View(workshop);
+        }
+
+        [HttpPost]
+        public IActionResult EditWorkshop(Workshop model)
+        {
+            if (ModelState.IsValid && !string.IsNullOrEmpty(model.Name))
+            {
+                var ws = _context.Workshops.Find(model.Id);
+                if (ws != null)
+                {
+                    ws.Name = model.Name;
+                    ws.Type = model.Type;
+                    ws.AuthorizedPerson = model.AuthorizedPerson;
+                    ws.DailyCapacity = model.DailyCapacity;
+                    ws.MonthlyCapacity = model.MonthlyCapacity;
+                    ws.AnnualCapacity = model.AnnualCapacity;
+                    ws.Address = model.Address;
+
+                    _context.SaveChanges();
+                    TempData["SuccessMessage"] = "Atölye kapasite ve bilgileri başarıyla güncellendi.";
+                    return RedirectToAction("Workshops");
+                }
+            }
+            return View(model);
+        }
+
         public IActionResult Fabricators()
         {
             var fabricators = _context.Fabricators.ToList();

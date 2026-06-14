@@ -1,4 +1,4 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+// Statik web varlıklarını paketlemek ve sıkıştırmak için bu projeyi yapılandırma hakkında ayrıntılar için
+// lütfen https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification adresindeki belgelere bakın.
 
-// Write your JavaScript code.
+// JavaScript kodunuzu buraya yazın.

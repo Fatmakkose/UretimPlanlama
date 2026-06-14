@@ -1,0 +1,592 @@
+@model List<UretimPlanlama.Controllers.WorkshopCapacityViewModel>
+@{
+    ViewData["Title"] = "Atölye Takip";
+    
+    // Özet İstatistikleri Hesapla (Başlangıçta varsayılan olarak Çarşamba / İndeks 2)
+    int totalTarget = Model.Sum(m => m.DailyTarget);
+    int totalActual = Model.Sum(m => m.DailyData.Count > 2 ? m.DailyData[2].ActualProduction : m.ActualProduction);
+    double overallUsage = totalTarget > 0 ? (double)totalActual / totalTarget * 100 : 0;
+}
+
+<style>
+    /* Premium Panel Düzeni Stilleri */
+    .stat-box-container {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .stat-box-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px 24px;
+        min-width: 240px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    .stat-box-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .stat-box-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-main);
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .stat-box-unit {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-muted);
+    }
+
+    .dashboard-two-col {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+
+    .chart-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        height: 140px;
+        padding: 10px 20px;
+        margin-bottom: 12px;
+    }
+
+    .chart-bar-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 15%;
+        transition: transform 0.2s;
+    }
+
+    .chart-bar-wrapper:hover {
+        transform: translateY(-2px);
+    }
+
+    .chart-bar-bg {
+        height: 100px;
+        width: 24px;
+        background: #f1f5f9;
+        border-radius: 6px;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .chart-bar-fill {
+        width: 100%;
+        border-radius: 6px;
+        transition: height 0.3s ease, background-color 0.3s;
+    }
+
+    .chart-bar-fill.normal {
+        background-color: #cbd5e1;
+    }
+
+    .chart-bar-fill.highlight {
+        background-color: var(--primary-color);
+        box-shadow: 0 4px 10px rgba(0, 71, 187, 0.2);
+    }
+
+    .chart-day-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-top: 6px;
+        transition: color 0.3s;
+    }
+
+    /* İkincil link için buton stillerinin ezilmesi */
+    .btn-secondary-link {
+        background-color: white;
+        border: 1px solid var(--border-color);
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--text-main);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary-link:hover {
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    /* Tablo Stilleri */
+    .progress-bar-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .progress-bar-bg {
+        width: 120px;
+        height: 8px;
+        background: #f1f5f9;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease, background-color 0.3s;
+    }
+
+    /* İşlem Açılır Menü (Dropdown) Stilleri */
+    .action-dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .action-dropdown-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-dropdown-btn:hover, .action-dropdown-btn.active {
+        background-color: #f1f5f9;
+        color: var(--text-main);
+    }
+
+    .action-dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background-color: white;
+        min-width: 170px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        z-index: 50;
+        padding: 6px 0;
+        margin-top: 4px;
+    }
+
+    .action-dropdown-menu.show {
+        display: block;
+    }
+
+    .action-dropdown-menu a {
+        color: var(--text-main);
+        padding: 8px 16px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background-color 0.15s;
+        text-align: left;
+    }
+
+    .action-dropdown-menu a:hover {
+        background-color: #f8fafc;
+        color: var(--primary-color);
+    }
+
+    .action-dropdown-menu i {
+        font-size: 0.95rem;
+        width: 16px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .action-dropdown-menu a:hover i {
+        color: var(--primary-color);
+    }
+</style>
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Atölye Takip</h1>
+    </div>
+    <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
+        <a href="/WorkshopCapacity/ExportToExcel" class="btn-secondary-link">
+            <i class="fa-solid fa-download"></i> Excel'e Aktar
+        </a>
+        <a href="/Definitions/Workshops" class="btn-planner" style="text-decoration: none; border-radius: 8px; padding: 10px 18px; font-size: 0.95rem;">
+            <i class="fa-solid fa-sliders"></i> Kapasite Düzenle
+        </a>
+    </div>
+</div>
+
+<!-- Özet Kartlar -->
+<div class="stat-box-container">
+    <div class="stat-box-card">
+        <div class="stat-box-label">Günlük Toplam Hedef</div>
+        <div class="stat-box-value" id="stat-total-target">
+            @totalTarget.ToString("N0") <span class="stat-box-unit">Adet</span>
+        </div>
+    </div>
+    <div class="stat-box-card">
+        <div class="stat-box-label">Aktif Kapasite Kullanımı</div>
+        <div class="stat-box-value" id="stat-overall-usage" style="color: @(overallUsage >= 100 ? "#dc2626" : "var(--text-main)")">
+            @overallUsage.ToString("N1")% 
+            <span style="font-size: 1.1rem; color: #16a34a; font-weight: bold; margin-left: 2px;">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- İki Sütunlu Ana Grid -->
+<div class="dashboard-two-col">
+    <!-- Sol Sütun: Atölye Üretim Çizelgesi -->
+    <div class="schedule-section" style="padding: 24px; background: white; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-main);">Atölye Üretim Çizelgesi</h2>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">
+                        <th style="padding: 12px 8px;">Atölye Adı</th>
+                        <th style="padding: 12px 8px; text-align: right;">Günlük Hedef</th>
+                        <th style="padding: 12px 8px; text-align: right;">Gerçekleşen</th>
+                        <th style="padding: 12px 8px; padding-left: 24px;">Kapasite Doluluk</th>
+                        <th style="padding: 12px 8px; text-align: center;">Durum</th>
+                        <th style="padding: 12px 8px; text-align: center; width: 50px;">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ws in Model)
+                    {
+                        var usagePct = Math.Round(ws.CapacityUsage * 100);
+                        var barColor = "var(--primary-color)";
+                        var badgeClass = "badge-progress";
+
+                        if (ws.Status == "Bakımda")
+                        {
+                            barColor = "#cbd5e1";
+                            badgeClass = "badge-low";
+                        }
+                        else if (ws.Status == "Kapasite Aşımı" || usagePct >= 100)
+                        {
+                            barColor = "#dc2626";
+                            badgeClass = "badge-high";
+                        }
+                        else if (usagePct < 90)
+                        {
+                            barColor = "#475569";
+                            badgeClass = "badge-medium";
+                        }
+
+                        <tr id="row-ws-@ws.Id" style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc';" onmouseout="this.style.backgroundColor='transparent';">
+                            <td style="padding: 14px 8px; font-weight: 600; color: var(--text-main);">@ws.Name</td>
+                            <td style="padding: 14px 8px; text-align: right;">@ws.DailyTarget.ToString("N0")</td>
+                            <td class="ws-actual" style="padding: 14px 8px; text-align: right;">@ws.ActualProduction.ToString("N0")</td>
+                            <td style="padding: 14px 8px; padding-left: 24px;">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-bg">
+                                        <div class="progress-bar-fill" style="width: @Math.Min(usagePct, 100)%; background-color: @barColor;"></div>
+                                    </div>
+                                    <span style="font-size: 0.85rem; font-weight: 700; color: @(ws.Status == "Kapasite Aşımı" ? "#dc2626" : "var(--text-main)")">@usagePct%</span>
+                                </div>
+                            </td>
+                            <td style="padding: 14px 8px; text-align: center;">
+                                <span class="badge @badgeClass" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 12px; font-weight: 600; display: inline-block;">
+                                    @ws.Status
+                                </span>
+                            </td>
+                            <td style="padding: 14px 8px; text-align: center;">
+                                <div class="action-dropdown-container">
+                                    <button type="button" class="action-dropdown-btn" onclick="toggleActionDropdown(event, this)">
+                                        <i class="fa-solid fa-ellipsis-vertical" style="font-size: 1.1rem; padding: 4px 8px;"></i>
+                                    </button>
+                                    <div class="action-dropdown-menu">
+                                        <a href="/Planning/Tracking"><i class="fa-solid fa-chart-line"></i> Detaylı Takip</a>
+                                        <a href="/Definitions/Workshops"><i class="fa-solid fa-pen-to-square"></i> Kapasite Düzenle</a>
+                                        <a href="/WorkshopCapacity/ExportToExcel"><i class="fa-solid fa-file-excel"></i> Excel Raporu</a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sağ Sütun: Yan Bilgiler -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- Atölye Üretim Karşılaştırması -->
+        <div style="background: white; padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <h3 style="font-size: 1rem; font-weight: 700; margin: 0 0 16px 0; color: var(--text-main);">Atölye Üretim Karşılaştırması</h3>
+            
+            <div id="comparison-list" style="display: flex; flex-direction: column; gap: 14px;">
+                @foreach (var ws in Model)
+                {
+                    var usagePct = Math.Round(ws.CapacityUsage * 100);
+                    var barColor = "var(--primary-color)";
+                    if (ws.Status == "Bakımda") barColor = "#cbd5e1";
+                    else if (ws.Status == "Kapasite Aşımı" || usagePct >= 100) barColor = "#dc2626";
+                    else if (usagePct < 90) barColor = "#475569";
+
+                    <div id="compare-item-@ws.Id">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--text-main);">
+                            <span>@ws.Name</span>
+                            <span class="compare-pct">@usagePct%</span>
+                        </div>
+                        <div class="progress-bar-bg" style="width: 100%; height: 6px; margin-top: 6px;">
+                            <div class="progress-bar-fill compare-bar" style="width: @Math.Min(usagePct, 100)%; background-color: @barColor;"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Haftalık Kapasite Öngörüsü -->
+        <div style="background: white; padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <h3 style="font-size: 1rem; font-weight: 700; margin: 0 0 16px 0; color: var(--text-main);">Haftalık Kapasite Öngörüsü</h3>
+            
+            <div class="chart-container">
+                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="0" style="cursor: pointer;">
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill normal" id="bar-day-0" style="height: 60%;"></div>
+                    </div>
+                    <span class="chart-day-label" id="label-day-0">Pzt</span>
+                </div>
+                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="1" style="cursor: pointer;">
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill normal" id="bar-day-1" style="height: 75%;"></div>
+                    </div>
+                    <span class="chart-day-label" id="label-day-1">Sal</span>
+                </div>
+                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="2" style="cursor: pointer;">
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill highlight" id="bar-day-2" style="height: 95%;"></div>
+                    </div>
+                    <span class="chart-day-label" id="label-day-2" style="color: var(--primary-color); font-weight: 700;">Çar</span>
+                </div>
+                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="3" style="cursor: pointer;">
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill normal" id="bar-day-3" style="height: 65%;"></div>
+                    </div>
+                    <span class="chart-day-label" id="label-day-3">Per</span>
+                </div>
+                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="4" style="cursor: pointer;">
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill normal" id="bar-day-4" style="height: 80%;"></div>
+                    </div>
+                    <span class="chart-day-label" id="label-day-4">Cum</span>
+                </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-align: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 6px;">
+                Öngörülen Haftalık Ortalama: <span style="color: var(--text-main); font-weight: 700;"><span id="weekly-avg-label">11.8k</span></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const workshopsData = @Json.Serialize(Model);
+    
+    // İşlem Açılır Menülerini Aç/Kapat
+    function toggleActionDropdown(event, btn) {
+        event.stopPropagation();
+        const container = btn.closest('.action-dropdown-container');
+        const menu = container.querySelector('.action-dropdown-menu');
+        
+        // Diğer tüm açılır menüleri kapat
+        document.querySelectorAll('.action-dropdown-menu.show').forEach(m => {
+            if (m !== menu) m.classList.remove('show');
+        });
+        document.querySelectorAll('.action-dropdown-btn.active').forEach(b => {
+            if (b !== btn) b.classList.remove('active');
+        });
+        
+        menu.classList.toggle('show');
+        btn.classList.toggle('active');
+    }
+    
+    // Açılır menü dışına tıklandığında menüleri kapat
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-dropdown-container')) {
+            document.querySelectorAll('.action-dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            document.querySelectorAll('.action-dropdown-btn.active').forEach(b => b.classList.remove('active'));
+        }
+    });
+
+    // Haftalık öngörüde gün seçimini ele al
+    document.querySelectorAll('.forecast-day-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const dayIndex = parseInt(this.getAttribute('data-day-index'));
+            selectDay(dayIndex);
+        });
+    });
+
+    function selectDay(dayIndex) {
+        const days = ["Pzt", "Sal", "Çar", "Per", "Cum"];
+        
+        // 1. Grafikte vurgulanan sınıfı ve stilleri güncelle
+        for (let i = 0; i < 5; i++) {
+            const bar = document.getElementById('bar-day-' + i);
+            const label = document.getElementById('label-day-' + i);
+            if (i === dayIndex) {
+                bar.className = 'chart-bar-fill highlight';
+                label.style.color = 'var(--primary-color)';
+                label.style.fontWeight = '700';
+            } else {
+                bar.className = 'chart-bar-fill normal';
+                label.style.color = 'var(--text-muted)';
+                label.style.fontWeight = '600';
+            }
+        }
+
+        // 2. Seçilen gün için istatistikleri hesapla
+        let totalTarget = 0;
+        let totalActual = 0;
+        
+        // 3. Ana tabloyu ve atölye karşılaştırma listesini güncelle
+        workshopsData.forEach(ws => {
+            const daily = ws.dailyData[dayIndex];
+            totalTarget += ws.dailyTarget;
+            totalActual += daily.actualProduction;
+
+            const usagePct = Math.round(daily.capacityUsage * 100);
+            
+            // Tablo Satırını Güncelle
+            const row = document.getElementById('row-ws-' + ws.id);
+            if (row) {
+                // Gerçekleşen üretim sütunu
+                const actualCol = row.querySelector('.ws-actual');
+                if (actualCol) {
+                    actualCol.textContent = daily.actualProduction.toLocaleString('tr-TR');
+                }
+                
+                // İlerleme çubuğu ve yüzdelik metin
+                const fill = row.querySelector('.progress-bar-fill');
+                const pctText = row.querySelector('.progress-bar-container span');
+                if (fill) {
+                    fill.style.width = Math.min(usagePct, 100) + '%';
+                    
+                    // Renk eşleştirme
+                    let barColor = 'var(--primary-color)';
+                    if (daily.status === 'Bakımda') barColor = '#cbd5e1';
+                    else if (daily.status === 'Kapasite Aşımı' || usagePct >= 100) barColor = '#dc2626';
+                    else if (usagePct < 90) barColor = '#475569';
+                    
+                    fill.style.backgroundColor = barColor;
+                }
+                if (pctText) {
+                    pctText.textContent = usagePct + '%';
+                    pctText.style.color = (daily.status === 'Kapasite Aşımı') ? '#dc2626' : 'var(--text-main)';
+                }
+                
+                // Durum etiketi
+                const badge = row.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = daily.status;
+                    badge.className = 'badge';
+                    if (daily.status === 'Bakımda') badge.classList.add('badge-low');
+                    else if (daily.status === 'Kapasite Aşımı' || usagePct >= 100) badge.classList.add('badge-high');
+                    else if (usagePct < 90) badge.classList.add('badge-medium');
+                    else badge.classList.add('badge-progress');
+                }
+            }
+
+            // Sağ taraftaki Atölye Karşılaştırma ilerleme çubuğunu güncelle
+            const compareItem = document.getElementById('compare-item-' + ws.id);
+            if (compareItem) {
+                const compPct = compareItem.querySelector('.compare-pct');
+                const compBar = compareItem.querySelector('.compare-bar');
+                if (compPct) compPct.textContent = usagePct + '%';
+                if (compBar) {
+                    compBar.style.width = Math.min(usagePct, 100) + '%';
+                    
+                    let barColor = 'var(--primary-color)';
+                    if (daily.status === 'Bakımda') barColor = '#cbd5e1';
+                    else if (daily.status === 'Kapasite Aşımı' || usagePct >= 100) barColor = '#dc2626';
+                    else if (usagePct < 90) barColor = '#475569';
+                    
+                    compBar.style.backgroundColor = barColor;
+                }
+            }
+        });
+
+        // 4. En üstteki genel özet istatistik kartlarını güncelle
+        const overallUsage = totalTarget > 0 ? (totalActual / totalTarget * 100) : 0;
+        
+        const cardTarget = document.getElementById('stat-total-target');
+        const cardUsage = document.getElementById('stat-overall-usage');
+        
+        if (cardTarget) {
+            cardTarget.innerHTML = totalTarget.toLocaleString('tr-TR') + ' <span class="stat-box-unit">Adet</span>';
+        }
+        if (cardUsage) {
+            cardUsage.style.color = overallUsage >= 100 ? '#dc2626' : 'var(--text-main)';
+            cardUsage.innerHTML = overallUsage.toFixed(1) + '% <span style="font-size: 1.1rem; color: #16a34a; font-weight: bold; margin-left: 2px;"><i class="fa-solid fa-arrow-trend-up"></i></span>';
+        }
+    }
+
+    // Sayfa yüklemesinde grafik çubuk yüksekliklerini günlük gerçek verilerin ortalamasına göre dinamik ilklendir
+    function initChartHeights() {
+        let weeklyTotalActual = 0;
+        let weeklyTotalTarget = 0;
+
+        for (let d = 0; d < 5; d++) {
+            let dailyTarget = 0;
+            let dailyActual = 0;
+            
+            workshopsData.forEach(ws => {
+                dailyTarget += ws.dailyTarget;
+                dailyActual += ws.dailyData[d].actualProduction;
+            });
+            
+            const usagePct = dailyTarget > 0 ? (dailyActual / dailyTarget * 100) : 0;
+            const bar = document.getElementById('bar-day-' + d);
+            if (bar) {
+                // Çubuk yüksekliğini kapasite kullanımına oranla, %100 ile sınırlayarak ayarla
+                bar.style.height = Math.min(usagePct, 100) + '%';
+            }
+            
+            weeklyTotalActual += dailyActual;
+            weeklyTotalTarget += dailyTarget;
+        }
+
+        // Haftalık ortalamayı hesapla ve metin olarak göster
+        const weeklyAvgActual = weeklyTotalActual / 5;
+        const formattedAvg = (weeklyAvgActual / 1000).toFixed(1) + 'k';
+        const weeklyAvgSpan = document.getElementById('weekly-avg-label');
+        if (weeklyAvgSpan) {
+            weeklyAvgSpan.textContent = formattedAvg;
+        }
+    }
+
+    // Sayfa yüklendiğinde çalıştır
+    initChartHeights();
+    // Arayüz durumlarının düzgün ilklendirilmesi için varsayılan olarak Çarşamba (indeks 2) gününü seç
+    selectDay(2);
+</script>
+}
