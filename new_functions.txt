@@ -1,0 +1,132 @@
+@functions {
+    string RenderDateCompare(DateTime? planned, DateTime? actual, string stageName = "")
+    {
+        var plannedStr = planned.HasValue ? planned.Value.ToString("dd.MM.yyyy") : "-";
+        var actualStr = actual.HasValue ? actual.Value.ToString("dd.MM.yyyy") : "-";
+        
+        var statusIcon = "<i class='fa-solid fa-clock' style='color:#94a3b8;'></i>";
+        var delayHtml = "";
+
+        if (planned.HasValue && actual.HasValue)
+        {
+            var diff = (actual.Value.Date - planned.Value.Date).Days;
+            if (diff > 0)
+            {
+                statusIcon = "<i class='fa-solid fa-circle-exclamation' style='color:#dc2626;'></i>";
+                delayHtml = $"<div style='color:#dc2626; font-weight:600; font-size:0.75rem; margin-top:4px;'><i class='fa-solid fa-triangle-exclamation'></i> {diff}g gecikme</div>";
+            }
+            else
+            {
+                statusIcon = "<i class='fa-solid fa-circle-check' style='color:#10b981;'></i>";
+            }
+        }
+        else if (planned.HasValue)
+        {
+            if (DateTime.Today > planned.Value.Date)
+            {
+                var diff = (DateTime.Today - planned.Value.Date).Days;
+                statusIcon = "<i class='fa-solid fa-triangle-exclamation' style='color:#dc2626;'></i>";
+                delayHtml = $"<div style='color:#dc2626; font-weight:600; font-size:0.75rem; margin-top:4px;'><i class='fa-regular fa-clock'></i> {diff}g gecikme</div>";
+            }
+            else
+            {
+                statusIcon = "<i class='fa-solid fa-spinner fa-spin' style='color:#0ea5e9; animation-duration: 3s;'></i>";
+                delayHtml = "<div style='color:#64748b; font-weight:500; font-size:0.75rem; margin-top:4px;'>Bekleniyor</div>";
+            }
+        }
+        else if (actual.HasValue)
+        {
+            statusIcon = "<i class='fa-solid fa-circle-check' style='color:#10b981;'></i>";
+        }
+
+        var html = "<div style='display:flex; flex-direction:column; gap:2px;'>";
+        html += $"<div style='display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:600; color:var(--text-main);'>{statusIcon} {actualStr}</div>";
+        html += $"<div style='font-size:0.7rem; color:var(--text-muted); margin-left:20px;'>Plan: {plannedStr}</div>";
+        html += delayHtml;
+        html += "</div>";
+
+        return html;
+    }
+
+    string RenderStageStatus(DateTime? planStart, DateTime? actStart, DateTime? planEnd, DateTime? actEnd, string startTitle = "Başlangıç", string endTitle = "Bitiş")
+    {
+        var startStr = actStart.HasValue ? actStart.Value.ToString("dd.MM.yyyy") : "-";
+        var endStr = actEnd.HasValue ? actEnd.Value.ToString("dd.MM.yyyy") : "-";
+        var planStartStr = planStart.HasValue ? planStart.Value.ToString("dd.MM.yyyy") : "-";
+        var planEndStr = planEnd.HasValue ? planEnd.Value.ToString("dd.MM.yyyy") : "-";
+
+        var startColor = actStart.HasValue ? "#10b981" : "#cbd5e1";
+        var endColor = actEnd.HasValue ? "#10b981" : "#cbd5e1";
+        
+        if (!actStart.HasValue && planStart.HasValue && DateTime.Today > planStart.Value.Date) startColor = "#ef4444";
+        if (!actEnd.HasValue && planEnd.HasValue && DateTime.Today > planEnd.Value.Date) endColor = "#ef4444";
+
+        var delayText = "";
+        var delayColor = "";
+        var delayIcon = "";
+        
+        if (actEnd.HasValue && planEnd.HasValue)
+        {
+            var diff = (actEnd.Value.Date - planEnd.Value.Date).Days;
+            if (diff > 0)
+            {
+                delayText = $"{diff}g gecikme";
+                delayColor = "#dc2626";
+                delayIcon = "<i class='fa-solid fa-triangle-exclamation'></i> ";
+            }
+        }
+        else if (actStart.HasValue && planStart.HasValue && !actEnd.HasValue && planEnd.HasValue)
+        {
+            if (DateTime.Today > planEnd.Value.Date)
+            {
+                var diff = (DateTime.Today - planEnd.Value.Date).Days;
+                delayText = $"{diff}g gecikme (Devam)";
+                delayColor = "#dc2626";
+                delayIcon = "<i class='fa-solid fa-triangle-exclamation'></i> ";
+            }
+            else
+            {
+                delayText = "Devam Ediyor";
+                delayColor = "#0ea5e9";
+                delayIcon = "<i class='fa-solid fa-spinner fa-spin' style='animation-duration: 3s;'></i> ";
+            }
+        }
+        else if (!actStart.HasValue && planStart.HasValue)
+        {
+            if (DateTime.Today > planStart.Value.Date)
+            {
+                var diff = (DateTime.Today - planStart.Value.Date).Days;
+                delayText = $"{diff}g gecikme (Başlamadı)";
+                delayColor = "#dc2626";
+                delayIcon = "<i class='fa-regular fa-clock'></i> ";
+            }
+            else
+            {
+                delayText = "Bekliyor";
+                delayColor = "#64748b";
+            }
+        }
+
+        var html = "<div style='display:flex; flex-direction:column; gap:6px; border-left: 2px solid #e2e8f0; padding-left: 10px;'>";
+        
+        // Start block
+        html += "<div style='display:flex; flex-direction:column;'>";
+        html += $"<div style='display:flex; align-items:center; gap:6px;'><div style='width:8px; height:8px; border-radius:50%; background:{startColor};'></div><span style='font-size:0.75rem; font-weight:600; color:var(--text-main);'>{startTitle}: {startStr}</span></div>";
+        html += $"<div style='font-size:0.7rem; color:var(--text-muted); margin-left:14px;'>Plan: {planStartStr}</div>";
+        html += "</div>";
+
+        // End block
+        html += "<div style='display:flex; flex-direction:column;'>";
+        html += $"<div style='display:flex; align-items:center; gap:6px;'><div style='width:8px; height:8px; border-radius:50%; background:{endColor};'></div><span style='font-size:0.75rem; font-weight:600; color:var(--text-main);'>{endTitle}: {endStr}</span></div>";
+        html += $"<div style='font-size:0.7rem; color:var(--text-muted); margin-left:14px;'>Plan: {planEndStr}</div>";
+        html += "</div>";
+
+        if (!string.IsNullOrEmpty(delayText))
+        {
+            html += $"<div style='color:{delayColor}; font-weight:600; font-size:0.75rem; margin-top:2px; margin-left:14px;'>{delayIcon}{delayText}</div>";
+        }
+        
+        html += "</div>";
+        return html;
+    }
+}

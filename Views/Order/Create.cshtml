@@ -4,204 +4,615 @@
     ViewData["Title"] = "Yeni Sipariş Ekle (LCW)";
 }
 
-<div class="dashboard-header">
+<div class="dashboard-header" style="margin-bottom: 25px;">
     <div class="header-title">
-        <h1>Yeni Sipariş (LCW Formu)</h1>
-        <p>Sisteme yeni bir üretim kaydı ekleyin</p>
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);"><i class="fa-solid fa-briefcase" style="color: var(--primary-color);"></i> Yeni Sipariş Oluştur</h1>
+        <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Sisteme yeni bir sipariş ve üretim kaydı ekleyin</p>
     </div>
     <div class="header-actions">
-        <a href="/" class="btn-secondary" style="text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> Geri Dön</a>
+        <a href="/Order/Index" class="btn-secondary" style="text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> Geri Dön</a>
     </div>
 </div>
 
-<form asp-action="Create" method="post">
-    
-    <div class="schedule-section" style="margin-bottom: 24px;">
-        <div class="section-header">
-            <h2>Genel Bilgiler</h2>
-        </div>
-        <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-            <div class="form-group">
-                <label>Sipariş Tarihi</label>
-                <input asp-for="OrderDate" class="form-control" type="date" />
-            </div>
-            <div class="form-group">
-                <label>Sipariş Kodu</label>
-                <input asp-for="OrderCode" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label>Ödeme Şekli</label>
-                <select asp-for="PaymentMethod" class="form-control" id="paymentmethod">
-                    <option value="">-Seçiniz-</option>
-                    <option value="Peşin">Peşin</option>
-                    <option value="Vadeli">Vadeli</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Üretici Cari Kod</label>
-                <input asp-for="ManufacturerCode" class="form-control" value="S0.TRLC-S0013909" readonly />
-            </div>
-            <div class="form-group">
-                <label>Üretici Firma</label>
-                <input asp-for="ManufacturerCompany" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label>Alıcı (Müşteri)</label>
-                <select asp-for="Customer" class="form-control" required>
-                    <option value="">-- Müşteri Seçin --</option>
-                    @if (ViewBag.Customers != null)
-                    {
-                        foreach (var c in (List<UretimPlanlama.Models.Customer>)ViewBag.Customers)
-                        {
-                            <option value="@c.Name">@c.Name</option>
-                        }
-                    }
-                </select>
-                <span asp-validation-for="Customer" class="text-danger"></span>
-            </div>
-        </div>
-    </div>
+<div style="background: white; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); padding: 24px;">
+    <form id="newOrderForm" action="/Order/Create" method="post">
+        @Html.AntiForgeryToken()
 
-
-    <div class="schedule-section" style="margin-bottom: 24px;">
-        <div class="section-header">
-            <h2>Ürün & Operasyon Bilgileri</h2>
-        </div>
-        <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-            <div class="form-group">
-                <label>Model Adı</label>
-                <input asp-for="ModelName" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label>Renk / Option</label>
-                <input asp-for="Color" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label>Model Detay</label>
-                <input asp-for="GoodsDescription" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label>Marka</label>
-                <input asp-for="Brand" class="form-control" value="LC WAIKIKI" />
-            </div>
-            <div class="form-group">
-                <label>Inspection Tipi</label>
-                <select asp-for="InspectionType" class="form-control" id="inspectionType">
-                    <option value="">-- Seçiniz --</option>
-                    <option value="Yurt İçi">Yurt İçi (Yİ)</option>
-                    <option value="Yurt Dışı">Yurt Dışı (YD)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Inspection Tarihi</label>
-                <input asp-for="InspectionDate" class="form-control" type="date" id="inspectionDate" disabled />
-            </div>
-            <div class="form-group">
-                <label>Üretim Yeri (Atölye)</label>
-                <select asp-for="ProductionPlace" class="form-control" required>
-                    <option value="">-- Seçiniz --</option>
-                    @if (ViewBag.Workshops != null)
-                    {
-                        foreach (var w in (List<UretimPlanlama.Models.Workshop>)ViewBag.Workshops)
-                        {
-                            <option value="@w.Name">@w.Name (@w.Type)</option>
-                        }
-                    }
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Kumaşçı</label>
-                <select asp-for="FabricSupplier" class="form-control" required>
-                    <option value="">-- Seçiniz --</option>
-                    @if (ViewBag.Fabricators != null)
-                    {
-                        foreach (var f in (List<UretimPlanlama.Models.Fabricator>)ViewBag.Fabricators)
-                        {
-                            <option value="@f.Name">@f.Name</option>
-                        }
-                    }
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Teslim Yeri</label>
-                <input asp-for="DeliveryPlace" class="form-control" value="LCWaikiki Depoları" />
-            </div>
-            <div class="form-group">
-                <label>Hedef Kumaş Miktarı (Kg)</label>
-                <input asp-for="TargetFabricQty" class="form-control" type="number" step="0.01" placeholder="Örn: 500.00" />
-            </div>
-            <div class="form-group">
-                <label>Gerçekleşen Kumaş Miktarı (Kg)</label>
-                <input asp-for="ActualFabricQty" class="form-control" type="number" step="0.01" placeholder="Örn: 480.00" />
-            </div>
-        </div>
-    </div>
-
-
-    <div class="schedule-section" style="margin-bottom: 24px;">
-        <div class="section-header">
-            <h2>Finansal Bilgiler</h2>
-        </div>
-        <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-            <div class="form-group">
-                <label>Toplam Sipariş Miktarı</label>
-                <input asp-for="Quantity" class="form-control calc-trigger" type="number" id="qty" />
-            </div>
-            <div class="form-group">
-                <label>Komponent Birim Fiyatı (₺)</label>
-                <input asp-for="ComponentUnitPrice" class="form-control calc-trigger" type="number" step="0.01" id="unitPrice" />
-            </div>
-            <div class="form-group">
-                <label>Kumaş Fiyatı</label>
-                <input asp-for="FabricPrice" class="form-control" type="number" step="0.01" />
-            </div>
+        <div style="margin-bottom: 24px;">
+            <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Genel Bilgiler</h4>
             
-            <div class="form-group">
-                <label>Toplam Tutar (₺)</label>
-                <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" id="totalAmt" readonly />
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div class="form-group">
+                    <label>Sipariş Tarihi</label>
+                    <input name="OrderDate" class="form-control" type="date" required value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="form-group">
+                    <label>Sipariş Kodu (PO) </label>
+                    <input name="OrderCode" class="form-control" placeholder="Örn: LCW-99238" required />
+                </div>
+                <div class="form-group">
+                    <label>Müşteri (Buyer)</label>
+                    <select name="Customer" class="form-control" required>
+                        <option value="">-- Müşteri Seçin --</option>
+                        @if (ViewBag.Customers != null)
+                        {
+                            foreach (var c in (List<UretimPlanlama.Models.Customer>)ViewBag.Customers)
+                            {
+                                <option value="@c.Name">@c.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Model Adı</label>
+                    <input name="ModelName" class="form-control" placeholder="Örn: Basic Sweatshirt" required />
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label>Renk / Option</label>
+                    <input name="Color" class="form-control" id="commonColor" />
+                </div>
+                <div class="form-group">
+                    <label>Model Detay</label>
+                    <input name="GoodsDescription" class="form-control" placeholder="Örn: Örme Erkek Sweatshirt" />
+                </div>
+                <div class="form-group">
+                    <label>Marka</label>
+                    <input name="Brand" class="form-control" value="LC WAIKIKI" readonly />
+                </div>
+                <div class="form-group">
+                    <label>Teslim Yeri</label>
+                    <input name="DeliveryPlace" class="form-control" value="LCWaikiki Depoları" />
+                </div>
             </div>
-            <div class="form-group">
-                <label>%10 KDV (₺)</label>
-                <input asp-for="VatAmount" class="form-control" type="number" step="0.01" id="vatAmt" readonly />
+
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                    <button type="button" id="btnAddColorRow" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;"><i class="fa-solid fa-plus"></i> Yeni Renk Ekle</button>
+                </div>
+
+                <div id="colorRowsContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Dinamik satırlar buraya gelecek -->
+                </div>
             </div>
-            <div class="form-group">
-                <label style="color:var(--primary-color);">KDV'li Toplam Tutar (₺)</label>
-                <input asp-for="TotalAmountWithVat" class="form-control" type="number" step="0.01" id="grandTotal" readonly style="border-color:var(--primary-color); font-weight:bold; color:var(--primary-color); background:#ccfbf1;" />
+
+            <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-coins" style="margin-right: 6px;"></i> Finansal Bilgiler</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label>Toplam Sipariş Miktarı (Adet)</label>
+                    <input name="Quantity" class="form-control calc-trigger-modal" type="number" id="modalQty" readonly style="background:#eef2ff; font-weight:bold;" value="0" />
+                </div>
+                <div class="form-group">
+                    <label>Komponent Birim Fiyatı (₺)</label>
+                    <input name="ComponentUnitPrice" class="form-control calc-trigger-modal" type="number" step="0.01" id="modalUnitPrice" placeholder="Örn: 45.50" />
+                </div>
+                <div class="form-group">
+                    <label>Toplam Tutar (₺)</label>
+                    <input name="TotalAmount" class="form-control" type="number" step="0.01" id="modalTotalAmt" readonly />
+                </div>
+                <div class="form-group">
+                    <label>%10 KDV (₺)</label>
+                    <input name="VatAmount" class="form-control" type="number" step="0.01" id="modalVatAmt" readonly />
+                </div>
+                <div class="form-group">
+                    <label style="color:var(--primary-color);">KDV'li Toplam Tutar (₺)</label>
+                    <input name="TotalAmountWithVat" class="form-control" type="number" step="0.01" id="modalGrandTotal" readonly style="border-color:var(--primary-color); font-weight:bold; color:var(--primary-color); background:#ccfbf1;" />
+                </div>
             </div>
         </div>
-    </div>
 
-    <div style="text-align: right; margin-bottom: 40px;">
-        <button type="submit" class="btn-planner" style="font-size: 1.1rem; padding: 14px 30px;"><i class="fa-solid fa-save"></i> Formu Kaydet ve Plana Al</button>
-    </div>
-</form>
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+            <a href="/Order/Index" class="btn-secondary" style="padding: 10px 20px; text-decoration:none;">İptal</a>
+            <button type="submit" class="btn-planner" style="padding: 10px 24px;"><i class="fa-solid fa-save"></i> Siparişi Kaydet ve Plana Al</button>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
     <script>
         $(document).ready(function() {
-            
-            $('#inspectionType').change(function() {
-                if($(this).val()) {
-                    $('#inspectionDate').prop('disabled', false);
-                } else {
-                    $('#inspectionDate').prop('disabled', true);
-                    $('#inspectionDate').val('');
+            var colorOptionsHtml = '<option value="">-- Renk Seçin --</option>';
+            @if (ViewBag.Colors != null)
+            {
+                foreach (var c in (List<UretimPlanlama.Models.ColorDef>)ViewBag.Colors)
+                {
+                    <text>colorOptionsHtml += '<option value="@c.Name">@c.Name</option>';</text>
                 }
+            }
+
+            var fabricatorOptionsHtml = '<option value="">-- Kumaşçı Seçiniz --</option>';
+            @if (ViewBag.Fabricators != null)
+            {
+                foreach (var f in (List<UretimPlanlama.Models.Fabricator>)ViewBag.Fabricators)
+                {
+                    <text>fabricatorOptionsHtml += '<option value="@f.Name">@f.Name</option>';</text>
+                }
+            }
+
+            var sizeTemplates = {
+                standart: ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL"],
+                genis_standart: ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+                buyuk_beden: ["3XL", "4XL", "5XL", "6XL"],
+                cocuk: ["2 Yaş", "4 Yaş", "6 Yaş", "8 Yaş", "10 Yaş", "12 Yaş"],
+                numerik: ["36", "38", "40", "42", "44", "46"],
+                ozel: []
+            };
+            var activeSizes = [...sizeTemplates.standart];
+
+            function getSavedRowsData() {
+                var data = [];
+                $(".color-row").each(function() {
+                    var row = $(this);
+                    var rowData = {
+                        color: row.find('.row-color').val() || "",
+                        inspectionDate: row.find('.row-inspection-date').val() || "",
+                        fabricator: row.find('.row-fabricator').val() || "",
+                        openSizes: row.data('openSizes') || {},
+                        asortiSizes: row.data('asortiSizes') || {},
+                        asortiCount: row.find('.row-asorti-count').val() || "0"
+                    };
+                    data.push(rowData);
+                });
+                return data;
+            }
+
+            function renderSizeBadgesToContainer(type, sizesDict) {
+                var html = "";
+                Object.keys(sizesDict).forEach(function(size) {
+                    var val = sizesDict[size];
+                    var badgeColor = type === 'open' ? 'var(--primary-color)' : '#16a34a';
+                    var bgClass = type === 'open' ? 'bg-sky-100' : 'bg-green-100';
+                    var textClass = type === 'open' ? 'text-sky-700' : 'text-green-700';
+                    html += `
+                        <div class="size-badge ${type}-size-badge" style="background:#f1f5f9; border: 1px solid #cbd5e1; padding: 12px 8px 8px 8px; border-radius: 6px; display:flex; flex-direction:column; align-items:center; gap:6px; position:relative;">
+                            <i class="fa-solid fa-xmark btnRemoveDynSize" data-size="${size}" data-type="${type}" style="cursor:pointer; color:#dc2626; position:absolute; top:4px; right:6px; font-size:0.8rem;"></i>
+                            <span style="font-weight:600; font-size:0.9rem; margin-top:2px;">${size}</span>
+                            <input type="number" min="0" data-size="${size}" data-type="${type}" class="form-control dyn-size-input ${type}-size" value="${val}" placeholder="Adet" style="width: 70px; height: 28px; padding: 2px 6px; font-size: 0.85rem; text-align:center;" />
+                        </div>
+                    `;
+                });
+                return html;
+            }
+
+            function createRowHtml(savedData) {
+                var color = savedData ? savedData.color : "";
+                var inspectionDate = savedData ? savedData.inspectionDate : "";
+                var fabricator = savedData ? savedData.fabricator : "";
+                var asortiCount = savedData ? savedData.asortiCount : "0";
+
+                var openSizes = (savedData && savedData.openSizes) ? savedData.openSizes : {};
+                var asortiSizes = (savedData && savedData.asortiSizes) ? savedData.asortiSizes : {};
+
+                var openCheckboxesHtml = "";
+                var asortiCheckboxesHtml = "";
+                activeSizes.forEach(function(size) {
+                    var isOpenChecked = openSizes.hasOwnProperty(size) ? "checked" : "";
+                    openCheckboxesHtml += `<label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="dyn-size-checkbox" data-type="open" value="${size}" ${isOpenChecked} /> ${size}</label>`;
+
+                    var isAsortiChecked = asortiSizes.hasOwnProperty(size) ? "checked" : "";
+                    asortiCheckboxesHtml += `<label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="dyn-size-checkbox" data-type="asorti" value="${size}" ${isAsortiChecked} /> ${size}</label>`;
+                });
+
+                var openSizesHtml = renderSizeBadgesToContainer('open', openSizes);
+                var asortiSizesHtml = renderSizeBadgesToContainer('asorti', asortiSizes);
+
+                var rowHtml = `
+                <div class="color-row" style="background: white; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden;">
+                    <!-- HEADER -->
+                    <div class="row-header" style="background: #f8fafc; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-weight: 600; color: var(--primary-color); font-size: 0.95rem;">
+                                <i class="fa-solid fa-palette" style="margin-right: 6px;"></i><span class="header-color-name">${color || 'Yeni Renk'}</span>
+                            </span>
+                            <span style="font-size: 0.8rem; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Top Adet: <span class="header-total-qty">0</span></span>
+                        </div>
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            <i class="fa-solid fa-chevron-down toggle-icon" style="color: #94a3b8; transition: transform 0.3s; transform: rotate(180deg);"></i>
+                            <button type="button" class="btnRemoveRow" style="background: transparent; border: none; color: #dc2626; cursor: pointer; padding: 4px;" title="Satırı Sil"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- BODY -->
+                    <div class="row-body" style="padding: 16px; background: #f8f9fa;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div>
+                                <label style="font-size: 0.85rem; font-weight: 600;">Renk / Option</label>
+                                <select class="form-control row-color">
+                                    ${colorOptionsHtml}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.85rem; font-weight: 600;">Inspection Tarihi</label>
+                                <input type="date" class="form-control row-inspection-date" value="${inspectionDate}" />
+                            </div>
+                            <div>
+                                <label style="font-size: 0.85rem; font-weight: 600;">Kumaşçı</label>
+                                <select class="form-control row-fabricator">
+                                    ${fabricatorOptionsHtml}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 16px;">
+                            <!-- Açık Adetler -->
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <h5 style="margin: 0 0 12px 0; font-size: 0.9rem; color: #0284c7; display:flex; justify-content:space-between;">
+                                    Açık Adet Bedenler
+                                    <span style="font-size: 0.8rem; background: #e0f2fe; padding: 2px 8px; border-radius: 12px;">Top: <span class="row-open-total-text">0</span></span>
+                                </h5>
+                                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                    ${openCheckboxesHtml}
+                                </div>
+                                <div class="dyn-sizes-container-open" style="display:flex; flex-wrap:wrap; gap:8px;">
+                                    ${openSizesHtml}
+                                </div>
+                                <input type="hidden" class="row-open-total" value="0" />
+                            </div>
+
+                            <!-- Asorti Adetleri -->
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+                                <h5 style="margin: 0 0 12px 0; font-size: 0.9rem; color: #16a34a; display:flex; justify-content:space-between;">
+                                    Asorti Adet
+                                    <span style="font-size: 0.8rem; background: #dcfce7; padding: 2px 8px; border-radius: 12px;">Top: <span class="row-asorti-total-text">0</span></span>
+                                </h5>
+                                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                    ${asortiCheckboxesHtml}
+                                </div>
+                                <div class="dyn-sizes-container-asorti" style="display:flex; flex-wrap:wrap; gap:8px;">
+                                    ${asortiSizesHtml}
+                                </div>
+                                <input type="hidden" class="row-asorti-total" value="0" />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; align-items: flex-end; background: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                            <div style="flex: 1;">
+                                <label style="font-size: 0.85rem; font-weight: 600;">Toplam Asorti Çarpanı (Adet)</label>
+                                <input type="number" min="0" class="form-control asorti-count row-asorti-count" value="${asortiCount}" placeholder="Örn: 595" />
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 0.85rem; font-weight: 600;">Toplam Asorti Sipariş</label>
+                                <input type="number" class="form-control row-asorti-final" readonly style="background: transparent; font-weight: bold; border: none; padding-left: 0;" value="0" />
+                            </div>
+                            <div style="flex: 1; border-left: 2px solid #cbd5e1; padding-left: 16px;">
+                                <label style="font-size: 0.85rem; font-weight: 700; color:var(--primary-color);">Bu Renk Toplam Adet</label>
+                                <input type="number" class="form-control row-total-qty" readonly style="background: transparent; font-weight: bold; font-size: 1.1rem; color:var(--primary-color); border: none; padding-left: 0;" value="0" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+
+                var rowElement = $(rowHtml);
+                rowElement.data('openSizes', openSizes);
+                rowElement.data('asortiSizes', asortiSizes);
+                if (color) {
+                    rowElement.find('.row-color').val(color);
+                }
+                if (fabricator) {
+                    rowElement.find('.row-fabricator').val(fabricator);
+                }
+                return rowElement;
+            }
+
+            function reRenderAllRows() {
+                var savedData = getSavedRowsData();
+                $("#colorRowsContainer").empty();
+                if (savedData.length === 0) {
+                    var rowElement = createRowHtml(null);
+                    $("#colorRowsContainer").append(rowElement);
+                    calculateRowTotals(rowElement);
+                } else {
+                    savedData.forEach(function(data) {
+                        var rowElement = createRowHtml(data);
+                        $("#colorRowsContainer").append(rowElement);
+                        calculateRowTotals(rowElement);
+                    });
+                }
+            }
+
+
+
+            $(document).on('change', '.dyn-size-checkbox', function() {
+                var row = $(this).closest('.color-row');
+                var type = $(this).data('type');
+                var size = $(this).val();
+                var isChecked = $(this).is(':checked');
+
+                var sizesDict = type === 'open' ? (row.data('openSizes') || {}) : (row.data('asortiSizes') || {});
+                
+                if (isChecked) {
+                    if (!(size in sizesDict)) {
+                        sizesDict[size] = 0;
+                    }
+                } else {
+                    delete sizesDict[size];
+                }
+
+                if (type === 'open') {
+                    row.data('openSizes', sizesDict);
+                } else {
+                    row.data('asortiSizes', sizesDict);
+                }
+
+                row.find('.dyn-sizes-container-' + type).html(renderSizeBadgesToContainer(type, sizesDict));
+                calculateRowTotals(row);
             });
 
-           
-            $('.calc-trigger').on('input', function() {
-                var qty = parseFloat($('#qty').val()) || 0;
-                var price = parseFloat($('#unitPrice').val()) || 0;
+            $(document).on('click', '.btnRemoveDynSize', function() {
+                var row = $(this).closest('.color-row');
+                var type = $(this).data('type');
+                var size = $(this).data('size');
                 
+                var sizesDict = type === 'open' ? (row.data('openSizes') || {}) : (row.data('asortiSizes') || {});
+                delete sizesDict[size];
+                
+                if (type === 'open') {
+                    row.data('openSizes', sizesDict);
+                } else {
+                    row.data('asortiSizes', sizesDict);
+                }
+
+                row.find('.dyn-sizes-container-' + type).html(renderSizeBadgesToContainer(type, sizesDict));
+                row.find(`.dyn-size-checkbox[data-type="${type}"][value="${size}"]`).prop('checked', false);
+                calculateRowTotals(row);
+            });
+
+            $(document).on('input', '.dyn-size-input', function() {
+                var row = $(this).closest('.color-row');
+                var type = $(this).data('type');
+                var size = $(this).data('size');
+                var qty = parseInt($(this).val()) || 0;
+
+                var sizesDict = type === 'open' ? (row.data('openSizes') || {}) : (row.data('asortiSizes') || {});
+                sizesDict[size] = qty;
+                
+                if (type === 'open') {
+                    row.data('openSizes', sizesDict);
+                } else {
+                    row.data('asortiSizes', sizesDict);
+                }
+
+                calculateRowTotals(row);
+            });
+
+            $(document).on('input', '.asorti-count', function() {
+                var row = $(this).closest('.color-row');
+                calculateRowTotals(row);
+            });
+
+            function calculateRowTotals(row) {
+                var openSizes = row.data('openSizes') || {};
+                var asortiSizes = row.data('asortiSizes') || {};
+
+                var openQty = 0;
+                Object.keys(openSizes).forEach(function(key) {
+                    openQty += (parseInt(openSizes[key]) || 0);
+                });
+                row.find('.row-open-total').val(openQty);
+                row.find('.row-open-total-text').text(openQty);
+
+                var asortiRatioSum = 0;
+                Object.keys(asortiSizes).forEach(function(key) {
+                    asortiRatioSum += (parseInt(asortiSizes[key]) || 0);
+                });
+                row.find('.row-asorti-total').val(asortiRatioSum);
+                row.find('.row-asorti-total-text').text(asortiRatioSum);
+
+                var asortiMultiplier = parseInt(row.find('.row-asorti-count').val()) || 0;
+
+                var totalAsortiQty = asortiRatioSum * asortiMultiplier;
+                row.find('.row-asorti-final').val(totalAsortiQty);
+
+                var rowTotal = openQty + totalAsortiQty;
+                row.find('.row-total-qty').val(rowTotal);
+                row.find('.header-total-qty').text(rowTotal);
+
+                calculateGrandTotalQuantity();
+            }
+
+            function calculateGrandTotalQuantity() {
+                var grandTotalQty = 0;
+                $('.row-total-qty').each(function() {
+                    grandTotalQty += (parseInt($(this).val()) || 0);
+                });
+                $('#modalQty').val(grandTotalQty).trigger('input');
+            }
+
+            $(document).on('change', '.row-color', function() {
+                var val = $(this).val();
+                $(this).closest('.color-row').find('.header-color-name').text(val || 'Yeni Renk');
+            });
+
+            $(document).on('click', '.row-header', function(e) {
+                if ($(e.target).closest('.btnRemoveRow').length > 0) return;
+                var row = $(this).closest('.color-row');
+                var body = row.find('.row-body');
+                var icon = row.find('.toggle-icon');
+                
+                body.slideToggle(250, function() {
+                    if (body.is(':visible')) {
+                        icon.css('transform', 'rotate(180deg)');
+                    } else {
+                        icon.css('transform', 'rotate(0deg)');
+                    }
+                });
+            });
+
+            $(document).on('click', '.btnRemoveRow', function() {
+                $(this).closest('.color-row').fadeOut(200, function() {
+                    $(this).remove();
+                    calculateGrandTotalQuantity();
+                });
+            });
+
+            $("#btnAddColorRow").click(function() {
+                // Collapse existing
+                $(".color-row .row-body").slideUp(250);
+                $(".color-row .toggle-icon").css('transform', 'rotate(0deg)');
+
+                var rowElement = createRowHtml(null);
+                $("#colorRowsContainer").append(rowElement);
+                calculateRowTotals(rowElement);
+            });
+
+            $("#btnAddColorRow").click();
+
+            $("#newOrderForm").on("submit", function(e) {
+                e.preventDefault();
+
+                var rows = $(".color-row");
+                if (rows.length === 0) {
+                    showToast("Lütfen en az bir renk/satır ekleyin.", "danger");
+                    return;
+                }
+
+                var isRowValid = true;
+                rows.each(function() {
+                    var color = $(this).find('.row-color').val();
+                    var fabricator = $(this).find('.row-fabricator').val();
+                    if (!color || !fabricator) {
+                        isRowValid = false;
+                        $(this).find('.row-body').slideDown(250);
+                        $(this).find('.toggle-icon').css('transform', 'rotate(180deg)');
+                    }
+                });
+
+                if (!isRowValid) {
+                    showToast("Lütfen tüm renk satırlarında Renk ve Kumaşçı alanlarını doldurunuz.", "danger");
+                    return;
+                }
+
+                var formData = new FormData(this);
+                var commonData = Object.fromEntries(formData.entries());
+
+                var orders = [];
+                rows.each(function() {
+                    var row = $(this);
+                    var orderObj = Object.assign({}, commonData);
+
+                    // Boolean properties from checkboxes
+                    orderObj.HasPriceCard = $("#newOrderForm input[name='HasPriceCard']").is(':checked');
+                    orderObj.HasWashingInstruction = $("#newOrderForm input[name='HasWashingInstruction']").is(':checked');
+                    orderObj.HasInnerBarcode = $("#newOrderForm input[name='HasInnerBarcode']").is(':checked');
+                    orderObj.HasYokeLabel = $("#newOrderForm input[name='HasYokeLabel']").is(':checked');
+                    orderObj.HasFifLabel = $("#newOrderForm input[name='HasFifLabel']").is(':checked');
+                    orderObj.HasOtherCard = $("#newOrderForm input[name='HasOtherCard']").is(':checked');
+
+                    // Map empty decimal/numeric fields to null
+                    if (!orderObj.UnitPrice) orderObj.UnitPrice = null;
+                    if (!orderObj.UnitFabricMeterage) orderObj.UnitFabricMeterage = null;
+                    if (!orderObj.LargeButtonCount) orderObj.LargeButtonCount = null;
+                    if (!orderObj.SmallButtonCount) orderObj.SmallButtonCount = null;
+                    if (!orderObj.CollarInterliningMeterage) orderObj.CollarInterliningMeterage = null;
+                    if (!orderObj.CuffInterliningMeterage) orderObj.CuffInterliningMeterage = null;
+                    if (!orderObj.PlacketInterliningMeterage) orderObj.PlacketInterliningMeterage = null;
+                    if (!orderObj.PocketFlapInterliningMeterage) orderObj.PocketFlapInterliningMeterage = null;
+
+                    orderObj.Color = row.find('.row-color').val();
+                    orderObj.OptionCode = "";
+                    orderObj.InspectionDate = row.find('.row-inspection-date').val() || null;
+                    orderObj.FabricSupplier = row.find('.row-fabricator').val() || "";
+                    orderObj.IsJIT = false;
+                    orderObj.SalesRegion = "Yurt İçi";
+
+                    var openDist = Object.assign({}, row.data('openSizes') || {});
+                    Object.keys(openDist).forEach(function(key) {
+                        if ((parseInt(openDist[key]) || 0) <= 0) {
+                            delete openDist[key];
+                        }
+                    });
+                    orderObj.SizeDistributionJson = JSON.stringify(openDist);
+
+                    var asortiDist = Object.assign({}, row.data('asortiSizes') || {});
+                    Object.keys(asortiDist).forEach(function(key) {
+                        if ((parseInt(asortiDist[key]) || 0) <= 0) {
+                            delete asortiDist[key];
+                        }
+                    });
+                    orderObj.AsortiDistributionJson = JSON.stringify(asortiDist);
+
+                    orderObj.SizeS = openDist["S"] || 0;
+                    orderObj.SizeM = openDist["M"] || 0;
+                    orderObj.SizeL = openDist["L"] || 0;
+                    orderObj.SizeXL = openDist["XL"] || 0;
+                    orderObj.Size2XL = openDist["2XL"] || 0;
+                    orderObj.Size3XL = openDist["3XL"] || 0;
+
+                    orderObj.AsortiSizeS = asortiDist["S"] || 0;
+                    orderObj.AsortiSizeM = asortiDist["M"] || 0;
+                    orderObj.AsortiSizeL = asortiDist["L"] || 0;
+                    orderObj.AsortiSizeXL = asortiDist["XL"] || 0;
+                    orderObj.AsortiSize2XL = asortiDist["2XL"] || 0;
+                    orderObj.AsortiSize3XL = asortiDist["3XL"] || 0;
+
+                    orderObj.AsortiCount = parseInt(row.find('.row-asorti-count').val()) || 0;
+                    orderObj.Quantity = parseInt(row.find('.row-total-qty').val()) || 0;
+
+                    orders.push(orderObj);
+                });
+
+                $.ajax({
+                    url: '/Order/CreateMultiple',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(orders),
+                    success: function(res) {
+                        if (res.success) {
+                            window.location.href = '/Order/Index';
+                        } else {
+                            showToast("Hata: " + res.message, "danger");
+                        }
+                    },
+                    error: function() {
+                        showToast("Kayıt sırasında sunucu hatası oluştu.", "danger");
+                    }
+                });
+            });
+
+            $('.calc-trigger-modal').on('input', function() {
+                var qty = parseFloat($('#modalQty').val()) || 0;
+                var price = parseFloat($('#modalUnitPrice').val()) || 0;
+
                 var total = qty * price;
                 var vat = total * 0.10; 
                 var grand = total + vat;
 
-                $('#totalAmt').val(total.toFixed(2));
-                $('#vatAmt').val(vat.toFixed(2));
-                $('#grandTotal').val(grand.toFixed(2));
+                $('#modalTotalAmt').val(total.toFixed(2));
+                $('#modalVatAmt').val(vat.toFixed(2));
+                $('#modalGrandTotal').val(grand.toFixed(2));
             });
+
+            function showToast(message, type) {
+                $("#floatingToast").remove();
+
+                var bgColor = type === "success" ? "var(--success-bg)" : "var(--danger-bg)";
+                var textColor = type === "success" ? "var(--success-text)" : "var(--danger-text)";
+                var borderClr = type === "success" ? "rgba(13, 148, 136, 0.2)" : "rgba(220, 38, 38, 0.2)";
+                var icon = type === "success" ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation";
+
+                var toast = $('<div id="floatingToast" style="position: fixed; top: 20px; right: 20px; background-color: ' + bgColor + '; color: ' + textColor + '; border: 1px solid ' + borderClr + '; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 9999; display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 0.95rem; min-width: 300px; animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);">' +
+                    '<i class="' + icon + '" style="font-size: 1.2rem;"></i>' +
+                    '<span>' + message + '</span>' +
+                    '</div>');
+
+                $("body").append(toast);
+
+                if ($("#toastStyles").length === 0) {
+                    $("head").append('<style id="toastStyles">' +
+                        '@@keyframes slideInRight {' +
+                        'from { transform: translateX(100%); opacity: 0; }' +
+                        'to { transform: translateX(0); opacity: 1; }' +
+                        '}' +
+                        '</style>');
+                }
+
+                setTimeout(function() {
+                    $("#floatingToast").fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
         });
     </script>
 }

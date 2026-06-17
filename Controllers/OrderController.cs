@@ -40,6 +40,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
+            ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
             return View();
         }
 

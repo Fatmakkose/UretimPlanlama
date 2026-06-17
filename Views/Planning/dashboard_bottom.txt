@@ -1,0 +1,339 @@
+    <!-- Right Main Area -->
+    <div class="planning-main">
+        <div id="noOrderSelected" class="empty-state">
+            <i class="fa-solid fa-hand-pointer"></i>
+            <h2>Sipariş Seçin</h2>
+            <p>Planlama detaylarını görmek için sol taraftaki listeden bir sipariş seçin.</p>
+        </div>
+
+        <form id="orderPlanningForm" onsubmit="savePlanningData(event)" style="display: none;">
+            <!-- Gizli ID Alanı -->
+            <input type="hidden" id="hdnOrderId" name="Id" />
+
+            <div class="detail-header-bar">
+                <div class="detail-title">
+                    <span class="subtitle"><i class="fa-regular fa-calendar-check"></i> PLANLAMA DETAYI</span>
+                    <h2 id="lblOrderTitle">... Üretim Planı</h2>
+                </div>
+                <div class="header-actions">
+                    <button type="submit" class="btn-excel" style="background: var(--primary-color); border-color: var(--primary-color);"><i class="fa-solid fa-floppy-disk"></i> Kaydet / Güncelle</button>
+                    <a href="/Planning/ExportToExcel" class="btn-excel"><i class="fa-solid fa-file-excel"></i> Excel</a>
+                    <button type="button"><i class="fa-solid fa-clock-rotate-left"></i> Geçmiş</button>
+                </div>
+            </div>
+
+            <!-- 3 Phase Cards Reordered -->
+            <div class="phase-cards">
+                <a href="javascript:void(0)" onclick="switchTab('sample')" class="phase-card @(activeTab == "sample" ? "active" : "")" id="nav-sample">
+                    <i class="fa-solid fa-vial phase-icon"></i>
+                    <div class="phase-title">1. NUMUNE/TEST PLANLAMA</div>
+                    <div class="phase-status status-waiting" id="lblStatusSample">-</div>
+                </a>
+                
+                <a href="javascript:void(0)" onclick="switchTab('purchasing')" class="phase-card @(activeTab == "purchasing" ? "active" : "")" id="nav-purchasing">
+                    <i class="fa-solid fa-cart-shopping phase-icon"></i>
+                    <div class="phase-title">2. SATIN ALMA PLANLAMA</div>
+                    <div class="phase-status status-progress" id="lblStatusPurchasing">-</div>
+                </a>
+                
+                <a href="javascript:void(0)" onclick="switchTab('production')" class="phase-card @(activeTab == "production" ? "active" : "")" id="nav-production">
+                    <i class="fa-solid fa-industry phase-icon"></i>
+                    <div class="phase-title">3. ÜRETİM PLANLAMA</div>
+                    <div class="phase-status status-waiting" id="lblStatusProduction">-</div>
+                </a>
+            </div>
+
+            <!-- Tab 1: Sample/Test -->
+            <div class="tab-content @(activeTab == "sample" ? "active" : "")" id="tab-sample">
+                <div class="content-header">
+                    Numune, Test ve Onay Süreçleri 
+                    <span>Ön üretim onay aşamaları ve test sonuçları</span>
+                </div>
+                
+                <div class="grid-panels">
+                    <div class="panel">
+                        <div class="panel-title"><span><i class="fa-solid fa-layer-group"></i> Ana Kumaş</span></div>
+                        <div class="data-row"><span class="data-label">Numune Kumaş Y-Testi (Plan)</span><input type="date" class="data-input" style="width: 130px;" name="PlannedSampleFabricTestDate" id="PlannedSampleFabricTestDate" /></div>
+                        <div class="data-row"><span class="data-label">Numune Kumaş Y-Testi (Gerçek)</span><input type="date" class="data-input" style="width: 130px;" name="ActualSampleFabricTestDate" id="ActualSampleFabricTestDate" /></div>
+                        <div class="data-row"><span class="data-label">Tuşe Renk Onayı (Plan)</span><input type="date" class="data-input" style="width: 130px;" name="PlannedTouchColorApprovalDate" id="PlannedTouchColorApprovalDate" /></div>
+                        <div class="data-row"><span class="data-label">Tuşe Renk Onayı (Gerçek)</span><input type="date" class="data-input" style="width: 130px;" name="ActualTouchColorApprovalDate" id="ActualTouchColorApprovalDate" /></div>
+                        <div class="data-row"><span class="data-label">Kumaş Karışımı</span><input type="text" class="data-input" style="width: 130px;" name="FabricBlend" id="FabricBlend" /></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title"><span><i class="fa-solid fa-circle-dot"></i> Düğme</span></div>
+                        <div class="data-row"><span class="data-label">Düğme Renk/Kalite Onay (Plan)</span><input type="date" class="data-input" style="width: 130px;" name="PlannedButtonColorQualityApprovalDate" id="PlannedButtonColorQualityApprovalDate" /></div>
+                        <div class="data-row"><span class="data-label">Düğme Renk/Kalite Onay (Gerçek)</span><input type="date" class="data-input" style="width: 130px;" name="ActualButtonColorQualityApprovalDate" id="ActualButtonColorQualityApprovalDate" /></div>
+                        <div class="data-row"><span class="data-label">Düğme Testi (Plan)</span><input type="date" class="data-input" style="width: 130px;" name="PlannedButtonTestDate" id="PlannedButtonTestDate" /></div>
+                        <div class="data-row"><span class="data-label">Düğme Testi (Gerçek)</span><input type="date" class="data-input" style="width: 130px;" name="ActualButtonTestDate" id="ActualButtonTestDate" /></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title"><span><i class="fa-solid fa-check-double"></i> Fit / PP Onayı</span></div>
+                        <div class="data-row"><span class="data-label">PP Onay (Plan)</span><input type="date" class="data-input" style="width: 130px;" name="PlannedPPApprovalDate" id="PlannedPPApprovalDate" /></div>
+                        <div class="data-row"><span class="data-label">PP Onay (Gerçek)</span><input type="date" class="data-input" style="width: 130px;" name="ActualPPApprovalDate" id="ActualPPApprovalDate" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Purchasing -->
+            <div class="tab-content @(activeTab == "purchasing" ? "active" : "")" id="tab-purchasing">
+                <div class="content-header">
+                    Satın Alma & Tedarik Detayları 
+                    <span>Kumaş ve aksesuar terminleri</span>
+                </div>
+                
+                <div class="grid-panels">
+                    <div class="panel">
+                        <div class="panel-title"><span><i class="fa-solid fa-layer-group"></i> Kumaş</span></div>
+                        <div class="data-row"><span class="data-label">Kumaşçı</span><input type="text" class="data-input" style="width: 130px;" name="FabricSupplier" id="FabricSupplier" /></div>
+                        <div class="data-row"><span class="data-label">Kumaş Sevk-Anlaşılan</span><input type="date" class="data-input" style="width: 130px;" name="FabricArrivalAgreedDate" id="FabricArrivalAgreedDate" /></div>
+                        <div class="data-row"><span class="data-label">Kumaş Geliş Tarihi</span><input type="date" class="data-input" style="width: 130px;" name="FabricArrivalActualDate" id="FabricArrivalActualDate" /></div>
+                    </div>
+
+                    <div class="panel" style="grid-column: span 2;">
+                        <div class="panel-title"><span><i class="fa-solid fa-tags"></i> Aksesuarlar Geliş Tarihleri (Planlanan / Gerçekleşen)</span></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <div class="data-row"><span class="data-label">Düğme Gelişi</span>
+                                    <div><input type="date" class="data-input" style="width: 100px; margin-right:5px;" name="PlannedButtonArrivalDate" id="PlannedButtonArrivalDate" title="Planlanan" /> <input type="date" class="data-input" style="width: 100px;" name="ActualButtonArrivalDate" id="ActualButtonArrivalDate" title="Gerçekleşen" /></div>
+                                </div>
+                                <div class="data-row"><span class="data-label">Düğme Dikiş İpi</span>
+                                    <div><input type="date" class="data-input" style="width: 100px; margin-right:5px;" name="PlannedButtonSewingThreadDate" id="PlannedButtonSewingThreadDate" /> <input type="date" class="data-input" style="width: 100px;" name="ActualButtonSewingThreadDate" id="ActualButtonSewingThreadDate" /></div>
+                                </div>
+                                <div class="data-row"><span class="data-label">Etiket Gelişi</span>
+                                    <div><input type="date" class="data-input" style="width: 100px; margin-right:5px;" name="PlannedLabelArrivalDate" id="PlannedLabelArrivalDate" /> <input type="date" class="data-input" style="width: 100px;" name="ActualLabelArrivalDate" id="ActualLabelArrivalDate" /></div>
+                                </div>
+                                <div class="data-row"><span class="data-label">Yıkama Talimatı Gelişi</span>
+                                    <div><input type="date" class="data-input" style="width: 100px; margin-right:5px;" name="PlannedWashingInstructionArrivalDate" id="PlannedWashingInstructionArrivalDate" /> <input type="date" class="data-input" style="width: 100px;" name="ActualWashingInstructionArrivalDate" id="ActualWashingInstructionArrivalDate" /></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="data-row"><span class="data-label">YK-İç Gelişi</span>
+                                    <div><input type="date" class="data-input" style="width: 100px; margin-right:5px;" name="PlannedInnerLabelArrivalDate" id="PlannedInnerLabelArrivalDate" /> <input type="date" class="data-input" style="width: 100px;" name="ActualInnerLabelArrivalDate" id="ActualInnerLabelArrivalDate" /></div>
+                                </div>
+                                <div class="data-row"><span class="data-label">X Göğüs Kartı</span>
+                                    <div><input type="date" class="data-input" style="width: 100px; margin-right:5px;" name="PlannedChestCardDate" id="PlannedChestCardDate" /> <input type="date" class="data-input" style="width: 100px;" name="ActualChestCardDate" id="ActualChestCardDate" /></div>
+                                </div>
+                                <div class="data-row"><span class="data-label">Fiyat Kartı Gelişi</span>
+                                    <div><input type="date" class="data-input" style="width: 100px; margin-right:5px;" name="PlannedPriceCardArrivalDate" id="PlannedPriceCardArrivalDate" /> <input type="date" class="data-input" style="width: 100px;" name="ActualPriceCardArrivalDate" id="ActualPriceCardArrivalDate" /></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Production -->
+            <div class="tab-content @(activeTab == "production" ? "active" : "")" id="tab-production">
+                <div class="content-header">
+                    Üretim Aşamaları 
+                    <span>Kesim, dikim ve paketleme süreç takibi</span>
+                </div>
+                
+                <div class="grid-panels">
+                    <div class="panel">
+                        <div class="panel-title"><span><i class="fa-solid fa-scissors"></i> Kesim</span></div>
+                        <div class="data-row"><span class="data-label">Planlanan Başlangıç</span><input type="date" class="data-input" style="width: 130px;" name="PlannedCuttingStartDate" id="PlannedCuttingStartDate" /></div>
+                        <div class="data-row"><span class="data-label">Gerçekleşen Başlangıç</span><input type="date" class="data-input" style="width: 130px;" name="CuttingStartDate" id="CuttingStartDate" /></div>
+                        <div class="data-row"><span class="data-label">Planlanan Bitiş</span><input type="date" class="data-input" style="width: 130px;" name="PlannedCuttingEndDate" id="PlannedCuttingEndDate" /></div>
+                        <div class="data-row"><span class="data-label">Gerçekleşen Bitiş</span><input type="date" class="data-input" style="width: 130px;" name="CuttingEndDate" id="CuttingEndDate" /></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title"><span><i class="fa-solid fa-shirt"></i> Dikim</span></div>
+                        <div class="data-row"><span class="data-label">Planlanan Başlangıç</span><input type="date" class="data-input" style="width: 130px;" name="PlannedSewingStartDate" id="PlannedSewingStartDate" /></div>
+                        <div class="data-row"><span class="data-label">Gerçekleşen Başlangıç</span><input type="date" class="data-input" style="width: 130px;" name="SewingStartDate" id="SewingStartDate" /></div>
+                        <div class="data-row"><span class="data-label">Planlanan Bitiş</span><input type="date" class="data-input" style="width: 130px;" name="PlannedSewingEndDate" id="PlannedSewingEndDate" /></div>
+                        <div class="data-row"><span class="data-label">Gerçekleşen Bitiş</span><input type="date" class="data-input" style="width: 130px;" name="SewingEndDate" id="SewingEndDate" /></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title"><span><i class="fa-solid fa-box"></i> Paket & Sevk</span></div>
+                        <div class="data-row"><span class="data-label">Paket Başlangıç (P/G)</span><div><input type="date" class="data-input" style="width: 90px;" name="PlannedPackagingStartDate" id="PlannedPackagingStartDate" /> <input type="date" class="data-input" style="width: 90px;" name="PackagingStartDate" id="PackagingStartDate" /></div></div>
+                        <div class="data-row"><span class="data-label">Paket Bitiş (P/G)</span><div><input type="date" class="data-input" style="width: 90px;" name="PlannedPackagingEndDate" id="PlannedPackagingEndDate" /> <input type="date" class="data-input" style="width: 90px;" name="PackagingEndDate" id="PackagingEndDate" /></div></div>
+                        <div class="data-row"><span class="data-label">GS Gidişi (P/G)</span><div><input type="date" class="data-input" style="width: 90px;" name="PlannedGsDepartureDate" id="PlannedGsDepartureDate" /> <input type="date" class="data-input" style="width: 90px;" name="ActualGsDepartureDate" id="ActualGsDepartureDate" /></div></div>
+                        <div class="data-row"><span class="data-label">Yola Çıkış / Depo Varış</span><div><input type="date" class="data-input" style="width: 90px;" name="DepartureDate" id="DepartureDate" /> <input type="date" class="data-input" style="width: 90px;" name="WarehouseArrivalDate" id="WarehouseArrivalDate" /></div></div>
+                        <div class="data-row"><span class="data-label">Son Inspec. (P/G)</span><div><input type="date" class="data-input" style="width: 90px;" name="PlannedLastInspectionDate" id="PlannedLastInspectionDate" /> <input type="date" class="data-input" style="width: 90px;" name="LastInspectionDate" id="LastInspectionDate" /></div></div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var ordersData = @Html.Raw(Json.Serialize(Model));
+        var currentTab = '@activeTab';
+
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            var d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            var month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+
+            return [year, month, day].join('-');
+        }
+
+        function filterOrders() {
+            var q = $('#orderSearch').val().toLowerCase();
+            $('.order-card').each(function() {
+                var text = $(this).text().toLowerCase();
+                $(this).toggle(text.indexOf(q) > -1);
+            });
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            var path = '/Planning/';
+            if(tab === 'sample') path += 'SampleTest';
+            if(tab === 'purchasing') path += 'Purchasing';
+            if(tab === 'production') path += 'Production';
+            
+            var url = new URL(window.location.origin + path);
+            var searchParams = new URLSearchParams(window.location.search);
+            if(searchParams.has('orderId')) {
+                url.searchParams.set('orderId', searchParams.get('orderId'));
+            }
+            window.history.pushState({}, '', url);
+
+            $('.phase-card').removeClass('active');
+            $('#nav-' + tab).addClass('active');
+
+            $('.tab-content').removeClass('active');
+            $('#tab-' + tab).addClass('active');
+        }
+
+        function selectOrder(id) {
+            $('.order-card').removeClass('active');
+            $(`.order-card[data-id='${id}']`).addClass('active');
+
+            var order = ordersData.find(o => o.id === id);
+            if (!order) return;
+
+            var url = new URL(window.location.href);
+            url.searchParams.set('orderId', id);
+            window.history.replaceState({}, '', url);
+
+            $('#noOrderSelected').hide();
+            $('#orderPlanningForm').show();
+
+            $('#lblOrderTitle').text(order.orderCode + ' Üretim Planı');
+            $('#hdnOrderId').val(order.id);
+
+            // Tab 1: Sample/Test
+            $('#PlannedSampleFabricTestDate').val(formatDateForInput(order.plannedSampleFabricTestDate));
+            $('#ActualSampleFabricTestDate').val(formatDateForInput(order.actualSampleFabricTestDate));
+            $('#PlannedTouchColorApprovalDate').val(formatDateForInput(order.plannedTouchColorApprovalDate));
+            $('#ActualTouchColorApprovalDate').val(formatDateForInput(order.actualTouchColorApprovalDate));
+            $('#FabricBlend').val(order.fabricBlend || '');
+
+            $('#PlannedButtonColorQualityApprovalDate').val(formatDateForInput(order.plannedButtonColorQualityApprovalDate));
+            $('#ActualButtonColorQualityApprovalDate').val(formatDateForInput(order.actualButtonColorQualityApprovalDate));
+            $('#PlannedButtonTestDate').val(formatDateForInput(order.plannedButtonTestDate));
+            $('#ActualButtonTestDate').val(formatDateForInput(order.actualButtonTestDate));
+
+            $('#PlannedPPApprovalDate').val(formatDateForInput(order.plannedPPApprovalDate));
+            $('#ActualPPApprovalDate').val(formatDateForInput(order.actualPPApprovalDate));
+
+            // Tab 2: Purchasing
+            $('#FabricSupplier').val(order.fabricSupplier || '');
+            $('#FabricArrivalAgreedDate').val(formatDateForInput(order.fabricArrivalAgreedDate));
+            $('#FabricArrivalActualDate').val(formatDateForInput(order.fabricArrivalActualDate));
+
+            $('#PlannedButtonArrivalDate').val(formatDateForInput(order.plannedButtonArrivalDate));
+            $('#ActualButtonArrivalDate').val(formatDateForInput(order.actualButtonArrivalDate));
+            $('#PlannedButtonSewingThreadDate').val(formatDateForInput(order.plannedButtonSewingThreadDate));
+            $('#ActualButtonSewingThreadDate').val(formatDateForInput(order.actualButtonSewingThreadDate));
+            $('#PlannedLabelArrivalDate').val(formatDateForInput(order.plannedLabelArrivalDate));
+            $('#ActualLabelArrivalDate').val(formatDateForInput(order.actualLabelArrivalDate));
+            $('#PlannedWashingInstructionArrivalDate').val(formatDateForInput(order.plannedWashingInstructionArrivalDate));
+            $('#ActualWashingInstructionArrivalDate').val(formatDateForInput(order.actualWashingInstructionArrivalDate));
+
+            $('#PlannedInnerLabelArrivalDate').val(formatDateForInput(order.plannedInnerLabelArrivalDate));
+            $('#ActualInnerLabelArrivalDate').val(formatDateForInput(order.actualInnerLabelArrivalDate));
+            $('#PlannedChestCardDate').val(formatDateForInput(order.plannedChestCardDate));
+            $('#ActualChestCardDate').val(formatDateForInput(order.actualChestCardDate));
+            $('#PlannedPriceCardArrivalDate').val(formatDateForInput(order.plannedPriceCardArrivalDate));
+            $('#ActualPriceCardArrivalDate').val(formatDateForInput(order.actualPriceCardArrivalDate));
+
+            // Tab 3: Production
+            $('#PlannedCuttingStartDate').val(formatDateForInput(order.plannedCuttingStartDate));
+            $('#CuttingStartDate').val(formatDateForInput(order.cuttingStartDate));
+            $('#PlannedCuttingEndDate').val(formatDateForInput(order.plannedCuttingEndDate));
+            $('#CuttingEndDate').val(formatDateForInput(order.cuttingEndDate));
+
+            $('#PlannedSewingStartDate').val(formatDateForInput(order.plannedSewingStartDate));
+            $('#SewingStartDate').val(formatDateForInput(order.sewingStartDate));
+            $('#PlannedSewingEndDate').val(formatDateForInput(order.plannedSewingEndDate));
+            $('#SewingEndDate').val(formatDateForInput(order.sewingEndDate));
+
+            $('#PlannedPackagingStartDate').val(formatDateForInput(order.plannedPackagingStartDate));
+            $('#PackagingStartDate').val(formatDateForInput(order.packagingStartDate));
+            $('#PlannedPackagingEndDate').val(formatDateForInput(order.plannedPackagingEndDate));
+            $('#PackagingEndDate').val(formatDateForInput(order.packagingEndDate));
+
+            $('#PlannedGsDepartureDate').val(formatDateForInput(order.plannedGsDepartureDate));
+            $('#ActualGsDepartureDate').val(formatDateForInput(order.actualGsDepartureDate));
+
+            $('#DepartureDate').val(formatDateForInput(order.departureDate));
+            $('#WarehouseArrivalDate').val(formatDateForInput(order.warehouseArrivalDate));
+
+            $('#PlannedLastInspectionDate').val(formatDateForInput(order.plannedLastInspectionDate));
+            $('#LastInspectionDate').val(formatDateForInput(order.lastInspectionDate));
+
+            // Status Update (Basic)
+            $('#lblStatusSample').text(order.actualPPApprovalDate ? '%100 TAMAM' : 'DEVAM EDİYOR');
+            $('#lblStatusPurchasing').text(order.fabricArrivalActualDate ? '%100 TAMAM' : 'DEVAM EDİYOR');
+            $('#lblStatusProduction').text(order.packagingEndDate ? '%100 TAMAM' : 'DEVAM EDİYOR');
+        }
+
+        function savePlanningData(e) {
+            e.preventDefault();
+            var formData = new FormData(document.getElementById('orderPlanningForm'));
+            var obj = {};
+            formData.forEach((value, key) => {
+                if (value !== '') {
+                    obj[key] = value;
+                }
+            });
+
+            $.ajax({
+                url: '/Planning/UpdateOrderPlanning',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(obj),
+                success: function (res) {
+                    if (res.success) {
+                        alert("Planlama başarıyla kaydedildi.");
+                        // Refresh the local array data
+                        var index = ordersData.findIndex(x => x.id == obj.Id);
+                        if(index > -1) {
+                            Object.assign(ordersData[index], obj);
+                        }
+                    } else {
+                        alert("Hata: " + res.message);
+                    }
+                },
+                error: function (err) {
+                    console.error(err);
+                    alert("Kayıt sırasında bir hata oluştu.");
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var orderId = urlParams.get('orderId');
+            if(orderId) {
+                selectOrder(parseInt(orderId));
+            } else if (ordersData.length > 0) {
+                selectOrder(ordersData[0].id);
+            }
+        });
+    </script>
+}
