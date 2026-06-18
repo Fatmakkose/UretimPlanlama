@@ -58,7 +58,16 @@
                 </div>
                 <div class="form-group">
                     <label>Marka</label>
-                    <input name="Brand" class="form-control" value="LC WAIKIKI" readonly />
+                    <select name="Brand" class="form-control">
+                       <option value="">-- Marka Seçin --</option>
+                       @if(ViewBag.Brands != null)
+                       {
+                           foreach(var brand in (List<UretimPlanlama.Models.Brand>)ViewBag.Brands)
+                           {
+                               <option value="@brand.Name">@brand.Name</option>
+                           }
+                       }
+                   </select>
                 </div>
                 <div class="form-group">
                     <label>Teslim Yeri</label>

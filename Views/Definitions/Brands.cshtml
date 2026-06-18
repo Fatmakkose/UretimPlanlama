@@ -1,1 +1,69 @@
-﻿
+@using UretimPlanlama.Models
+@model List<Brand>
+@{
+    ViewData["Title"] = "Marka Tanımı";
+}
+
+<div class="dashboard-header" style="margin-bottom: 25px;">
+    <div class="header-title">
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Marka Tanımı</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Sistemde kullanılacak marka tanımlamaları</p>
+    </div>
+    <div class="header-actions">
+        <a href="/Definitions/CreateBrand" class="btn-planner" style="text-decoration: none;"><i class="fa-solid fa-plus"></i> Yeni Marka Ekle</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2);">
+        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="schedule-section">
+        <div class="section-header">
+            <div>
+                <h2>Mevcut Markalar</h2>
+                <p>Sistemde tanımlı olan markalar</p>
+            </div>
+            <div class="search-box" style="width: 300px; margin-top: -10px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="Marka ara..." />
+            </div>
+        </div>
+
+        <div class="schedule-list">
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var brand in Model)
+                {
+                    <div class="schedule-item">
+                        <div class="time-slot">
+                            <span style="color: var(--primary-color);"><i class="fa-solid fa-tags fa-lg"></i></span>
+                        </div>
+                        <div class="job-info">
+                            <div class="job-title">
+                                <span class="job-id" style="font-size: 1.1rem;">@brand.Name</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-modify" style="color: var(--danger-text); border-color: var(--danger-text);"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="schedule-item" style="justify-content: center; padding: 40px;">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-tags" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p style="font-size: 1.1rem; margin: 0;">Henüz kayıtlı bir marka bulunmuyor.</p>
+                        <p style="font-size: 0.9rem; margin-top: 5px;">Yeni bir marka tanımlamak için sağ üstteki butonu kullanabilirsiniz.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

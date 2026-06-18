@@ -28,6 +28,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
+            ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
             return View(orders);
         }
 
@@ -41,6 +42,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
+            ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
             return View();
         }
 
@@ -64,6 +66,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
+            ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
             return View(order);
         }
 

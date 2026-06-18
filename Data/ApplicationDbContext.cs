@@ -19,5 +19,6 @@ namespace UretimPlanlama.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Company> Companies { get; set; }
         public DbSet<Accessory> Accessories { get; set; }
+        public DbSet<Brand> Brands { get; set; }
     }
 }

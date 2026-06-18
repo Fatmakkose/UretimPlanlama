@@ -183,5 +183,29 @@ namespace UretimPlanlama.Controllers
             }
             return View(model);
         }
+        // --- MARKA (BRAND) TANIMLARI ---
+        public IActionResult Brands()
+        {
+            var brands = _context.Brands.ToList();
+            return View(brands);
+        }
+
+        public IActionResult CreateBrand()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CreateBrand(Brand model)
+        {
+            if (ModelState.IsValid && !string.IsNullOrEmpty(model.Name))
+            {
+                _context.Brands.Add(model);
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Marka başarıyla veritabanına eklendi.";
+                return RedirectToAction("Brands");
+            }
+            return View(model);
+        }
     }
 }
