@@ -324,6 +324,25 @@ namespace UretimPlanlama.Controllers
             return Json(new { success = false, message = "Sipariş bulunamadı." });
         }
 
+        [HttpPost]
+        public IActionResult DeleteMultiple([FromBody] List<int> ids)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
+            if (ids == null || !ids.Any()) return Json(new { success = false, message = "Geçersiz işlem." });
+
+            var orders = _context.Orders.Where(o => ids.Contains(o.Id)).ToList();
+            if (orders.Any())
+            {
+                _context.Orders.RemoveRange(orders);
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            return Json(new { success = false, message = "Sipariş bulunamadı." });
+        }
+
         private string FormatJsonDistribution(string? json, Order order, bool isAsorti)
         {
             if (string.IsNullOrEmpty(json))

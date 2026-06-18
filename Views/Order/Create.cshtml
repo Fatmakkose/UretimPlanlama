@@ -53,7 +53,10 @@
                     <input name="Color" class="form-control" id="commonColor" />
                 </div>
                 <div class="form-group">
-                    <label>Model Detay</label>
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Model Detay</span>
+                        <button type="button" onclick="openModelDetailModal()" style="padding:2px 8px; border:1px solid var(--primary-color); background:#e0f2fe; color:var(--primary-color); font-size:0.75rem; font-weight:600; cursor:pointer; border-radius:4px;"><i class="fa-solid fa-list-check" style="margin-right:4px;"></i>Aksesuar/Tela</button>
+                    </label>
                     <input name="GoodsDescription" class="form-control" placeholder="Örn: Örme Erkek Sweatshirt" />
                 </div>
                 <div class="form-group">
@@ -85,40 +88,144 @@
                 </div>
             </div>
 
-            <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-coins" style="margin-right: 6px;"></i> Finansal Bilgiler</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label>Toplam Sipariş Miktarı (Adet)</label>
-                    <input name="Quantity" class="form-control calc-trigger-modal" type="number" id="modalQty" readonly style="background:#eef2ff; font-weight:bold;" value="0" />
-                </div>
-                <div class="form-group">
-                    <label>Komponent Birim Fiyatı (₺)</label>
-                    <input name="ComponentUnitPrice" class="form-control calc-trigger-modal" type="number" step="0.01" id="modalUnitPrice" placeholder="Örn: 45.50" />
-                </div>
-                <div class="form-group">
-                    <label>Toplam Tutar (₺)</label>
-                    <input name="TotalAmount" class="form-control" type="number" step="0.01" id="modalTotalAmt" readonly />
-                </div>
-                <div class="form-group">
-                    <label>%10 KDV (₺)</label>
-                    <input name="VatAmount" class="form-control" type="number" step="0.01" id="modalVatAmt" readonly />
-                </div>
-                <div class="form-group">
-                    <label style="color:var(--primary-color);">KDV'li Toplam Tutar (₺)</label>
-                    <input name="TotalAmountWithVat" class="form-control" type="number" step="0.01" id="modalGrandTotal" readonly style="border-color:var(--primary-color); font-weight:bold; color:var(--primary-color); background:#ccfbf1;" />
-                </div>
-            </div>
         </div>
 
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
             <a href="/Order/Index" class="btn-secondary" style="padding: 10px 20px; text-decoration:none;">İptal</a>
             <button type="submit" class="btn-planner" style="padding: 10px 24px;"><i class="fa-solid fa-save"></i> Siparişi Kaydet ve Plana Al</button>
         </div>
+
+        <!-- Model Detail Modal -->
+        <div id="modelDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1050; align-items:center; justify-content:center;">
+            <div style="background:white; width: 600px; max-width: 90%; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column;">
+                <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
+                    <h5 style="margin:0; font-weight:600; color:var(--primary-color);"><i class="fa-solid fa-tags" style="margin-right:8px;"></i>Ek Model ve Aksesuar Detayları</h5>
+                    <button type="button" onclick="closeModelDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div style="padding: 24px; overflow-y:auto; max-height:70vh; display:flex; flex-direction:column; gap:20px;">
+                    <!-- Aksesuarlar -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Gerekli Etiket ve Kartlar</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasPriceCard" value="true" /> Fiyat Kartı</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasWashingInstruction" value="true" /> Yıkama Talimatı</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasInnerBarcode" value="true" /> İç Barkod</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasYokeLabel" value="true" /> Roba Etiketi</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasFifLabel" value="true" /> Fif Etiketi</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_KetenKarti" value="true" /> Keten Kartı</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasOtherCard" value="true" /> Diğer Kart</label>
+                        </div>
+                    </div>
+
+                    <!-- Paketleme -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Paketleme / Ambalaj</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Jelatin" value="true" /> Jelatin</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Cember" value="true" /> Çember</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Kelebek" value="true" /> Kelebek</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_LotPoseti" value="true" /> Lot Poşeti</label>
+                        </div>
+                    </div>
+
+                    <!-- Baskı Nakış -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Baskı ve Nakış</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Baski" value="true" /> Baskı Var</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Nakis" value="true" /> Nakış Var</label>
+                        </div>
+                    </div>
+
+                    <!-- Kumaş ve Düğme -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Ana Kumaş (m)</label>
+                            <input type="number" step="0.01" name="UnitFabricMeterage" class="form-control" placeholder="Örn: 1.2" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Garni Kumaş (m)</label>
+                            <input type="number" step="0.01" name="Acc_Garni" class="form-control" placeholder="Örn: 0.5" />
+                        </div>
+                        <div></div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Büyük Düğme</label>
+                            <input type="number" name="LargeButtonCount" class="form-control" placeholder="Adet" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Küçük Düğme</label>
+                            <input type="number" name="SmallButtonCount" class="form-control" placeholder="Adet" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Çıt Çıt</label>
+                            <input type="number" name="Acc_CitCit" class="form-control" placeholder="Adet" />
+                        </div>
+                    </div>
+
+                    <!-- Tela ve Parçalar -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Tela ve Ek Parça Metrajları (m)</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Yaka Telası</label>
+                                <input type="number" step="0.01" name="CollarInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Manşet Telası</label>
+                                <input type="number" step="0.01" name="CuffInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Pat Telası</label>
+                                <input type="number" step="0.01" name="PlacketInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Cep Kapağı</label>
+                                <input type="number" step="0.01" name="PocketFlapInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Tela 1</label>
+                                <input type="number" step="0.01" name="Acc_Tela1" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Tela 2</label>
+                                <input type="number" step="0.01" name="Acc_Tela2" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Cep</label>
+                                <input type="number" step="0.01" name="Acc_Cep" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Roba</label>
+                                <input type="number" step="0.01" name="Acc_Roba" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Apolet</label>
+                                <input type="number" step="0.01" name="Acc_Apolet" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Diğer Parça</label>
+                                <input type="number" step="0.01" name="Acc_Diger" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); background:#f8fafc; display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn-planner" onclick="closeModelDetailModal()"><i class="fa-solid fa-check" style="margin-right:6px;"></i> Detayları Kaydet</button>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 
 @section Scripts {
     <script>
+        function openModelDetailModal() {
+            $('#modelDetailModal').css('display', 'flex').hide().fadeIn(200);
+        }
+        function closeModelDetailModal() {
+            $('#modelDetailModal').fadeOut(200);
+        }
+
         $(document).ready(function() {
             var colorOptionsHtml = '<option value="">-- Renk Seçin --</option>';
             @if (ViewBag.Colors != null)
@@ -155,6 +262,7 @@
                     var rowData = {
                         color: row.find('.row-color').val() || "",
                         inspectionDate: row.find('.row-inspection-date').val() || "",
+                        unitPrice: row.find('.row-unit-price').val() || "",
                         fabricator: row.find('.row-fabricator').val() || "",
                         openSizes: row.data('openSizes') || {},
                         asortiSizes: row.data('asortiSizes') || {},
@@ -167,7 +275,10 @@
 
             function renderSizeBadgesToContainer(type, sizesDict) {
                 var html = "";
-                Object.keys(sizesDict).forEach(function(size) {
+                var sortedKeys = Object.keys(sizesDict).sort(function(a, b) {
+                    return activeSizes.indexOf(a) - activeSizes.indexOf(b);
+                });
+                sortedKeys.forEach(function(size) {
                     var val = sizesDict[size];
                     var badgeColor = type === 'open' ? 'var(--primary-color)' : '#16a34a';
                     var bgClass = type === 'open' ? 'bg-sky-100' : 'bg-green-100';
@@ -186,6 +297,7 @@
             function createRowHtml(savedData) {
                 var color = savedData ? savedData.color : "";
                 var inspectionDate = savedData ? savedData.inspectionDate : "";
+                var unitPrice = savedData ? savedData.unitPrice : "";
                 var fabricator = savedData ? savedData.fabricator : "";
                 var asortiCount = savedData ? savedData.asortiCount : "0";
 
@@ -196,10 +308,10 @@
                 var asortiCheckboxesHtml = "";
                 activeSizes.forEach(function(size) {
                     var isOpenChecked = openSizes.hasOwnProperty(size) ? "checked" : "";
-                    openCheckboxesHtml += `<label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="dyn-size-checkbox" data-type="open" value="${size}" ${isOpenChecked} /> ${size}</label>`;
+                    openCheckboxesHtml += `<label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; cursor:pointer; padding:4px 8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'"><input type="checkbox" class="dyn-size-checkbox" data-type="open" value="${size}" ${isOpenChecked} /> ${size}</label>`;
 
                     var isAsortiChecked = asortiSizes.hasOwnProperty(size) ? "checked" : "";
-                    asortiCheckboxesHtml += `<label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="dyn-size-checkbox" data-type="asorti" value="${size}" ${isAsortiChecked} /> ${size}</label>`;
+                    asortiCheckboxesHtml += `<label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; cursor:pointer; padding:4px 8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'"><input type="checkbox" class="dyn-size-checkbox" data-type="asorti" value="${size}" ${isAsortiChecked} /> ${size}</label>`;
                 });
 
                 var openSizesHtml = renderSizeBadgesToContainer('open', openSizes);
@@ -223,7 +335,7 @@
 
                     <!-- BODY -->
                     <div class="row-body" style="padding: 16px; background: #f8f9fa;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                             <div>
                                 <label style="font-size: 0.85rem; font-weight: 600;">Renk / Option</label>
                                 <select class="form-control row-color">
@@ -231,7 +343,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="font-size: 0.85rem; font-weight: 600;">Inspection Tarihi</label>
+                                <label style="font-size: 0.85rem; font-weight: 600;">Termin Tarihi</label>
                                 <input type="date" class="form-control row-inspection-date" value="${inspectionDate}" />
                             </div>
                             <div>
@@ -240,52 +352,76 @@
                                     ${fabricatorOptionsHtml}
                                 </select>
                             </div>
+                            <div>
+                                <label style="font-size: 0.85rem; font-weight: 600;">Birim Fiyatı</label>
+                                <div style="position: relative; display: flex; align-items: center;">
+                                    <span style="position: absolute; left: 12px; color: #64748b; font-weight: 600;">₺</span>
+                                    <input type="text" class="form-control row-unit-price" placeholder="0,00" value="${unitPrice}" style="padding-left: 28px;" />
+                                </div>
+                            </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 16px;">
                             <!-- Açık Adetler -->
-                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                                <h5 style="margin: 0 0 12px 0; font-size: 0.9rem; color: #0284c7; display:flex; justify-content:space-between;">
-                                    Açık Adet Bedenler
-                                    <span style="font-size: 0.8rem; background: #e0f2fe; padding: 2px 8px; border-radius: 12px;">Top: <span class="row-open-total-text">0</span></span>
-                                </h5>
-                                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                    ${openCheckboxesHtml}
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display:flex; flex-direction:column;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                    <h5 style="margin: 0; font-size: 0.9rem; color: #0284c7; display:flex; align-items:center; gap:8px;">
+                                        Açık Adet Bedenler
+                                        <div style="position:relative;" class="size-dropdown-wrapper">
+                                            <button type="button" class="btn-size-select" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-size:0.75rem; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fa-solid fa-list-ul"></i> Beden Seç</button>
+                                            <div class="size-dropdown-content" style="display:none; position:absolute; top:100%; left:0; margin-top:4px; background:white; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); padding:8px; z-index:50; min-width:180px; max-height:200px; overflow-y:auto;">
+                                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                                                    ${openCheckboxesHtml}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </h5>
+                                    <span style="font-size: 0.8rem; background: #e0f2fe; padding: 2px 8px; border-radius: 12px; color:#0284c7; font-weight:600;">Top: <span class="row-open-total-text">0</span></span>
                                 </div>
-                                <div class="dyn-sizes-container-open" style="display:flex; flex-wrap:wrap; gap:8px;">
+                                <div class="dyn-sizes-container-open" style="display:flex; flex-wrap:wrap; gap:8px; flex:1; align-content:flex-start;">
                                     ${openSizesHtml}
                                 </div>
                                 <input type="hidden" class="row-open-total" value="0" />
                             </div>
 
                             <!-- Asorti Adetleri -->
-                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                                <h5 style="margin: 0 0 12px 0; font-size: 0.9rem; color: #16a34a; display:flex; justify-content:space-between;">
-                                    Asorti Adet
-                                    <span style="font-size: 0.8rem; background: #dcfce7; padding: 2px 8px; border-radius: 12px;">Top: <span class="row-asorti-total-text">0</span></span>
-                                </h5>
-                                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
-                                    ${asortiCheckboxesHtml}
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display:flex; flex-direction:column;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                    <h5 style="margin: 0; font-size: 0.9rem; color: #16a34a; display:flex; align-items:center; gap:8px;">
+                                        Asorti Adet
+                                        <div style="position:relative;" class="size-dropdown-wrapper">
+                                            <button type="button" class="btn-size-select" style="background:#dcfce7; border:1px solid #bbf7d0; color:#16a34a; font-size:0.75rem; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fa-solid fa-list-ul"></i> Beden Seç</button>
+                                            <div class="size-dropdown-content" style="display:none; position:absolute; top:100%; left:0; margin-top:4px; background:white; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); padding:8px; z-index:50; min-width:180px; max-height:200px; overflow-y:auto;">
+                                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                                                    ${asortiCheckboxesHtml}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </h5>
+                                    <span style="font-size: 0.8rem; background: #dcfce7; padding: 2px 8px; border-radius: 12px; color:#16a34a; font-weight:600;">Top: <span class="row-asorti-total-text">0</span></span>
                                 </div>
-                                <div class="dyn-sizes-container-asorti" style="display:flex; flex-wrap:wrap; gap:8px;">
+                                <div class="dyn-sizes-container-asorti" style="display:flex; flex-wrap:wrap; gap:8px; flex:1; align-content:flex-start;">
                                     ${asortiSizesHtml}
                                 </div>
                                 <input type="hidden" class="row-asorti-total" value="0" />
+                                
+                                <div style="margin-top:16px; padding-top:12px; border-top:1px dashed #cbd5e1; display:flex; gap:12px;">
+                                    <div style="flex:1;">
+                                        <label style="font-size: 0.8rem; font-weight: 600; color:#475569;">Lot Sayısı</label>
+                                        <input type="number" min="0" class="form-control asorti-count row-asorti-count" value="${asortiCount}" placeholder="Örn: 50" style="height:32px; font-size:0.85rem;" />
+                                    </div>
+                                    <div style="flex:1;">
+                                        <label style="font-size: 0.8rem; font-weight: 600; color:#475569;">Toplam Asorti Sipariş</label>
+                                        <input type="number" class="form-control row-asorti-final" readonly style="height:32px; font-size:0.85rem; background:#f8fafc; font-weight:bold; color:#16a34a; border-color:#e2e8f0;" value="0" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 16px; align-items: flex-end; background: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                            <div style="flex: 1;">
-                                <label style="font-size: 0.85rem; font-weight: 600;">Toplam Asorti Çarpanı (Adet)</label>
-                                <input type="number" min="0" class="form-control asorti-count row-asorti-count" value="${asortiCount}" placeholder="Örn: 595" />
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="font-size: 0.85rem; font-weight: 600;">Toplam Asorti Sipariş</label>
-                                <input type="number" class="form-control row-asorti-final" readonly style="background: transparent; font-weight: bold; border: none; padding-left: 0;" value="0" />
-                            </div>
-                            <div style="flex: 1; border-left: 2px solid #cbd5e1; padding-left: 16px;">
-                                <label style="font-size: 0.85rem; font-weight: 700; color:var(--primary-color);">Bu Renk Toplam Adet</label>
-                                <input type="number" class="form-control row-total-qty" readonly style="background: transparent; font-weight: bold; font-size: 1.1rem; color:var(--primary-color); border: none; padding-left: 0;" value="0" />
+                        <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                            <div style="background: #e0f2fe; border: 1px solid #bae6fd; padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 0.95rem; font-weight: 700; color:#0284c7;">Bu Renk Toplam Adet:</span>
+                                <input type="number" class="form-control row-total-qty" readonly style="background: transparent; font-weight: 800; font-size: 1.25rem; color:#0284c7; border: none; padding: 0; text-align: right; width: 80px; box-shadow: none;" value="0" />
                             </div>
                         </div>
                     </div>
@@ -425,7 +561,6 @@
                 $('.row-total-qty').each(function() {
                     grandTotalQty += (parseInt($(this).val()) || 0);
                 });
-                $('#modalQty').val(grandTotalQty).trigger('input');
             }
 
             $(document).on('change', '.row-color', function() {
@@ -453,6 +588,23 @@
                     $(this).remove();
                     calculateGrandTotalQuantity();
                 });
+            });
+
+            // Toggle size dropdown
+            $(document).on('click', '.btn-size-select', function(e) {
+                e.stopPropagation();
+                var dropdown = $(this).siblings('.size-dropdown-content');
+                $('.size-dropdown-content').not(dropdown).fadeOut(150);
+                dropdown.fadeToggle(150);
+            });
+
+            // Hide dropdowns when clicking outside
+            $(document).click(function() {
+                $('.size-dropdown-content').fadeOut(150);
+            });
+
+            $(document).on('click', '.size-dropdown-content', function(e) {
+                e.stopPropagation();
             });
 
             $("#btnAddColorRow").click(function() {
@@ -508,8 +660,30 @@
                     orderObj.HasFifLabel = $("#newOrderForm input[name='HasFifLabel']").is(':checked');
                     orderObj.HasOtherCard = $("#newOrderForm input[name='HasOtherCard']").is(':checked');
 
+                    var customAcc = {};
+                    customAcc.KetenKarti = $("#newOrderForm input[name='Acc_KetenKarti']").is(':checked');
+                    customAcc.Jelatin = $("#newOrderForm input[name='Acc_Jelatin']").is(':checked');
+                    customAcc.Cember = $("#newOrderForm input[name='Acc_Cember']").is(':checked');
+                    customAcc.Kelebek = $("#newOrderForm input[name='Acc_Kelebek']").is(':checked');
+                    customAcc.LotPoseti = $("#newOrderForm input[name='Acc_LotPoseti']").is(':checked');
+                    customAcc.Baski = $("#newOrderForm input[name='Acc_Baski']").is(':checked');
+                    customAcc.Nakis = $("#newOrderForm input[name='Acc_Nakis']").is(':checked');
+
+                    customAcc.CitCit = parseFloat($("#newOrderForm input[name='Acc_CitCit']").val()) || null;
+                    customAcc.Garni = parseFloat($("#newOrderForm input[name='Acc_Garni']").val()) || null;
+                    customAcc.Tela1 = parseFloat($("#newOrderForm input[name='Acc_Tela1']").val()) || null;
+                    customAcc.Tela2 = parseFloat($("#newOrderForm input[name='Acc_Tela2']").val()) || null;
+                    customAcc.Cep = parseFloat($("#newOrderForm input[name='Acc_Cep']").val()) || null;
+                    customAcc.Roba = parseFloat($("#newOrderForm input[name='Acc_Roba']").val()) || null;
+                    customAcc.Apolet = parseFloat($("#newOrderForm input[name='Acc_Apolet']").val()) || null;
+                    customAcc.Diger = parseFloat($("#newOrderForm input[name='Acc_Diger']").val()) || null;
+
+                    orderObj.SelectedAccessoriesJson = JSON.stringify(customAcc);
+
                     // Map empty decimal/numeric fields to null
-                    if (!orderObj.UnitPrice) orderObj.UnitPrice = null;
+                    var unitPriceStr = row.find('.row-unit-price').val() || "";
+                    unitPriceStr = unitPriceStr.replace(',', '.');
+                    orderObj.UnitPrice = parseFloat(unitPriceStr) || null;
                     if (!orderObj.UnitFabricMeterage) orderObj.UnitFabricMeterage = null;
                     if (!orderObj.LargeButtonCount) orderObj.LargeButtonCount = null;
                     if (!orderObj.SmallButtonCount) orderObj.SmallButtonCount = null;
@@ -568,7 +742,7 @@
                     data: JSON.stringify(orders),
                     success: function(res) {
                         if (res.success) {
-                            window.location.href = '/Order/Index';
+                            window.location.href = '/Planning/Index';
                         } else {
                             showToast("Hata: " + res.message, "danger");
                         }
@@ -577,19 +751,6 @@
                         showToast("Kayıt sırasında sunucu hatası oluştu.", "danger");
                     }
                 });
-            });
-
-            $('.calc-trigger-modal').on('input', function() {
-                var qty = parseFloat($('#modalQty').val()) || 0;
-                var price = parseFloat($('#modalUnitPrice').val()) || 0;
-
-                var total = qty * price;
-                var vat = total * 0.10; 
-                var grand = total + vat;
-
-                $('#modalTotalAmt').val(total.toFixed(2));
-                $('#modalVatAmt').val(vat.toFixed(2));
-                $('#modalGrandTotal').val(grand.toFixed(2));
             });
 
             function showToast(message, type) {

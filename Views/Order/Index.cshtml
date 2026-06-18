@@ -198,51 +198,130 @@
                         <th>TARİH</th>
                         <th>MODEL</th>
                         <th>DETAY</th>
-                        <th>ÜRETİM YERİ</th>
                         <th>KUMAŞÇI</th>
                         <th style="text-align: right;">SİPARİŞ ADEDİ</th>
                         <th style="text-align: center; width: 120px; padding-right: 24px;">İŞLEM</th>
                     </tr>
                 </thead>
                 <tbody id="orderTableBody">
-                    @foreach (var order in Model)
+                    @foreach (var orderGroup in Model.GroupBy(o => o.OrderCode))
                     {
-                        <tr class="order-row">
-                            <td style="padding-left: 24px;">
-                                <a href="#" class="view-order-detail" data-id="@order.Id" style="color: #0369a1; font-weight: 700; text-decoration: none;">@order.OrderCode</a>
-                            </td>
-                            <td>
-                                <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
-                                    <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>@order.OrderDate.ToString("dd.MM.yyyy")
-                                </span>
-                            </td>
-                            <td>
-                                <strong style="color: #1e293b; font-size: 0.9rem; display: block;">@order.ModelName</strong>
-                                <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 2px;">@(string.IsNullOrEmpty(order.ModelNo) ? "-" : order.ModelNo)</span>
-                            </td>
-                            <td>
-                                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                                    <span style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@order.Color</span>
-                                    <span style="background-color: #e0e7ff; color: #4f46e5; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@order.Brand</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-industry" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@order.ProductionPlace</span>
-                            </td>
-                            <td>
-                                <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-truck" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@order.FabricSupplier</span>
-                            </td>
-                            <td style="text-align: right; font-weight: 600; font-size: 0.95rem; color: #0f172a;">
-                                @order.Quantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
-                            </td>
-                            <td style="text-align: center; padding-right: 24px;">
-                                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                                    <button class="action-btn btnEditOrder" data-id="@order.Id" title="Düzenle"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="action-btn btnDeleteOrder" data-id="@order.Id" title="Sil"><i class="fa-solid fa-trash"></i></button>
-                                    <button class="action-btn view-order-detail" data-id="@order.Id" title="Detaylar"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
-                                </div>
-                            </td>
-                        </tr>
+                        var firstOrder = orderGroup.First();
+                        var totalQty = orderGroup.Sum(o => o.Quantity);
+                        var colors = orderGroup.Select(o => new { Color = o.Color, Brand = o.Brand }).Distinct().ToList();
+                        
+                        if (orderGroup.Count() == 1)
+                        {
+                            // Tek renkli sipariş - düz satır (açılır kapanır değil)
+                            <tr class="order-row main-order-row" style="border-bottom: 1px solid #f1f5f9; background: #fff;">
+                                <td style="padding-left: 24px;">
+                                    <span style="color: #0369a1; font-weight: 700;">@firstOrder.OrderCode</span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+                                        <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>@firstOrder.OrderDate.ToString("dd.MM.yyyy")
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #1e293b; font-size: 0.9rem; display: block;">@firstOrder.ModelName</strong>
+                                    <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 2px;">@(string.IsNullOrEmpty(firstOrder.ModelNo) ? "-" : firstOrder.ModelNo)</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                        <span style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@firstOrder.Color</span>
+                                        @if (!string.IsNullOrEmpty(firstOrder.Brand))
+                                        {
+                                            <span style="background-color: #e0e7ff; color: #4f46e5; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@firstOrder.Brand</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-truck" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@firstOrder.FabricSupplier</span>
+                                </td>
+                                <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #0f172a;">
+                                    @firstOrder.Quantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                </td>
+                                <td style="text-align: center; padding-right: 24px;">
+                                    <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                        <button class="action-btn btnEditOrder" data-id="@firstOrder.Id" title="Rengi Düzenle"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="action-btn btnDeleteOrder" data-id="@firstOrder.Id" title="Rengi Sil"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="action-btn view-order-detail" data-id="@firstOrder.Id" title="Renk Detayları"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            // Çok renkli sipariş - açılır kapanır (accordion) yapısı
+                            var allIds = string.Join(",", orderGroup.Select(o => o.Id));
+                            var groupClass = "sub-row-" + firstOrder.OrderCode.Replace(" ", "").Replace("-", "");
+
+                            <tr class="order-row main-order-row" data-groupclass="@groupClass" style="cursor: pointer; border-bottom: 2px solid #e2e8f0; background: #fff;" onclick="$('.@groupClass').toggle(); $(this).find('.toggle-icon').toggleClass('fa-rotate-90');">
+                                <td style="padding-left: 24px; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-chevron-right toggle-icon" style="color: #94a3b8; font-size: 0.8rem; transition: transform 0.2s;"></i>
+                                    <span style="color: #0369a1; font-weight: 700;">@firstOrder.OrderCode</span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+                                        <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>@firstOrder.OrderDate.ToString("dd.MM.yyyy")
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #1e293b; font-size: 0.9rem; display: block;">@firstOrder.ModelName</strong>
+                                    <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 2px;">@(string.IsNullOrEmpty(firstOrder.ModelNo) ? "-" : firstOrder.ModelNo)</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                        @foreach(var c in colors)
+                                        {
+                                            <span style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@c.Color</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="color: #94a3b8; font-size: 0.8rem; font-style:italic;">Çoklu (Genişletiniz)</span>
+                                </td>
+                                <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #0f172a;">
+                                    @totalQty.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                </td>
+                                <td style="text-align: center; padding-right: 24px;">
+                                    <button class="action-btn btnDeleteOrderGroup" data-ids="@allIds" title="Siparişi Komple Sil" onclick="event.stopPropagation();"><i class="fa-solid fa-trash" style="color: #ef4444;"></i></button>
+                                </td>
+                            </tr>
+
+                            foreach (var order in orderGroup)
+                            {
+                                <tr class="order-row @groupClass" style="display: none; background: #f8fafc; border-bottom: 1px dashed #cbd5e1;">
+                                    <td style="padding-left: 50px;">
+                                        <span style="font-size:0.8rem; color:#94a3b8;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i></span>
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                            <span style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@order.Color</span>
+                                            @if (!string.IsNullOrEmpty(order.Brand))
+                                            {
+                                                <span style="background-color: #e0e7ff; color: #4f46e5; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@order.Brand</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-truck" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@order.FabricSupplier</span>
+                                    </td>
+                                    <td style="text-align: right; font-weight: 600; font-size: 0.95rem; color: #0f172a;">
+                                        @order.Quantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                    </td>
+                                    <td style="text-align: center; padding-right: 24px;">
+                                        <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                            <button class="action-btn btnEditOrder" data-id="@order.Id" title="Rengi Düzenle"><i class="fa-solid fa-pen"></i></button>
+                                            <button class="action-btn btnDeleteOrder" data-id="@order.Id" title="Rengi Sil"><i class="fa-solid fa-trash"></i></button>
+                                            <button class="action-btn view-order-detail" data-id="@order.Id" title="Renk Detayları"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
                     }
                 </tbody>
             </table>
@@ -1010,26 +1089,35 @@
                 // Arama İşlemi (Sipariş Kodu, Model Adı ve Detaylara Göre)
                 $("#orderSearchInput").on("keyup", function() {
                     var value = $(this).val().toLowerCase();
-                    $(".order-row").filter(function() {
+                    $(".main-order-row").filter(function() {
                         var siparisKodu = $(this).find("td:eq(0)").text().toLowerCase();
                         var modelName = $(this).find("td:eq(2)").text().toLowerCase();
-                        var modelDetail = $(this).find("td:eq(3)").text().toLowerCase();
-                        $(this).toggle(siparisKodu.indexOf(value) > -1 || modelName.indexOf(value) > -1 || modelDetail.indexOf(value) > -1);
+                        var colors = $(this).find("td:eq(3)").text().toLowerCase();
+                        var isMatch = siparisKodu.indexOf(value) > -1 || modelName.indexOf(value) > -1 || colors.indexOf(value) > -1;
+                        $(this).toggle(isMatch);
+                        if (!isMatch) {
+                            var groupClass = $(this).data("groupclass");
+                            if (groupClass) {
+                                $("." + groupClass).hide();
+                                $(this).find('.toggle-icon').removeClass('fa-rotate-90');
+                            }
+                        }
                     });
                 });
 
-                // Sipariş Silme İşlemi
+                // Tekil Sipariş Rengi Silme İşlemi
                 $(document).on("click", ".btnDeleteOrder", function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     var orderId = $(this).data("id");
-                    if (confirm("Bu siparişi silmek istediğinizden emin misiniz?")) {
+                    if (confirm("Bu renk kaydını silmek istediğinizden emin misiniz?")) {
                         $.ajax({
                             url: "/Order/Delete",
                             type: "POST",
                             data: { id: orderId },
                             success: function(response) {
                                 if (response.success) {
-                                    showToast("Sipariş başarıyla silindi.", "success");
+                                    showToast("Kayıt başarıyla silindi.", "success");
                                     setTimeout(function() {
                                         window.location.reload();
                                     }, 1000);
@@ -1038,7 +1126,37 @@
                                 }
                             },
                             error: function() {
-                                showToast("Sipariş silinirken sunucu hatası oluştu.", "danger");
+                                showToast("Kayıt silinirken sunucu hatası oluştu.", "danger");
+                            }
+                        });
+                    }
+                });
+
+                // Sipariş Grubunu (Komple) Silme İşlemi
+                $(document).on("click", ".btnDeleteOrderGroup", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var idsString = $(this).data("ids");
+                    var idsArray = String(idsString).split(',').map(Number);
+                    
+                    if (confirm("Bu siparişe ait TÜM renk kayıtlarını silmek istediğinizden emin misiniz?")) {
+                        $.ajax({
+                            url: "/Order/DeleteMultiple",
+                            type: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(idsArray),
+                            success: function(response) {
+                                if (response.success) {
+                                    showToast("Sipariş grubu başarıyla silindi.", "success");
+                                    setTimeout(function() {
+                                        window.location.reload();
+                                    }, 1000);
+                                } else {
+                                    showToast("Silme hatası: " + response.message, "danger");
+                                }
+                            },
+                            error: function() {
+                                showToast("Silinirken sunucu hatası oluştu.", "danger");
                             }
                         });
                     }

@@ -26,7 +26,7 @@
             
             <ul class="navbar-menu">
                 <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">Siparişler</a></li>
-                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">Üretim Planlama</a></li>
+                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && (ViewContext.RouteData.Values["Action"]?.ToString() == "Index" || ViewContext.RouteData.Values["Action"]?.ToString() == "Plan") ? "active" : "")">Planlama</a></li>
                 <li><a href="/Planning/Tracking" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && ViewContext.RouteData.Values["Action"]?.ToString() == "Tracking" ? "active" : "")">Üretim Takip</a></li>
                 <li><a href="/WorkshopCapacity" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "WorkshopCapacity" ? "active" : "")">Atölye Takip</a></li>
                 <li><a href="/Reports" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")">Raporlar</a></li>

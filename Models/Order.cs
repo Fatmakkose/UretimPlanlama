@@ -166,5 +166,28 @@ namespace UretimPlanlama.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal? ActualFabricQty { get; set; }
+
+        // --- YENİ PLANLAMA (SATIN ALMA / ÜRETİM / NUMUNE) ALANLARI ---
+
+        // Kumaş (Metraj)
+        public double? PlannedFabricMeterage { get; set; } // Planlanan Kumaş Metraj (m)
+        public double? ActualFabricMeterage { get; set; } // Gerçekleşen Kumaş Metraj (m)
+        
+        // Aksesuar Tedarik Durumları
+        public string? ButtonStatus { get; set; } // Düğme durumu (Sipariş Edildi vb.)
+        public string? MainLabelStatus { get; set; } // Ana Etiket durumu
+        public string? WashingInstructionStatus { get; set; } // Yıkama Talimatı durumu
+        public DateTime? AccessoryCompletionDate { get; set; } // Aksesuar Tamamlanma Tarihi
+
+        // Malzemeler Tablosu (İplik, Tela, Askı vs.)
+        public string? PurchasingMaterialsJson { get; set; } 
+
+        // Numune/Test Bilgileri
+        public string? SampleTestJson { get; set; } // Numune test bilgileri
+
+        // Aşama Durumları
+        public bool IsPurchasingCompleted { get; set; } = false;
+        public bool IsProductionCompleted { get; set; } = false;
+        public bool IsSampleTestCompleted { get; set; } = false;
     }
 }

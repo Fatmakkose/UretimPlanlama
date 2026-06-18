@@ -30,10 +30,31 @@ namespace UretimPlanlama.Controllers
             {
                 return RedirectToAction("AccessDenied", "Account");
             }
+            var firstOrder = _context.Orders.OrderByDescending(o => o.OrderDate).FirstOrDefault();
+            if (firstOrder != null)
+            {
+                return RedirectToAction("Plan", new { id = firstOrder.Id });
+            }
+            
+            // Eğer hiç sipariş yoksa boş liste dönsün
+            ViewBag.AllOrders = new List<Order>();
+            return View("Plan", new Order());
+        }
+
+        [HttpGet]
+        public IActionResult Plan(int id)
+        {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
-            return View(orders);
+            var order = orders.FirstOrDefault(o => o.Id == id);
+            
+            if (order == null) return NotFound();
+
+            ViewBag.AllOrders = orders;
+            return View(order);
         }
 
         [HttpPost]
@@ -67,6 +88,35 @@ namespace UretimPlanlama.Controllers
 
                 TempData["SuccessMessage"] = "Planlama detayları başarıyla kaydedildi.";
                 return RedirectToAction(nameof(Index));
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        public IActionResult UpdatePurchasingPlan(Order orderData)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            var order = _context.Orders.Find(orderData.Id);
+            if (order != null)
+            {
+                order.ActualFabricMeterage = orderData.ActualFabricMeterage;
+                order.ActualFabricQty = orderData.ActualFabricQty;
+                order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
+                order.AccessoryCompletionDate = orderData.AccessoryCompletionDate;
+                
+                // Demo formda gönderilen iplik, tela, askı gibi ekstra Json verileri
+                order.PurchasingMaterialsJson = orderData.PurchasingMaterialsJson;
+                
+                // Satın Alma Tamamlandı mı?
+                order.IsPurchasingCompleted = orderData.IsPurchasingCompleted;
+
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "Satın Alma planı güncellendi.";
+                return RedirectToAction("Plan", new { id = order.Id });
             }
             return NotFound();
         }

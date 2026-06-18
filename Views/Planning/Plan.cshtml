@@ -1,0 +1,440 @@
+@model UretimPlanlama.Models.Order
+@{
+    ViewData["Title"] = "Sipariş Planlama";
+    var allOrders = ViewBag.AllOrders as List<UretimPlanlama.Models.Order>;
+}
+
+<style>
+    .planning-layout {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+    
+    .sidebar-orders {
+        width: 300px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    
+    .sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    
+    .order-list-item {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+    }
+    
+    .order-list-item:hover {
+        background-color: #f1f5f9;
+    }
+    
+    .order-list-item.active {
+        border-left: 4px solid var(--primary-color);
+        background-color: #f0f9ff;
+    }
+    
+    .main-planning {
+        flex-grow: 1;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        padding: 24px;
+    }
+    
+    .plan-tabs {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .plan-tab {
+        flex: 1;
+        background: #f8fafc;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .plan-tab:hover {
+        background: #f1f5f9;
+    }
+    
+    .plan-tab.active {
+        border-color: var(--primary-color);
+        background: #f0f9ff;
+    }
+    
+    .plan-tab i {
+        font-size: 1.5rem;
+        color: #64748b;
+    }
+    
+    .plan-tab.active i {
+        color: var(--primary-color);
+    }
+    
+    .plan-tab-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-main);
+    }
+    
+    .plan-tab-status {
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    
+    .status-complete { color: #16a34a; }
+    .status-progress { color: #d97706; }
+    .status-notstarted { color: #64748b; }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .content-section {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+    
+    .data-item {
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .data-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-bottom: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .data-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    
+    .input-field {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .table-details {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+    }
+    
+    .table-details th {
+        background: #f8fafc;
+        padding: 12px;
+        text-align: left;
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 600;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .table-details td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="planning-layout">
+    <!-- Sol Menü: Sipariş Listesi -->
+    <div class="sidebar-orders">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-list"></i> SİPARİŞ LİSTESİ
+        </div>
+        <div style="padding: 12px; border-bottom: 1px solid var(--border-color);">
+            <div class="search-box" style="position: relative;">
+                <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 10px; color: #94a3b8;"></i>
+                <input type="text" id="orderSearch" placeholder="Sipariş Ara..." class="input-field" style="padding-left: 32px;" />
+            </div>
+        </div>
+        <div class="order-list" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+            @if(allOrders != null)
+            {
+                foreach (var o in allOrders)
+                {
+                    <a href="/Planning/Plan/@o.Id" class="order-list-item @(o.Id == Model.Id ? "active" : "")">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <strong style="font-size: 1rem; color: #0f172a;">@o.OrderCode</strong>
+                            <span style="font-size: 0.7rem; font-weight: 700; color: #16a34a;">AKTİF</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px;">
+                            @o.ModelName - @o.Color
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #475569; font-weight: 600;">
+                            <span>MÜŞTERİ: @o.Customer</span>
+                            <span>ADET: @o.Quantity.ToString("N0")</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-top: 4px;">
+                            TARİH: @o.OrderDate.ToString("dd.MM.yyyy")
+                        </div>
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Sağ İçerik: Planlama Detayı -->
+    <div class="main-planning">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">PLANLAMA DETAYI</span>
+                <h2 style="margin: 4px 0 0 0; color: #0f172a;">@Model.OrderCode Üretim Planı</h2>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-planner" style="background: #16a34a; border-color: #16a34a;"><i class="fa-solid fa-file-excel"></i> Excel</button>
+                <button class="btn-secondary"><i class="fa-solid fa-clock-rotate-left"></i> Geçmiş</button>
+            </div>
+        </div>
+
+        <!-- Aşama Kartları -->
+        <div class="plan-tabs">
+            <div class="plan-tab active" onclick="switchTab('numune', this)">
+                <i class="fa-solid fa-clipboard-check"></i>
+                <div class="plan-tab-title">1. NUMUNE/TEST PLANLAMA</div>
+                <div class="plan-tab-status status-complete">%100 TAMAM</div>
+            </div>
+            <div class="plan-tab" onclick="switchTab('satinalma', this)">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <div class="plan-tab-title">2. SATIN ALMA PLANLAMA</div>
+                <div class="plan-tab-status status-complete">%100 TAMAM</div>
+            </div>
+            <div class="plan-tab" onclick="switchTab('uretim', this)">
+                <i class="fa-solid fa-industry"></i>
+                <div class="plan-tab-title">3. ÜRETİM PLANLAMA</div>
+                <div class="plan-tab-status status-progress">%45 DEVAM</div>
+            </div>
+        </div>
+
+        <!-- Sekme 1: Numune/Test -->
+        <div id="tab-numune" class="tab-content active">
+            <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Numune ve Test Planlama Detayları</h3>
+            <div class="content-section">
+                <p style="color: #64748b;">Numune, test ve onay süreçleri burada yer alacaktır.</p>
+            </div>
+        </div>
+
+        <!-- Sekme 2: Satın Alma -->
+        <div id="tab-satinalma" class="tab-content">
+            <form action="/Planning/UpdatePurchasingPlan" method="post">
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Satın Alma & Tedarik Detayları <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">Kumaş ve aksesuar stok durumu ve terminleri</span></h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                <!-- Kumaş Kartı -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fa-solid fa-layer-group"></i> Kumaş (Ana Malzeme) <span style="font-size: 0.7rem; background: #dcfce7; color: #16a34a; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">STOKTA</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <div class="data-label">PLANLANAN (M)</div>
+                            <div class="data-value">4.500</div>
+                        </div>
+                        <div>
+                            <div class="data-label">GERÇEKLEŞEN (M)</div>
+                            <input type="text" name="ActualFabricMeterage" class="input-field" value="@Model.ActualFabricMeterage" />
+                        </div>
+                        <div>
+                            <div class="data-label">PLANLANAN (KG)</div>
+                            <div class="data-value">@(Model.TargetFabricQty?.ToString("N2") ?? "0")</div>
+                        </div>
+                        <div>
+                            <div class="data-label">GERÇEKLEŞEN (KG)</div>
+                            <input type="text" name="ActualFabricQty" class="input-field" value="@Model.ActualFabricQty" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aksesuarlar Kartı -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fa-solid fa-tags"></i> Aksesuarlar
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="font-size: 0.9rem;">Düğme (Yedekli)</span>
+                            <div style="text-align: right;">
+                                <strong style="font-size: 0.9rem;">14.000 Adet</strong>
+                                <div style="font-size: 0.7rem; color: #64748b;">Sipariş Edildi</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
+                            <span style="font-size: 0.9rem;">Ana Etiket</span>
+                            <div style="text-align: right;">
+                                <strong style="font-size: 0.9rem;">3.500 Adet</strong>
+                                <div style="font-size: 0.7rem; color: #64748b;">Depoda</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-size: 0.9rem;">Yıkama Talimatı</span>
+                            <div style="text-align: right;">
+                                <strong style="font-size: 0.9rem;">3.300 Adet</strong>
+                                <div style="font-size: 0.7rem; color: #64748b;">Hazırlanıyor</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarihler Kartı -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fa-regular fa-calendar-days"></i> Tedarik Tarihleri
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <div class="data-label">KUMAŞ GELİŞ (GERÇEKLEŞEN)</div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="date" name="FabricArrivalActualDate" class="input-field" value="@(Model.FabricArrivalActualDate?.ToString("yyyy-MM-dd"))" />
+                            <button type="button" class="btn-secondary" style="padding: 0 12px; font-weight: 600; font-size: 0.8rem;" onclick="this.previousElementSibling.valueAsDate = new Date()">BUGÜN</button>
+                        </div>
+                        <div style="font-size: 0.7rem; color: #3b82f6; margin-top: 4px;">Planlanan: @(Model.FabricArrivalAgreedDate?.ToString("dd.MM.yyyy") ?? "-")</div>
+                    </div>
+                    <div>
+                        <div class="data-label">AKSESUAR TAMAMLANMA</div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="date" name="AccessoryCompletionDate" class="input-field" value="@(Model.AccessoryCompletionDate?.ToString("yyyy-MM-dd"))" />
+                            <button type="button" class="btn-secondary" style="padding: 0 12px; font-weight: 600; font-size: 0.8rem;" onclick="this.previousElementSibling.valueAsDate = new Date()">BUGÜN</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Malzeme Tablosu (JSON Simülasyonu İçin Gizli Alan) -->
+            <input type="hidden" name="PurchasingMaterialsJson" id="PurchasingMaterialsJson" value="@Model.PurchasingMaterialsJson" />
+            <table class="table-details">
+                <thead>
+                    <tr>
+                        <th>MALZEME TÜRÜ</th>
+                        <th>İHTİYAÇ (PLAN)</th>
+                        <th>ALINAN (GERÇEK)</th>
+                        <th>BİRİM</th>
+                        <th>FARK / DURUM</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dikiş İpliği - Kahve</td>
+                        <td>45</td>
+                        <td><input type="text" class="input-field" value="45" style="width: 100px; padding: 4px;" /></td>
+                        <td style="font-weight: 600; color: #64748b;">BOBİN</td>
+                        <td style="color: #16a34a; font-weight: 700;">%100 TAMAM</td>
+                    </tr>
+                    <tr>
+                        <td>Tela (Yaka)</td>
+                        <td>250</td>
+                        <td><input type="text" class="input-field" value="240" style="width: 100px; padding: 4px;" /></td>
+                        <td style="font-weight: 600; color: #64748b;">METRE</td>
+                        <td style="color: #dc2626; font-weight: 700;">%4 EKSİK</td>
+                    </tr>
+                    <tr>
+                        <td>Plastik Askı</td>
+                        <td>3.300</td>
+                        <td><input type="text" class="input-field mat-input" data-key="aski" value="0" style="width: 100px; padding: 4px;" /></td>
+                        <td style="font-weight: 600; color: #64748b;">ADET</td>
+                        <td style="color: #94a3b8; font-weight: 700;">BEKLİYOR</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="display: flex; justify-content: space-between; margin-top: 20px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0f172a;">
+                    <input type="checkbox" name="IsPurchasingCompleted" value="true" @(Model.IsPurchasingCompleted ? "checked" : "") /> 
+                    <span style="color: #16a34a;"><i class="fa-solid fa-check-circle"></i> Satın Alma Aşaması Tamamlandı</span>
+                </label>
+                <button type="submit" class="btn-planner"><i class="fa-solid fa-save"></i> Satın Alma Planını Kaydet</button>
+            </div>
+            </form>
+        </div>
+
+        <!-- Sekme 3: Üretim -->
+        <div id="tab-uretim" class="tab-content">
+            <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Üretim Planlama Detayları</h3>
+            <div class="content-section">
+                <p style="color: #64748b;">Üretim aşaması planlaması (Kesim, Dikim, Paketleme) burada yer alacaktır. Satın alma tamamlandıktan sonra onay mekanizmasıyla çalışacaktır.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function switchTab(tabId, element) {
+        // Tüm sekmeleri inaktif yap
+        document.querySelectorAll('.plan-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Seçileni aktif yap
+        element.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // Sipariş arama
+    document.getElementById('orderSearch').addEventListener('keyup', function() {
+        var value = this.value.toLowerCase();
+        var items = document.querySelectorAll('.order-list-item');
+        items.forEach(function(item) {
+            var text = item.textContent.toLowerCase();
+            item.style.display = text.includes(value) ? 'block' : 'none';
+        });
+    });
+</script>
