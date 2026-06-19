@@ -258,9 +258,13 @@
             </div>
         </div>
 
+        @{
+            var activeTab = TempData["ActiveTab"]?.ToString() ?? "numune";
+        }
+
         <!-- Aşama Kartları -->
         <div class="plan-tabs">
-            <div class="plan-tab active" onclick="switchTab('numune', this)">
+            <div class="plan-tab @(activeTab == "numune" ? "active" : "")" onclick="switchTab('numune', this)">
                 <i class="fa-solid fa-clipboard-check"></i>
                 <div class="plan-tab-title">1. NUMUNE/TEST PLANLAMA</div>
                 @if (Model.IsSampleTestCompleted) {
@@ -269,7 +273,7 @@
                     <div class="plan-tab-status status-notstarted">BEKLİYOR</div>
                 }
             </div>
-            <div class="plan-tab" onclick="switchTab('satinalma', this)">
+            <div class="plan-tab @(activeTab == "satinalma" ? "active" : "")" onclick="switchTab('satinalma', this)">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <div class="plan-tab-title">2. SATIN ALMA PLANLAMA</div>
                 @if (Model.IsPurchasingCompleted) {
@@ -278,7 +282,7 @@
                     <div class="plan-tab-status status-notstarted">BEKLİYOR</div>
                 }
             </div>
-            <div class="plan-tab" onclick="switchTab('uretim', this)">
+            <div class="plan-tab @(activeTab == "uretim" ? "active" : "")" onclick="switchTab('uretim', this)">
                 <i class="fa-solid fa-industry"></i>
                 <div class="plan-tab-title">3. ÜRETİM PLANLAMA</div>
                 @if (Model.IsProductionCompleted) {
@@ -290,7 +294,7 @@
         </div>
 
         <!-- Sekme 1: Numune/Test -->
-        <div id="tab-numune" class="tab-content active">
+        <div id="tab-numune" class="tab-content @(activeTab == "numune" ? "active" : "")">
             <form action="/Planning/UpdateSampleTestPlan" method="post">
                 <input type="hidden" name="Id" value="@Model.Id" />
                 <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Numune ve Test Planlama Detayları</h3>
@@ -359,14 +363,18 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0f172a;">
+                        <input type="checkbox" name="IsSampleTestCompleted" value="true" @(Model.IsSampleTestCompleted ? "checked" : "") /> 
+                        <span style="color: #16a34a;"><i class="fa-solid fa-check-circle"></i> Numune Aşaması Tamamlandı</span>
+                    </label>
                     <button type="submit" class="btn-planner" style="background: var(--primary-color); color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-save"></i> Numune/Test Planını Kaydet</button>
                 </div>
             </form>
         </div>
 
         <!-- Sekme 2: Satın Alma -->
-        <div id="tab-satinalma" class="tab-content">
+        <div id="tab-satinalma" class="tab-content @(activeTab == "satinalma" ? "active" : "")">
             <form action="/Planning/UpdatePurchasingPlan" method="post">
                 <input type="hidden" name="Id" value="@Model.Id" />
                 <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Satın Alma & Tedarik Detayları <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">Kumaş ve aksesuar stok durumu ve terminleri</span></h3>
@@ -395,7 +403,23 @@
                     <div style="display: flex; flex-direction: column; gap: 16px;">
                         <div>
                             <div class="data-label">KUMAŞÇI</div>
-                            <input type="text" name="FabricSupplier" class="input-field" value="@Model.FabricSupplier" />
+                            <select name="FabricSupplier" class="input-field">
+                                <option value="">-- Kumaşçı Seçin --</option>
+                                @if (ViewBag.Fabricators != null)
+                                {
+                                    foreach (var f in (System.Collections.Generic.List<UretimPlanlama.Models.Fabricator>)ViewBag.Fabricators)
+                                    {
+                                        if (Model.FabricSupplier == f.Name)
+                                        {
+                                            <option value="@f.Name" selected>@f.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@f.Name">@f.Name</option>
+                                        }
+                                    }
+                                }
+                            </select>
                         </div>
                         <div>
                             <div class="data-label">KUMAŞ SEVK-ANLAŞILAN</div>
@@ -541,7 +565,7 @@
         </div>
 
         <!-- Sekme 3: Üretim -->
-        <div id="tab-uretim" class="tab-content">
+        <div id="tab-uretim" class="tab-content @(activeTab == "uretim" ? "active" : "")">
             <form action="/Planning/UpdateProductionPlan" method="post">
                 <input type="hidden" name="Id" value="@Model.Id" />
                 <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Üretim Planlama Detayları</h3>
@@ -566,7 +590,24 @@
                         <div style="display: flex; flex-direction: column; gap: 16px;">
                             <div>
                                 <div class="data-label">DİKİM ATÖLYESİ</div>
-                                <input type="text" name="prod_dikim_atolyesi" class="input-field" value="@GetProdVal("prod_dikim_atolyesi")" />
+                                <select name="prod_dikim_atolyesi" class="input-field">
+                                    <option value="">-- Atölye Seçin --</option>
+                                    @if (ViewBag.Workshops != null)
+                                    {
+                                        var prodDikim = GetProdVal("prod_dikim_atolyesi");
+                                        foreach (var w in (System.Collections.Generic.List<UretimPlanlama.Models.Workshop>)ViewBag.Workshops)
+                                        {
+                                            if (prodDikim == w.Name)
+                                            {
+                                                <option value="@w.Name" selected>@w.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@w.Name">@w.Name</option>
+                                            }
+                                        }
+                                    }
+                                </select>
                             </div>
                             <div>
                                 <div class="data-label">KESİM BAŞLANGIÇ</div>
@@ -575,6 +616,10 @@
                             <div>
                                 <div class="data-label">KESİM BİTİŞ</div>
                                 <input type="date" name="prod_kesim_bitis" class="input-field" value="@GetProdVal("prod_kesim_bitis")" />
+                            </div>
+                            <div>
+                                <div class="data-label">KESİM MİKTARI</div>
+                                <input type="number" name="prod_kesim_miktari" class="input-field" value="@GetProdVal("prod_kesim_miktari")" placeholder="Örn: 1000" />
                             </div>
                             <div>
                                 <div class="data-label">DİKİM BAŞLANGIÇ</div>
@@ -623,8 +668,15 @@
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 16px;">
                             <div>
-                                <div class="data-label">ŞU ANKİ TERMİN</div>
-                                <input type="date" name="prod_suanki_termin" class="input-field" value="@GetProdVal("prod_suanki_termin")" />
+                                <div class="data-label">Termin Tarihi</div>
+                                @{
+                                    var suAnkiTermin = GetProdVal("prod_suanki_termin");
+                                    if (string.IsNullOrEmpty(suAnkiTermin) && Model.PlannedPackagingEndDate.HasValue)
+                                    {
+                                        suAnkiTermin = Model.PlannedPackagingEndDate.Value.ToString("yyyy-MM-dd");
+                                    }
+                                }
+                                <input type="date" name="prod_suanki_termin" class="input-field" value="@suAnkiTermin" />
                             </div>
                             <div>
                                 <div class="data-label">KNN REVİZE TERMİN</div>

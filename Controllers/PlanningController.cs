@@ -32,6 +32,8 @@ namespace UretimPlanlama.Controllers
             }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
             ViewBag.AllOrders = orders;
+            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             return View("Plan", new Order());
         }
 
@@ -48,6 +50,8 @@ namespace UretimPlanlama.Controllers
             if (order == null) return NotFound();
 
             ViewBag.AllOrders = orders;
+            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             return View(order);
         }
 
@@ -126,6 +130,7 @@ namespace UretimPlanlama.Controllers
                 _context.SaveChanges();
 
                 TempData["SuccessMessage"] = "Satın Alma planı güncellendi.";
+                TempData["ActiveTab"] = "uretim";
                 return RedirectToAction("Plan", new { id = order.Id });
             }
             return NotFound();
@@ -142,19 +147,30 @@ namespace UretimPlanlama.Controllers
             if (order != null)
             {
                 var dict = new Dictionary<string, string>();
-                
-                string[] keys = new[] { "sample_pp_onay", "sample_kumas_ytesti", "sample_tuse_renk", "sample_kumas_karisim", "sample_dugme_renk", "sample_dugme_test" };
-                
-                foreach (var k in keys) {
-                    if (form.ContainsKey(k)) {
+                if (!string.IsNullOrEmpty(order.SampleTestJson))
+                {
+                    try {
+                        dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.SampleTestJson) ?? new Dictionary<string, string>();
+                    } catch {}
+                }
+
+                foreach (var k in form.Keys) {
+                    if (k.StartsWith("sample_")) {
                         dict[k] = form[k].ToString();
                     }
+                }
+
+                if (form.ContainsKey("IsSampleTestCompleted")) {
+                    order.IsSampleTestCompleted = form["IsSampleTestCompleted"] == "true" || form["IsSampleTestCompleted"].ToString().Contains("true");
+                } else {
+                    order.IsSampleTestCompleted = false;
                 }
 
                 order.SampleTestJson = System.Text.Json.JsonSerializer.Serialize(dict);
                 _context.SaveChanges();
 
                 TempData["SuccessMessage"] = "Numune ve Test planı güncellendi.";
+                TempData["ActiveTab"] = "satinalma";
                 return RedirectToAction("Plan", new { id = order.Id });
             }
             return NotFound();
@@ -195,6 +211,7 @@ namespace UretimPlanlama.Controllers
                 _context.SaveChanges();
 
                 TempData["SuccessMessage"] = "Üretim planı güncellendi.";
+                TempData["ActiveTab"] = "uretim";
                 return RedirectToAction("Plan", new { id = order.Id });
             }
             return NotFound();

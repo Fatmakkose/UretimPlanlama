@@ -249,11 +249,52 @@
     }
 </style>
 
-<div class="dashboard-header">
+<div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
     <div class="header-title">
         <h1>Üretim Genel Bakış</h1>
     </div>
+    <div class="header-actions" style="display: flex; gap: 10px;">
+        <a href="/Order/Create" class="btn btn-primary" style="background: #0047bb; color: white; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-plus"></i> Yeni Sipariş</a>
+        <a href="/Planning" class="btn btn-success" style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-calendar-days"></i> Planlama</a>
+        <a href="/Order" class="btn btn-secondary" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-list"></i> Tüm Siparişler</a>
+    </div>
 </div>
+
+@if (ViewBag.CriticalOrders != null && ((List<UretimPlanlama.Models.Order>)ViewBag.CriticalOrders).Any())
+{
+    var criticalCount = ((List<UretimPlanlama.Models.Order>)ViewBag.CriticalOrders).Count;
+    <div class="alert alert-danger" style="background-color: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-circle-exclamation" style="color: #ef4444; font-size: 1.5rem;"></i>
+            <div>
+                <strong style="color: #991b1b; display: block; font-size: 1rem;">Dikkat! Geciken @criticalCount adet siparişiniz bulunuyor.</strong>
+                <span style="color: #b91c1c; font-size: 0.85rem;">Bu siparişlerin planlanan paketleme bitiş tarihleri geçmiş durumda.</span>
+            </div>
+        </div>
+        <button onclick="document.getElementById('criticalOrdersList').style.display = document.getElementById('criticalOrdersList').style.display === 'none' ? 'block' : 'none';" style="background: transparent; border: 1px solid #fca5a5; color: #b91c1c; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Detayları Gör</button>
+    </div>
+    
+    <div id="criticalOrdersList" style="display: none; background: white; border: 1px solid #fca5a5; border-radius: 6px; margin-top: -16px; margin-bottom: 24px; padding: 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: #fef2f2; border-bottom: 1px solid #fca5a5;">
+                <th style="padding: 10px 16px; text-align: left; font-size: 0.8rem; color: #991b1b;">Sipariş İD</th>
+                <th style="padding: 10px 16px; text-align: left; font-size: 0.8rem; color: #991b1b;">Model</th>
+                <th style="padding: 10px 16px; text-align: left; font-size: 0.8rem; color: #991b1b;">Müşteri</th>
+                <th style="padding: 10px 16px; text-align: right; font-size: 0.8rem; color: #991b1b;">Gecikme</th>
+            </tr>
+            @foreach(var co in ((List<UretimPlanlama.Models.Order>)ViewBag.CriticalOrders).Take(5))
+            {
+                var delayDays = (DateTime.Today - co.PlannedPackagingEndDate.Value.Date).Days;
+                <tr style="border-bottom: 1px solid #fecaca;">
+                    <td style="padding: 10px 16px; font-size: 0.85rem; font-family: monospace;">@co.OrderCode</td>
+                    <td style="padding: 10px 16px; font-size: 0.85rem; font-weight: 500;">@co.ModelName</td>
+                    <td style="padding: 10px 16px; font-size: 0.85rem; color: #475569;">@co.Customer</td>
+                    <td style="padding: 10px 16px; font-size: 0.85rem; text-align: right; color: #ef4444; font-weight: 700;">@delayDays gün gecikti</td>
+                </tr>
+            }
+        </table>
+    </div>
+}
 
 <div class="top-stats-grid">
     <!-- Toplam Sipariş -->
@@ -305,6 +346,84 @@
         </div>
         <div class="top-stat-value">@((ViewBag.ReadyToShipQty ?? 0).ToString("N0"))</div>
         <div class="top-stat-desc">Paketleme & Sevkiyat aşamasındaki siparişler</div>
+    </div>
+</div>
+
+<div class="middle-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 24px;">
+    <!-- Pasta Grafik (Aşama Dağılımı) -->
+    <div class="table-card" style="padding: 20px;">
+        <h2 class="card-title" style="margin-bottom: 16px;">Sipariş Aşama Dağılımı</h2>
+        <div style="position: relative; height: 250px; width: 100%; display: flex; justify-content: center;">
+            <canvas id="stageChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Yaklaşan Terminler -->
+    <div class="list-card">
+        <div class="card-header">
+            <h2 class="card-title">Yaklaşan Terminler (15 Gün)</h2>
+            <i class="fa-solid fa-calendar-check" style="color: #64748b;"></i>
+        </div>
+        <ul class="workshop-list">
+            @if (ViewBag.UpcomingDeadlines != null)
+            {
+                var upcoming = (List<UretimPlanlama.Models.Order>)ViewBag.UpcomingDeadlines;
+                if(upcoming.Any()) {
+                    foreach (var u in upcoming.Take(5))
+                    {
+                        var daysLeft = (u.PlannedPackagingEndDate.Value.Date - DateTime.Today).Days;
+                        var badgeColor = daysLeft <= 3 ? "#dc2626" : (daysLeft <= 7 ? "#eab308" : "#16a34a");
+                        <li class="workshop-item" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">@u.OrderCode</div>
+                                <div style="font-size: 0.75rem; color: #64748b;">@u.ModelName</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: @badgeColor;">@daysLeft Gün Kaldı</div>
+                                <div style="font-size: 0.7rem; color: #94a3b8;">@u.PlannedPackagingEndDate.Value.ToString("dd MMM")</div>
+                            </div>
+                        </li>
+                    }
+                } else {
+                    <li class="workshop-item">
+                        <span class="workshop-desc">Yaklaşan termin bulunmuyor.</span>
+                    </li>
+                }
+            }
+        </ul>
+    </div>
+    
+    <!-- Son Hareketler / Bildirimler -->
+    <div class="list-card">
+        <div class="card-header">
+            <h2 class="card-title">Son Hareketler</h2>
+            <i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i>
+        </div>
+        <ul class="workshop-list" style="max-height: 320px; overflow-y: auto;">
+            @if (ViewBag.RecentNotifications != null)
+            {
+                var notifications = (List<UretimPlanlama.Models.Notification>)ViewBag.RecentNotifications;
+                if(notifications.Any()) {
+                    foreach (var n in notifications)
+                    {
+                        <li class="workshop-item" style="display: flex; gap: 12px;">
+                            <div style="margin-top: 4px;">
+                                <i class="fa-solid fa-circle-info" style="color: #0ea5e9;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; font-weight: 600; color: #1e293b;">@n.Title</div>
+                                <div style="font-size: 0.75rem; color: #475569; margin-top: 2px;">@n.Message</div>
+                                <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 4px;">@n.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                            </div>
+                        </li>
+                    }
+                } else {
+                    <li class="workshop-item">
+                        <span class="workshop-desc">Henüz sistemde bir hareket bulunmuyor.</span>
+                    </li>
+                }
+            }
+        </ul>
     </div>
 </div>
 
@@ -435,56 +554,32 @@
                 var capacities = (List<UretimPlanlama.Controllers.HomeController.WorkshopCapacityStatus>)ViewBag.WorkshopCapacities;
                 foreach (var wStatus in capacities.Take(4))
                 {
-                    <li class="workshop-item" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 12px;">
-                        <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px dashed #cbd5e1; padding-bottom: 6px;">
-                            <span><i class="fa-solid fa-industry" style="color: var(--primary-color); margin-right: 6px;"></i> @wStatus.Workshop.Name</span>
-                            <span class="badge" style="background-color: #f1f5f9; color: #475569; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px;">@wStatus.Workshop.Type</span>
-                        </div>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <!-- Günlük -->
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; font-weight: 500;">
-                                    <span style="color: #64748b;">Günlük Doluluk</span>
-                                    <span style="color: #1e293b;">
-                                        <strong style="font-weight:700; color:var(--primary-color);">@wStatus.DailyOccupancyRate%</strong> 
-                                        <span style="font-size:0.75rem; color:#64748b;">(@wStatus.DailyUsage.ToString("N0") / @wStatus.Workshop.DailyCapacity.ToString("N0") Adet)</span>
-                                    </span>
-                                </div>
-                                <div class="workshop-progress-bar" style="height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 0;">
-                                    <div class="workshop-progress-fill" style="width: @Math.Min(wStatus.DailyOccupancyRate, 100.0)%; height: 100%; background: @(wStatus.DailyOccupancyRate >= 90 ? "#dc2626" : wStatus.DailyOccupancyRate >= 70 ? "#eab308" : "#10b981"); border-radius: 3px;"></div>
-                                </div>
-                            </div>
-
-                            <!-- Aylık -->
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; font-weight: 500;">
-                                    <span style="color: #64748b;">Aylık Doluluk</span>
-                                    <span style="color: #1e293b;">
-                                        <strong style="font-weight:700; color:var(--primary-color);">@wStatus.MonthlyOccupancyRate%</strong> 
-                                        <span style="font-size:0.75rem; color:#64748b;">(@wStatus.MonthlyUsage.ToString("N0") / @wStatus.Workshop.MonthlyCapacity.ToString("N0") Adet)</span>
-                                    </span>
-                                </div>
-                                <div class="workshop-progress-bar" style="height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 0;">
-                                    <div class="workshop-progress-fill" style="width: @Math.Min(wStatus.MonthlyOccupancyRate, 100.0)%; height: 100%; background: @(wStatus.MonthlyOccupancyRate >= 90 ? "#dc2626" : wStatus.MonthlyOccupancyRate >= 70 ? "#eab308" : "#10b981"); border-radius: 3px;"></div>
-                                </div>
-                            </div>
-
-                            <!-- Yıllık -->
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; font-weight: 500;">
-                                    <span style="color: #64748b;">Yıllık Doluluk</span>
-                                    <span style="color: #1e293b;">
-                                        <strong style="font-weight:700; color:var(--primary-color);">@wStatus.AnnualOccupancyRate%</strong> 
-                                        <span style="font-size:0.75rem; color:#64748b;">(@wStatus.AnnualUsage.ToString("N0") / @wStatus.Workshop.AnnualCapacity.ToString("N0") Adet)</span>
-                                    </span>
-                                </div>
-                                <div class="workshop-progress-bar" style="height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 0;">
-                                    <div class="workshop-progress-fill" style="width: @Math.Min(wStatus.AnnualOccupancyRate, 100.0)%; height: 100%; background: @(wStatus.AnnualOccupancyRate >= 90 ? "#dc2626" : wStatus.AnnualOccupancyRate >= 70 ? "#eab308" : "#10b981"); border-radius: 3px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
+                    <li class="workshop-item" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+    <div style="font-weight: 700; font-size: 1rem; color: #1e293b; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <span><i class="fa-solid fa-industry" style="color: var(--primary-color); margin-right: 6px;"></i> @wStatus.Workshop.Name</span>
+        <span style="font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; background: @(wStatus.StatusClass == "badge-high" ? "#fee2e2" : wStatus.StatusClass == "badge-medium" ? "#fef9c3" : "#dcfce7"); color: @(wStatus.StatusClass == "badge-high" ? "#991b1b" : wStatus.StatusClass == "badge-medium" ? "#854d0e" : "#166534"); font-weight: 700;">@wStatus.StatusLabel</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+        <!-- Günlük -->
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Günlük</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: @(wStatus.DailyOccupancyRate >= 90 ? "#dc2626" : wStatus.DailyOccupancyRate >= 70 ? "#eab308" : "#10b981");">@wStatus.DailyOccupancyRate%</div>
+            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;">@wStatus.DailyUsage.ToString("N0") Adet</div>
+        </div>
+        <!-- Aylık -->
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Aylık</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: @(wStatus.MonthlyOccupancyRate >= 90 ? "#dc2626" : wStatus.MonthlyOccupancyRate >= 70 ? "#eab308" : "#10b981");">@wStatus.MonthlyOccupancyRate%</div>
+            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;">@wStatus.MonthlyUsage.ToString("N0") Adet</div>
+        </div>
+        <!-- Yıllık -->
+        <div style="background: #f8fafc; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Yıllık</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: @(wStatus.AnnualOccupancyRate >= 90 ? "#dc2626" : wStatus.AnnualOccupancyRate >= 70 ? "#eab308" : "#10b981");">@wStatus.AnnualOccupancyRate%</div>
+            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;">@wStatus.AnnualUsage.ToString("N0") Adet</div>
+        </div>
+    </div>
+</li>
                 }
             }
             else
@@ -496,3 +591,47 @@
         </ul>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById('stageChart').getContext('2d');
+        
+        var stageData = @Html.Raw(Json.Serialize(ViewBag.StageDistribution ?? new[] { 0, 0, 0, 0 }));
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Yeni Kayıt / Bekleyen', 'Kesim Aşamasında', 'Dikim Aşamasında', 'Paketleme / Sevk'],
+                datasets: [{
+                    data: stageData,
+                    backgroundColor: [
+                        '#94a3b8', // gri
+                        '#0284c7', // mavi
+                        '#16a34a', // yeşil
+                        '#4f46e5'  // lacivert
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+

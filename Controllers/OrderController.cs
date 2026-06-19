@@ -269,6 +269,7 @@ namespace UretimPlanlama.Controllers
                 existingOrder.Color = updatedOrder.Color;
                 existingOrder.IsJIT = updatedOrder.IsJIT;
                 existingOrder.SalesRegion = updatedOrder.SalesRegion;
+                existingOrder.PlannedPackagingEndDate = updatedOrder.PlannedPackagingEndDate;
 
                 // Beden ve miktar bilgilerini güncelle
                 existingOrder.SizeS = updatedOrder.SizeS;

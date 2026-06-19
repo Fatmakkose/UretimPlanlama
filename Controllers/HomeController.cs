@@ -47,7 +47,23 @@ public class HomeController : Controller
         ViewBag.SewingQty = orders.Where(o => o.Status == "Dikim" || (o.SewingStartDate != null && o.SewingEndDate == null)).Sum(o => o.Quantity);
         ViewBag.ReadyToShipQty = orders.Where(o => o.Status == "Paket" || o.Status == "Sevkiyata Hazır" || (o.PackagingStartDate != null)).Sum(o => o.Quantity);
 
+        // Kritik Siparişler (Gecikenler)
+        var criticalOrders = orders.Where(o => o.PlannedPackagingEndDate < DateTime.Today && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.PlannedPackagingEndDate).ToList();
+        ViewBag.CriticalOrders = criticalOrders;
 
+        // Yaklaşan Terminler (Önümüzdeki 15 gün)
+        var upcomingDeadlines = orders.Where(o => o.PlannedPackagingEndDate >= DateTime.Today && o.PlannedPackagingEndDate <= DateTime.Today.AddDays(15) && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.PlannedPackagingEndDate).ToList();
+        ViewBag.UpcomingDeadlines = upcomingDeadlines;
+
+        // Aşama Dağılımı (Pasta Grafik İçin)
+        var stageYeniKayit = orders.Count(o => string.IsNullOrEmpty(o.Status) || o.Status == "Yeni Kayıt");
+        var stageKesim = orders.Count(o => o.Status == "Kesim" || (o.CuttingStartDate != null && o.CuttingEndDate == null));
+        var stageDikim = orders.Count(o => o.Status == "Dikim" || (o.SewingStartDate != null && o.SewingEndDate == null));
+        var stagePaket = orders.Count(o => o.Status == "Paket" || o.Status == "Sevkiyata Hazır" || (o.PackagingStartDate != null));
+        ViewBag.StageDistribution = new[] { stageYeniKayit, stageKesim, stageDikim, stagePaket };
+
+        // Son Hareketler (Bildirimler)
+        ViewBag.RecentNotifications = _context.Notifications.OrderByDescending(n => n.CreatedAt).Take(8).ToList();
         // Atölye bazlı Kumaş Karşılaştırma Takibi
         var workshopSummaries = orders
             .Where(o => !string.IsNullOrEmpty(o.ProductionPlace))
