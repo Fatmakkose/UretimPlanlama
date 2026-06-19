@@ -203,20 +203,29 @@
             <i class="fa-solid fa-list"></i> SİPARİŞ LİSTESİ
         </div>
         <div style="padding: 12px; border-bottom: 1px solid var(--border-color);">
-            <div class="search-box" style="position: relative;">
+            <div class="search-box" style="position: relative; margin-bottom: 8px;">
                 <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 10px; color: #94a3b8;"></i>
                 <input type="text" id="orderSearch" placeholder="Sipariş Ara..." class="input-field" style="padding-left: 32px;" />
             </div>
+            <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #475569;">
+                <input type="checkbox" id="showAllOrders" /> Tümünü Gör
+            </label>
         </div>
         <div class="order-list" style="max-height: calc(100vh - 200px); overflow-y: auto;">
             @if(allOrders != null)
             {
                 foreach (var o in allOrders)
                 {
-                    <a href="/Planning/Plan/@o.Id" class="order-list-item @(o.Id == Model.Id ? "active" : "")">
+                    bool isActive = o.Status != "Tamamlandı" && o.Status != "İptal Edildi";
+                    string displayStyle = isActive ? "block" : "none";
+                    <a href="/Planning/Plan/@o.Id" class="order-list-item @(o.Id == Model.Id ? "active" : "")" data-active="@isActive.ToString().ToLower()" style="display: @displayStyle;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <strong style="font-size: 1rem; color: #0f172a;">@o.OrderCode</strong>
-                            <span style="font-size: 0.7rem; font-weight: 700; color: #16a34a;">AKTİF</span>
+                            @if(isActive) {
+                                <span style="font-size: 0.7rem; font-weight: 700; color: #16a34a;">AKTİF</span>
+                            } else {
+                                <span style="font-size: 0.7rem; font-weight: 700; color: #64748b;">PASİF</span>
+                            }
                         </div>
                         <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px;">
                             @o.ModelName - @o.Color
@@ -235,11 +244,13 @@
     </div>
 
     <!-- Sağ İçerik: Planlama Detayı -->
-    <div class="main-planning">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    @if (Model != null && Model.Id > 0)
+    {
+        <div class="main-planning">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <div>
                 <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">PLANLAMA DETAYI</span>
-                <h2 style="margin: 4px 0 0 0; color: #0f172a;">@Model.OrderCode Üretim Planı</h2>
+                <h2 style="margin: 4px 0 0 0; color: #0f172a;">@Model.OrderCode</h2>
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-planner" style="background: #16a34a; border-color: #16a34a;"><i class="fa-solid fa-file-excel"></i> Excel</button>
@@ -252,26 +263,106 @@
             <div class="plan-tab active" onclick="switchTab('numune', this)">
                 <i class="fa-solid fa-clipboard-check"></i>
                 <div class="plan-tab-title">1. NUMUNE/TEST PLANLAMA</div>
-                <div class="plan-tab-status status-complete">%100 TAMAM</div>
+                @if (Model.IsSampleTestCompleted) {
+                    <div class="plan-tab-status status-complete">%100 TAMAM</div>
+                } else {
+                    <div class="plan-tab-status status-notstarted">BEKLİYOR</div>
+                }
             </div>
             <div class="plan-tab" onclick="switchTab('satinalma', this)">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <div class="plan-tab-title">2. SATIN ALMA PLANLAMA</div>
-                <div class="plan-tab-status status-complete">%100 TAMAM</div>
+                @if (Model.IsPurchasingCompleted) {
+                    <div class="plan-tab-status status-complete">%100 TAMAM</div>
+                } else {
+                    <div class="plan-tab-status status-notstarted">BEKLİYOR</div>
+                }
             </div>
             <div class="plan-tab" onclick="switchTab('uretim', this)">
                 <i class="fa-solid fa-industry"></i>
                 <div class="plan-tab-title">3. ÜRETİM PLANLAMA</div>
-                <div class="plan-tab-status status-progress">%45 DEVAM</div>
+                @if (Model.IsProductionCompleted) {
+                    <div class="plan-tab-status status-complete">%100 TAMAM</div>
+                } else {
+                    <div class="plan-tab-status status-notstarted">BEKLİYOR</div>
+                }
             </div>
         </div>
 
         <!-- Sekme 1: Numune/Test -->
         <div id="tab-numune" class="tab-content active">
-            <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Numune ve Test Planlama Detayları</h3>
-            <div class="content-section">
-                <p style="color: #64748b;">Numune, test ve onay süreçleri burada yer alacaktır.</p>
-            </div>
+            <form action="/Planning/UpdateSampleTestPlan" method="post">
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Numune ve Test Planlama Detayları</h3>
+                
+                @{
+                    var sampleData = new System.Collections.Generic.Dictionary<string, string>();
+                    if (!string.IsNullOrEmpty(Model.SampleTestJson))
+                    {
+                        try {
+                            sampleData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(Model.SampleTestJson);
+                        } catch {}
+                    }
+                    string GetSampleVal(string key) => sampleData.ContainsKey(key) ? sampleData[key] : "";
+                }
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                    <!-- Ana Kumaş Kartı -->
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-layer-group"></i> Ana Kumaş
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <div class="data-label">NUMUNE KUMAŞ Y-TESTİ</div>
+                                <input type="date" name="sample_kumas_ytesti" class="input-field" value="@GetSampleVal("sample_kumas_ytesti")" />
+                            </div>
+                            <div>
+                                <div class="data-label">K-TUŞE RENK ONAYI test vr tarihi</div>
+                                <input type="date" name="sample_tuse_renk" class="input-field" value="@GetSampleVal("sample_tuse_renk")" />
+                            </div>
+                            <div>
+                                <div class="data-label">KUMAŞ KARIŞIMI</div>
+                                <input type="text" name="sample_kumas_karisim" class="input-field" placeholder="Örn: %80 Pamuk %20 Polyester" value="@GetSampleVal("sample_kumas_karisim")" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Düğme Kartı -->
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-circle-dot"></i> Düğme
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <div class="data-label">DÜĞME RENK KALİTE ONAY</div>
+                                <input type="date" name="sample_dugme_renk" class="input-field" value="@GetSampleVal("sample_dugme_renk")" />
+                            </div>
+                            <div>
+                                <div class="data-label">DÜĞME TESTİ</div>
+                                <input type="date" name="sample_dugme_test" class="input-field" value="@GetSampleVal("sample_dugme_test")" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FIT / PPS Numunesi Kartı -->
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-shirt"></i> FIT / PPS Numunesi
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <div class="data-label">PP ONAY (Üretim öncesi en kritik onay)</div>
+                                <input type="date" name="sample_pp_onay" class="input-field" value="@GetSampleVal("sample_pp_onay")" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                    <button type="submit" class="btn-planner" style="background: var(--primary-color); color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-save"></i> Numune/Test Planını Kaydet</button>
+                </div>
+            </form>
         </div>
 
         <!-- Sekme 2: Satın Alma -->
@@ -280,80 +371,90 @@
                 <input type="hidden" name="Id" value="@Model.Id" />
                 <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Satın Alma & Tedarik Detayları <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">Kumaş ve aksesuar stok durumu ve terminleri</span></h3>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-                <!-- Kumaş Kartı -->
-                <div class="content-section">
-                    <div class="section-title">
-                        <i class="fa-solid fa-layer-group"></i> Kumaş (Ana Malzeme) <span style="font-size: 0.7rem; background: #dcfce7; color: #16a34a; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">STOKTA</span>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <div class="data-label">PLANLANAN (M)</div>
-                            <div class="data-value">4.500</div>
-                        </div>
-                        <div>
-                            <div class="data-label">GERÇEKLEŞEN (M)</div>
-                            <input type="text" name="ActualFabricMeterage" class="input-field" value="@Model.ActualFabricMeterage" />
-                        </div>
-                        <div>
-                            <div class="data-label">PLANLANAN (KG)</div>
-                            <div class="data-value">@(Model.TargetFabricQty?.ToString("N2") ?? "0")</div>
-                        </div>
-                        <div>
-                            <div class="data-label">GERÇEKLEŞEN (KG)</div>
-                            <input type="text" name="ActualFabricQty" class="input-field" value="@Model.ActualFabricQty" />
-                        </div>
-                    </div>
-                </div>
+            @{
+                var purData = new System.Collections.Generic.Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.PurchasingMaterialsJson))
+                {
+                    try {
+                        purData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(Model.PurchasingMaterialsJson);
+                    } catch {}
+                }
+                string GetPurVal(string key) => purData.ContainsKey(key) ? purData[key] : "";
+            }
 
-                <!-- Aksesuarlar Kartı -->
-                <div class="content-section">
-                    <div class="section-title">
-                        <i class="fa-solid fa-tags"></i> Aksesuarlar
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="font-size: 0.9rem;">Düğme (Yedekli)</span>
-                            <div style="text-align: right;">
-                                <strong style="font-size: 0.9rem;">14.000 Adet</strong>
-                                <div style="font-size: 0.7rem; color: #64748b;">Sipariş Edildi</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="font-size: 0.9rem;">Ana Etiket</span>
-                            <div style="text-align: right;">
-                                <strong style="font-size: 0.9rem;">3.500 Adet</strong>
-                                <div style="font-size: 0.7rem; color: #64748b;">Depoda</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="font-size: 0.9rem;">Yıkama Talimatı</span>
-                            <div style="text-align: right;">
-                                <strong style="font-size: 0.9rem;">3.300 Adet</strong>
-                                <div style="font-size: 0.7rem; color: #64748b;">Hazırlanıyor</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <input type="hidden" name="ActualFabricMeterage" value="@Model.ActualFabricMeterage" />
+            <input type="hidden" name="ActualFabricQty" value="@Model.ActualFabricQty" />
+            <input type="hidden" name="AccessoryCompletionDate" value="@(Model.AccessoryCompletionDate?.ToString("yyyy-MM-dd"))" />
 
-                <!-- Tarihler Kartı -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Ana Kumaş Kartı -->
                 <div class="content-section">
                     <div class="section-title">
-                        <i class="fa-regular fa-calendar-days"></i> Tedarik Tarihleri
+                        <i class="fa-solid fa-layer-group"></i> Ana Kumaş
                     </div>
-                    <div style="margin-bottom: 16px;">
-                        <div class="data-label">KUMAŞ GELİŞ (GERÇEKLEŞEN)</div>
-                        <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <div class="data-label">KUMAŞÇI</div>
+                            <input type="text" name="FabricSupplier" class="input-field" value="@Model.FabricSupplier" />
+                        </div>
+                        <div>
+                            <div class="data-label">KUMAŞ SEVK-ANLAŞILAN</div>
+                            <input type="date" name="FabricArrivalAgreedDate" class="input-field" value="@(Model.FabricArrivalAgreedDate?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                        <div>
+                            <div class="data-label">KUMAŞ GELİŞ TARİHİ</div>
                             <input type="date" name="FabricArrivalActualDate" class="input-field" value="@(Model.FabricArrivalActualDate?.ToString("yyyy-MM-dd"))" />
-                            <button type="button" class="btn-secondary" style="padding: 0 12px; font-weight: 600; font-size: 0.8rem;" onclick="this.previousElementSibling.valueAsDate = new Date()">BUGÜN</button>
                         </div>
-                        <div style="font-size: 0.7rem; color: #3b82f6; margin-top: 4px;">Planlanan: @(Model.FabricArrivalAgreedDate?.ToString("dd.MM.yyyy") ?? "-")</div>
                     </div>
-                    <div>
-                        <div class="data-label">AKSESUAR TAMAMLANMA</div>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="date" name="AccessoryCompletionDate" class="input-field" value="@(Model.AccessoryCompletionDate?.ToString("yyyy-MM-dd"))" />
-                            <button type="button" class="btn-secondary" style="padding: 0 12px; font-weight: 600; font-size: 0.8rem;" onclick="this.previousElementSibling.valueAsDate = new Date()">BUGÜN</button>
+                </div>
+
+                <!-- Düğme Kartı -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fa-solid fa-circle-dot"></i> Düğme
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <div class="data-label">DÜĞME-GELİŞİ</div>
+                            <input type="date" name="pur_dugme_gelisi" class="input-field" value="@GetPurVal("pur_dugme_gelisi")" />
+                        </div>
+                        <div>
+                            <div class="data-label">DÜĞME DİKİŞ İPİ</div>
+                            <input type="date" name="pur_dugme_dikis_ipi" class="input-field" value="@GetPurVal("pur_dugme_dikis_ipi")" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aksesuar Kartı -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fa-solid fa-tags"></i> Aksesuar
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <div class="data-label">ETİKET-GELİŞİ</div>
+                            <input type="date" name="pur_etiket_gelisi" class="input-field" value="@GetPurVal("pur_etiket_gelisi")" />
+                        </div>
+                        <div>
+                            <div class="data-label">YIK-TALİMAT-GELİŞİ</div>
+                            <input type="date" name="pur_yik_talimat_gelisi" class="input-field" value="@GetPurVal("pur_yik_talimat_gelisi")" />
+                        </div>
+                        <div>
+                            <div class="data-label">FİYAT KART-GELİŞİ</div>
+                            <input type="date" name="pur_fiyat_kart_gelisi" class="input-field" value="@GetPurVal("pur_fiyat_kart_gelisi")" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UKP Malzeme Kartı -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fa-solid fa-box"></i> UKP Malzeme
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <div class="data-label">YK-İÇ GELİŞİ</div>
+                            <input type="date" name="pur_yk_ic_gelisi" class="input-field" value="@GetPurVal("pur_yk_ic_gelisi")" />
                         </div>
                     </div>
                 </div>
@@ -365,34 +466,67 @@
                 <thead>
                     <tr>
                         <th>MALZEME TÜRÜ</th>
-                        <th>İHTİYAÇ (PLAN)</th>
-                        <th>ALINAN (GERÇEK)</th>
                         <th>BİRİM</th>
-                        <th>FARK / DURUM</th>
+                        <th>PLAN</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Dikiş İpliği - Kahve</td>
-                        <td>45</td>
-                        <td><input type="text" class="input-field" value="45" style="width: 100px; padding: 4px;" /></td>
-                        <td style="font-weight: 600; color: #64748b;">BOBİN</td>
-                        <td style="color: #16a34a; font-weight: 700;">%100 TAMAM</td>
-                    </tr>
-                    <tr>
-                        <td>Tela (Yaka)</td>
-                        <td>250</td>
-                        <td><input type="text" class="input-field" value="240" style="width: 100px; padding: 4px;" /></td>
-                        <td style="font-weight: 600; color: #64748b;">METRE</td>
-                        <td style="color: #dc2626; font-weight: 700;">%4 EKSİK</td>
-                    </tr>
-                    <tr>
-                        <td>Plastik Askı</td>
-                        <td>3.300</td>
-                        <td><input type="text" class="input-field mat-input" data-key="aski" value="0" style="width: 100px; padding: 4px;" /></td>
-                        <td style="font-weight: 600; color: #64748b;">ADET</td>
-                        <td style="color: #94a3b8; font-weight: 700;">BEKLİYOR</td>
-                    </tr>
+                    @{
+                        var materials = new List<dynamic>();
+
+                        if (Model.LargeButtonCount.HasValue && Model.LargeButtonCount > 0)
+                            materials.Add(new { Name = "Büyük Düğme", DefaultPlan = (decimal)(Model.Quantity * Model.LargeButtonCount.Value), Unit = "ADET", Key = "pur_plan_buyuk_dugme" });
+
+                        if (Model.SmallButtonCount.HasValue && Model.SmallButtonCount > 0)
+                            materials.Add(new { Name = "Küçük Düğme", DefaultPlan = (decimal)(Model.Quantity * Model.SmallButtonCount.Value), Unit = "ADET", Key = "pur_plan_kucuk_dugme" });
+
+                        if (Model.HasPriceCard)
+                            materials.Add(new { Name = "Fiyat Kartı", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_fiyat_karti" });
+
+                        if (Model.HasWashingInstruction)
+                            materials.Add(new { Name = "Yıkama Talimatı", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_yikama_talimat" });
+
+                        if (Model.HasInnerBarcode)
+                            materials.Add(new { Name = "İç Barkod", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_ic_barkod" });
+
+                        if (Model.HasYokeLabel)
+                            materials.Add(new { Name = "Roba Etiketi", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_roba_etiket" });
+
+                        if (Model.HasFifLabel)
+                            materials.Add(new { Name = "Fif Etiketi", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_fif_etiket" });
+
+                        if (Model.HasOtherCard)
+                            materials.Add(new { Name = "Diğer Kart", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_diger_kart" });
+
+                        if (Model.CollarInterliningMeterage.HasValue && Model.CollarInterliningMeterage > 0)
+                            materials.Add(new { Name = "Yaka Telası", DefaultPlan = (decimal)(Model.Quantity * Model.CollarInterliningMeterage.Value), Unit = "METRE", Key = "pur_plan_yaka_tela" });
+
+                        if (Model.CuffInterliningMeterage.HasValue && Model.CuffInterliningMeterage > 0)
+                            materials.Add(new { Name = "Manşet Telası", DefaultPlan = (decimal)(Model.Quantity * Model.CuffInterliningMeterage.Value), Unit = "METRE", Key = "pur_plan_manset_tela" });
+
+                        if (Model.PlacketInterliningMeterage.HasValue && Model.PlacketInterliningMeterage > 0)
+                            materials.Add(new { Name = "Pat Telası", DefaultPlan = (decimal)(Model.Quantity * Model.PlacketInterliningMeterage.Value), Unit = "METRE", Key = "pur_plan_pat_tela" });
+
+                        if (!materials.Any())
+                        {
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş herhangi bir aksesuar/malzeme bulunmamaktadır.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in materials)
+                            {
+                                string valStr = GetPurVal(item.Key);
+
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td style="font-weight: 600; color: #64748b;">@item.Unit</td>
+                                    <td><input type="text" name="@item.Key" class="input-field" value="@valStr" style="width: 150px; padding: 4px;" /></td>
+                                </tr>
+                            }
+                        }
+                    }
                 </tbody>
             </table>
             
@@ -401,20 +535,127 @@
                     <input type="checkbox" name="IsPurchasingCompleted" value="true" @(Model.IsPurchasingCompleted ? "checked" : "") /> 
                     <span style="color: #16a34a;"><i class="fa-solid fa-check-circle"></i> Satın Alma Aşaması Tamamlandı</span>
                 </label>
-                <button type="submit" class="btn-planner"><i class="fa-solid fa-save"></i> Satın Alma Planını Kaydet</button>
+                <button type="submit" class="btn-planner" style="background: #1d4ed8; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-save"></i> Satın Alma Planını Kaydet</button>
             </div>
             </form>
         </div>
 
         <!-- Sekme 3: Üretim -->
         <div id="tab-uretim" class="tab-content">
-            <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Üretim Planlama Detayları</h3>
-            <div class="content-section">
-                <p style="color: #64748b;">Üretim aşaması planlaması (Kesim, Dikim, Paketleme) burada yer alacaktır. Satın alma tamamlandıktan sonra onay mekanizmasıyla çalışacaktır.</p>
-            </div>
+            <form action="/Planning/UpdateProductionPlan" method="post">
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Üretim Planlama Detayları</h3>
+                
+                @{
+                    var prodData = new System.Collections.Generic.Dictionary<string, string>();
+                    if (!string.IsNullOrEmpty(Model.ProductionJson))
+                    {
+                        try {
+                            prodData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(Model.ProductionJson);
+                        } catch {}
+                    }
+                    string GetProdVal(string key) => prodData.ContainsKey(key) ? prodData[key] : "";
+                }
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                    <!-- Kesim ve Dikim Kartı -->
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-scissors"></i> Kesim ve Dikim
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <div class="data-label">DİKİM ATÖLYESİ</div>
+                                <input type="text" name="prod_dikim_atolyesi" class="input-field" value="@GetProdVal("prod_dikim_atolyesi")" />
+                            </div>
+                            <div>
+                                <div class="data-label">KESİM BAŞLANGIÇ</div>
+                                <input type="date" name="prod_kesim_baslangic" class="input-field" value="@GetProdVal("prod_kesim_baslangic")" />
+                            </div>
+                            <div>
+                                <div class="data-label">KESİM BİTİŞ</div>
+                                <input type="date" name="prod_kesim_bitis" class="input-field" value="@GetProdVal("prod_kesim_bitis")" />
+                            </div>
+                            <div>
+                                <div class="data-label">DİKİM BAŞLANGIÇ</div>
+                                <input type="date" name="prod_dikim_baslangic" class="input-field" value="@GetProdVal("prod_dikim_baslangic")" />
+                            </div>
+                            <div>
+                                <div class="data-label">DİKİM BİTİŞ</div>
+                                <input type="date" name="prod_dikim_bitis" class="input-field" value="@GetProdVal("prod_dikim_bitis")" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paket ve Lojistik Kartı -->
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-box-open"></i> Paket ve Lojistik
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <div class="data-label">PAKET BAŞLANGIÇ</div>
+                                <input type="date" name="prod_paket_baslangic" class="input-field" value="@GetProdVal("prod_paket_baslangic")" />
+                            </div>
+                            <div>
+                                <div class="data-label">PAKET BİTİŞ</div>
+                                <input type="date" name="prod_paket_bitis" class="input-field" value="@GetProdVal("prod_paket_bitis")" />
+                            </div>
+                            <div>
+                                <div class="data-label">GS GİDİŞİ</div>
+                                <input type="date" name="prod_gs_gidisi" class="input-field" value="@GetProdVal("prod_gs_gidisi")" />
+                            </div>
+                            <div>
+                                <div class="data-label">YOLA ÇIKIŞ</div>
+                                <input type="date" name="prod_yola_cikis" class="input-field" value="@GetProdVal("prod_yola_cikis")" />
+                            </div>
+                            <div>
+                                <div class="data-label">DEPO VARIŞ</div>
+                                <input type="date" name="prod_depo_varis" class="input-field" value="@GetProdVal("prod_depo_varis")" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Termin Kartı -->
+                    <div class="content-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-calendar-check"></i> Termin Bilgileri
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                <div class="data-label">ŞU ANKİ TERMİN</div>
+                                <input type="date" name="prod_suanki_termin" class="input-field" value="@GetProdVal("prod_suanki_termin")" />
+                            </div>
+                            <div>
+                                <div class="data-label">KNN REVİZE TERMİN</div>
+                                <input type="date" name="prod_knn_revize_termin" class="input-field" value="@GetProdVal("prod_knn_revize_termin")" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 20px; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0f172a;">
+                        <input type="checkbox" name="IsProductionCompleted" value="true" @(Model.IsProductionCompleted ? "checked" : "") /> 
+                        <span style="color: #16a34a;"><i class="fa-solid fa-check-circle"></i> Üretim Aşaması Tamamlandı</span>
+                    </label>
+                    <button type="submit" class="btn-planner" style="background: #1d4ed8; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-save"></i> Üretim Planını Kaydet</button>
+                </div>
+            </form>
         </div>
 
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="main-planning" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+            <div style="text-align: center; color: #64748b;">
+                <i class="fa-solid fa-hand-pointer" style="font-size: 3rem; margin-bottom: 16px; color: #cbd5e1;"></i>
+                <h3>Planlama Detayı İçin Sipariş Seçin</h3>
+                <p>Sol taraftaki listeden planlamasını görmek istediğiniz siparişi seçiniz.</p>
+            </div>
+        </div>
+    }
 </div>
 
 <script>
@@ -428,13 +669,22 @@
         document.getElementById('tab-' + tabId).classList.add('active');
     }
 
-    // Sipariş arama
-    document.getElementById('orderSearch').addEventListener('keyup', function() {
-        var value = this.value.toLowerCase();
+    // Sipariş arama ve filtreleme
+    function filterOrders() {
+        var searchValue = document.getElementById('orderSearch').value.toLowerCase();
+        var showAll = document.getElementById('showAllOrders').checked;
         var items = document.querySelectorAll('.order-list-item');
+        
         items.forEach(function(item) {
             var text = item.textContent.toLowerCase();
-            item.style.display = text.includes(value) ? 'block' : 'none';
+            var isActive = item.getAttribute('data-active') === 'true';
+            var matchesSearch = text.includes(searchValue);
+            var matchesFilter = showAll || isActive;
+            
+            item.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
         });
-    });
+    }
+
+    document.getElementById('orderSearch').addEventListener('keyup', filterOrders);
+    document.getElementById('showAllOrders').addEventListener('change', filterOrders);
 </script>

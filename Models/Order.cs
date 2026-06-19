@@ -185,6 +185,9 @@ namespace UretimPlanlama.Models
         // Numune/Test Bilgileri
         public string? SampleTestJson { get; set; } // Numune test bilgileri
 
+        // Üretim Ekstra Bilgileri
+        public string? ProductionJson { get; set; } // Üretim ekstra bilgileri (GS Gidişi, Termin vb.)
+
         // Aşama Durumları
         public bool IsPurchasingCompleted { get; set; } = false;
         public bool IsProductionCompleted { get; set; } = false;

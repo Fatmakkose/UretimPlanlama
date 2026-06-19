@@ -30,14 +30,8 @@ namespace UretimPlanlama.Controllers
             {
                 return RedirectToAction("AccessDenied", "Account");
             }
-            var firstOrder = _context.Orders.OrderByDescending(o => o.OrderDate).FirstOrDefault();
-            if (firstOrder != null)
-            {
-                return RedirectToAction("Plan", new { id = firstOrder.Id });
-            }
-            
-            // Eğer hiç sipariş yoksa boş liste dönsün
-            ViewBag.AllOrders = new List<Order>();
+            var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
+            ViewBag.AllOrders = orders;
             return View("Plan", new Order());
         }
 
@@ -93,7 +87,7 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdatePurchasingPlan(Order orderData)
+        public IActionResult UpdatePurchasingPlan(Order orderData, Microsoft.AspNetCore.Http.IFormCollection form)
         {
             if (!User.HasPermission("Write"))
             {
@@ -104,11 +98,27 @@ namespace UretimPlanlama.Controllers
             {
                 order.ActualFabricMeterage = orderData.ActualFabricMeterage;
                 order.ActualFabricQty = orderData.ActualFabricQty;
-                order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
-                order.AccessoryCompletionDate = orderData.AccessoryCompletionDate;
                 
-                // Demo formda gönderilen iplik, tela, askı gibi ekstra Json verileri
-                order.PurchasingMaterialsJson = orderData.PurchasingMaterialsJson;
+                order.FabricSupplier = orderData.FabricSupplier;
+                order.FabricArrivalAgreedDate = orderData.FabricArrivalAgreedDate;
+                order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
+
+                // Extra fields in PurchasingMaterialsJson
+                var dict = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(orderData.PurchasingMaterialsJson))
+                {
+                    try {
+                        dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(orderData.PurchasingMaterialsJson) ?? new Dictionary<string, string>();
+                    } catch {}
+                }
+
+                foreach (var k in form.Keys) {
+                    if (k.StartsWith("pur_")) {
+                        dict[k] = form[k].ToString();
+                    }
+                }
+                
+                order.PurchasingMaterialsJson = System.Text.Json.JsonSerializer.Serialize(dict);
                 
                 // Satın Alma Tamamlandı mı?
                 order.IsPurchasingCompleted = orderData.IsPurchasingCompleted;
@@ -121,6 +131,74 @@ namespace UretimPlanlama.Controllers
             return NotFound();
         }
 
+        [HttpPost]
+        public IActionResult UpdateSampleTestPlan(int Id, Microsoft.AspNetCore.Http.IFormCollection form)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            var order = _context.Orders.Find(Id);
+            if (order != null)
+            {
+                var dict = new Dictionary<string, string>();
+                
+                string[] keys = new[] { "sample_pp_onay", "sample_kumas_ytesti", "sample_tuse_renk", "sample_kumas_karisim", "sample_dugme_renk", "sample_dugme_test" };
+                
+                foreach (var k in keys) {
+                    if (form.ContainsKey(k)) {
+                        dict[k] = form[k].ToString();
+                    }
+                }
+
+                order.SampleTestJson = System.Text.Json.JsonSerializer.Serialize(dict);
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "Numune ve Test planı güncellendi.";
+                return RedirectToAction("Plan", new { id = order.Id });
+            }
+            return NotFound();
+        }
+
+        [HttpPost]
+        public IActionResult UpdateProductionPlan(int Id, Microsoft.AspNetCore.Http.IFormCollection form)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            var order = _context.Orders.Find(Id);
+            if (order != null)
+            {
+                var dict = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(order.ProductionJson))
+                {
+                    try {
+                        dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.ProductionJson) ?? new Dictionary<string, string>();
+                    } catch {}
+                }
+
+                foreach (var k in form.Keys) {
+                    if (k.StartsWith("prod_")) {
+                        dict[k] = form[k].ToString();
+                    }
+                }
+
+                order.ProductionJson = System.Text.Json.JsonSerializer.Serialize(dict);
+                
+                if (form.ContainsKey("IsProductionCompleted")) {
+                    order.IsProductionCompleted = form["IsProductionCompleted"] == "true";
+                } else {
+                    order.IsProductionCompleted = false;
+                }
+
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "Üretim planı güncellendi.";
+                return RedirectToAction("Plan", new { id = order.Id });
+            }
+            return NotFound();
+        }
         [HttpGet]
         public IActionResult Tracking()
         {

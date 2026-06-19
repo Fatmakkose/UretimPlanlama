@@ -98,7 +98,7 @@
 
 <div class="dashboard-header" style="margin-bottom: 25px;">
     <div class="header-title">
-        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Sipariş Yönetimi (LCW Portal)</h1>
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Sipariş Yönetimi</h1>
     </div>
     <div class="header-actions" style="display: flex; gap: 12px;">
     </div>
@@ -355,11 +355,11 @@
         <!-- Body -->
         <div style="overflow-y: auto; padding: 24px; flex-grow: 1;">
 
-            <!-- Grid Layout: Genel Bilgiler & Finans -->
-            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <!-- Grid Layout: Genel Bilgiler -->
+            <div style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 24px;">
 
                 <!-- Genel & Ürün Bilgileri Kartı -->
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); max-width: 550px;">
                     <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                         <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Ürün ve Genel Bilgiler
                     </h4>
@@ -367,10 +367,6 @@
                         <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                             <span style="color: var(--text-muted);"><i class="fa-solid fa-shirt" style="margin-right: 8px; width: 14px;"></i>Model Adı</span>
                             <strong id="detModelName" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-tag" style="margin-right: 8px; width: 14px;"></i>Model No</span>
-                            <strong id="detModelNo" style="color: var(--text-main);">...</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                             <span style="color: var(--text-muted);"><i class="fa-solid fa-palette" style="margin-right: 8px; width: 14px;"></i>Renk / Option</span>
@@ -385,68 +381,21 @@
                             <strong id="detCustomer" style="color: var(--text-main);">LC Waikiki</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-nodes" style="margin-right: 8px; width: 14px;"></i>Bölge</span>
-                            <strong id="detRegion" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-magnifying-glass-chart" style="margin-right: 8px; width: 14px;"></i>Inspection Tipi</span>
-                            <strong id="detInspectionType" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-calendar-check" style="margin-right: 8px; width: 14px;"></i>Inspection Tarihi</span>
-                            <strong id="detInspectionDate" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                             <span style="color: var(--text-muted);"><i class="fa-solid fa-map-location-dot" style="margin-right: 8px; width: 14px;"></i>Teslim Yeri</span>
                             <strong id="detDeliveryPlace" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-comment-dots" style="margin-right: 8px; width: 14px;"></i>Açıklama</span>
-                            <strong id="detDescription" style="color: var(--text-main); font-weight: 500; text-align: right; max-width: 250px; display: block; word-wrap: break-word;">...</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Finansal Bilgiler Kartı -->
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column;">
-                    <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-                        <i class="fa-solid fa-coins" style="margin-right: 6px;"></i> Finansal Bilgiler & Maliyetler
-                    </h4>
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 0.9rem; flex-grow: 1;">
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-boxes-stacked" style="margin-right: 8px; width: 14px;"></i>Toplam Sipariş</span>
-                            <strong id="detQuantity" style="color: var(--text-main); font-size: 1rem;">...</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
                             <span style="color: var(--text-muted);"><i class="fa-solid fa-tag" style="margin-right: 8px; width: 14px;"></i>Birim Fiyatı</span>
                             <strong id="detUnitPrice" style="color: var(--text-main);">...</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-money-bill-wave" style="margin-right: 8px; width: 14px;"></i>KDV'siz Toplam</span>
-                            <strong id="detTotalAmount" style="color: var(--text-main);">...</strong>
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-boxes-stacked" style="margin-right: 8px; width: 14px;"></i>Toplam Sipariş</span>
+                            <strong id="detQuantity" style="color: var(--text-main); font-size: 1rem;">...</strong>
                         </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-percent" style="margin-right: 8px; width: 14px;"></i>KDV Tutarı (%10)</span>
-                            <strong id="detVatAmount" style="color: var(--text-main);">...</strong>
+                        <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
+                            <span style="color: var(--text-muted);"><i class="fa-solid fa-comment-dots" style="margin-right: 8px; width: 14px;"></i>Açıklama</span>
+                            <strong id="detDescription" style="color: var(--text-main); font-weight: 500; text-align: right; max-width: 250px; display: block; word-wrap: break-word;">...</strong>
                         </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-credit-card" style="margin-right: 8px; width: 14px;"></i>Ödeme Şekli</span>
-                            <strong id="detPaymentMethod" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-id-card" style="margin-right: 8px; width: 14px;"></i>Üretici Cari Kodu</span>
-                            <strong id="detManufacturerCode" style="color: var(--text-main);">...</strong>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0;">
-                            <span style="color: var(--text-muted);"><i class="fa-solid fa-building" style="margin-right: 8px; width: 14px;"></i>Üretici Firma</span>
-                            <strong id="detManufacturerCompany" style="color: var(--text-main);">...</strong>
-                        </div>
-                    </div>
-
-                    <!-- KDV Dahil Vurgulanan Toplam Kutu -->
-                    <div style="background: #e6fcf5; border: 1px solid rgba(13, 148, 136, 0.2); border-radius: 8px; padding: 12px; margin-top: 15px; text-align: center;">
-                        <div style="font-size: 0.75rem; color: #0d9488; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">KDV Dahil Toplam Tutar</div>
-                        <div id="detTotalWithVat" style="font-size: 1.4rem; font-weight: 700; color: #0d9488; margin-top: 2px;">...</div>
                     </div>
                 </div>
             </div>
@@ -456,54 +405,8 @@
                 <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                     <i class="fa-solid fa-layer-group" style="margin-right: 6px;"></i> Detaylı Beden & Asorti Dağılımları
                 </h4>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9rem;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-muted);">
-                                <th style="padding: 8px; text-align: left;">Beden Türü</th>
-                                <th style="padding: 8px;">S</th>
-                                <th style="padding: 8px;">M</th>
-                                <th style="padding: 8px;">L</th>
-                                <th style="padding: 8px;">XL</th>
-                                <th style="padding: 8px;">2XL</th>
-                                <th style="padding: 8px;">3XL</th>
-                                <th style="padding: 8px; border-left: 1px solid var(--border-color); color: var(--text-main);">Toplam</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Açık Adetler Satırı -->
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #0284c7;">Açık Adet</td>
-                                <td id="detSizeS" style="padding: 12px 8px;">0</td>
-                                <td id="detSizeM" style="padding: 12px 8px;">0</td>
-                                <td id="detSizeL" style="padding: 12px 8px;">0</td>
-                                <td id="detSizeXL" style="padding: 12px 8px;">0</td>
-                                <td id="detSize2XL" style="padding: 12px 8px;">0</td>
-                                <td id="detSize3XL" style="padding: 12px 8px;">0</td>
-                                <td id="detOpenTotal" style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #0284c7; background: #e0f2fe;">0</td>
-                            </tr>
-                            <!-- Asorti Oranları Satırı -->
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #16a34a;">Asorti Oran</td>
-                                <td id="detAsSizeS" style="padding: 12px 8px;">0</td>
-                                <td id="detAsSizeM" style="padding: 12px 8px;">0</td>
-                                <td id="detAsSizeL" style="padding: 12px 8px;">0</td>
-                                <td id="detAsSizeXL" style="padding: 12px 8px;">0</td>
-                                <td id="detAsSize2XL" style="padding: 12px 8px;">0</td>
-                                <td id="detAsSize3XL" style="padding: 12px 8px;">0</td>
-                                <td id="detAsRatioTotal" style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #16a34a; background: #dcfce7;">0</td>
-                            </tr>
-                            <!-- Asorti Çarpımı ve Toplam Asorti Satırı -->
-                            <tr>
-                                <td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #15803d;">Asorti Toplam</td>
-                                <td colspan="6" style="padding: 12px 8px; text-align: right; color: var(--text-muted); font-style: italic;">
-                                    Asorti Sayısı: <strong id="detAsortiCount" style="color: var(--text-main); font-style: normal; margin-right: 15px;">0</strong> 
-                                    (Kutu Sayısı × Asorti Oran Toplamı) =
-                                </td>
-                                <td id="detAsortiFinalQty" style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #15803d; background: #bbf7d0;">0</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div style="overflow-x: auto;" id="detDynamicSizesContainer">
+                    <!-- Dinamik tablo JS ile doldurulacak -->
                 </div>
             </div>
 
@@ -525,7 +428,7 @@
         <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
             <div>
                 <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-pen" style="color: var(--primary-color);"></i> Sipariş Düzenle (LCW Formu)
+                    <i class="fa-solid fa-pen" style="color: var(--primary-color);"></i> Sipariş Düzenle 
                 </h3>
                 <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Sipariş ve üretim bilgilerini güncelleyin</p>
             </div>
@@ -544,27 +447,12 @@
                             <input name="OrderDate" id="editOrderDate" class="form-control" type="date" required />
                         </div>
                         <div class="form-group">
-                            <label>Sipariş Kodu</label>
-                            <input name="OrderCode" id="editOrderCode" class="form-control" placeholder="Örn: LCW-99238" required />
+                            <label>Sipariş Kodu (PO) </label>
+                            <input name="OrderCode" id="editOrderCode" class="form-control"  required />
                         </div>
+                      
                         <div class="form-group">
-                            <label>Ödeme Şekli</label>
-                            <select name="PaymentMethod" id="editPaymentMethod" class="form-control">
-                                <option value="">- Seçiniz -</option>
-                                <option value="Peşin">Peşin</option>
-                                <option value="Vadeli">Vadeli</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Üretici Cari Kod</label>
-                            <input name="ManufacturerCode" id="editManufacturerCode" class="form-control" value="S0.TRLC-S0013909" readonly />
-                        </div>
-                        <div class="form-group">
-                            <label>Üretici Firma</label>
-                            <input name="ManufacturerCompany" id="editManufacturerCompany" class="form-control" placeholder="Örn: Kanuni Tekstil" />
-                        </div>
-                        <div class="form-group">
-                            <label>Alıcı (Müşteri)</label>
+                            <label>Müşteri (Buyer) </label>
                             <select name="Customer" id="editCustomer" class="form-control" required>
                                 <option value="">-- Müşteri Seçin --</option>
                                 @if (ViewBag.Customers != null)
@@ -576,12 +464,6 @@
                                 }
                             </select>
                         </div>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 24px;">
-                    <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-shirt" style="margin-right: 6px;"></i> Ürün & Operasyon Bilgileri</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
                         <div class="form-group">
                             <label>Model Adı</label>
                             <input name="ModelName" id="editModelName" class="form-control" placeholder="Örn: Basic Sweatshirt" required />
@@ -600,7 +482,10 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Model Detay</label>
+                            <label style="display:flex; justify-content:space-between; align-items:center;">
+                                <span>Model Detay</span>
+                                <button type="button" onclick="openEditModelDetailModal()" style="padding:2px 8px; border:1px solid var(--primary-color); background:#e0f2fe; color:var(--primary-color); font-size:0.75rem; font-weight:600; cursor:pointer; border-radius:4px;"><i class="fa-solid fa-list-check" style="margin-right:4px;"></i>Aksesuar/Tela</button>
+                            </label>
                             <input name="GoodsDescription" id="editGoodsDescription" class="form-control" placeholder="Örn: Örme Erkek Sweatshirt" />
                         </div>
                         <div class="form-group">
@@ -615,18 +500,6 @@
                                     }
                                 }
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Inspection Tipi</label>
-                            <select name="InspectionType" id="editInspectionType" class="form-control">
-                                <option value="">-- Seçiniz --</option>
-                                <option value="Yurt İçi">Yurt İçi (Yİ)</option>
-                                <option value="Yurt Dışı">Yurt Dışı (YD)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Inspection Tarihi</label>
-                            <input name="InspectionDate" id="editInspectionDate" class="form-control" type="date" disabled />
                         </div>
                         <div class="form-group">
                             <label>Kumaşçı</label>
@@ -645,21 +518,9 @@
                             <label>Teslim Yeri</label>
                             <input name="DeliveryPlace" id="editDeliveryPlace" class="form-control" value="LCWaikiki Depoları" />
                         </div>
-                        <div style="display: flex; gap: 16px;">
-                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                <label>JIT</label>
-                                <select name="IsJIT" id="editIsJIT" class="form-control">
-                                    <option value="false">Hayır</option>
-                                    <option value="true">Evet</option>
-                                </select>
-                            </div>
-                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                <label>Bölge</label>
-                                <select name="SalesRegion" id="editSalesRegion" class="form-control">
-                                    <option value="Yurt İçi">Yurt İçi</option>
-                                    <option value="İhracat">İhracat</option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label>Birim Fiyatı (₺)</label>
+                            <input name="ComponentUnitPrice" class="form-control edit-calc-trigger" type="number" step="0.01" id="editUnitPrice" placeholder="Örn: 45.50" />
                         </div>
                     </div>
                 </div>
@@ -668,76 +529,199 @@
                     <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-layer-group" style="margin-right: 6px;"></i> Renk ve Beden Dağılımları</h4>
                     
                     <div style="background: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-                        <div style="margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #0284c7;">Açık Adetler</div>
-                        <div class="open-sizes-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 12px;">
-                            <div><small style="display:block; text-align:center;">S</small><input type="number" min="0" name="SizeS" id="editSizeS" class="form-control edit-open-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">M</small><input type="number" min="0" name="SizeM" id="editSizeM" class="form-control edit-open-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">L</small><input type="number" min="0" name="SizeL" id="editSizeL" class="form-control edit-open-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">XL</small><input type="number" min="0" name="SizeXL" id="editSizeXL" class="form-control edit-open-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">2XL</small><input type="number" min="0" name="Size2XL" id="editSize2XL" class="form-control edit-open-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">3XL</small><input type="number" min="0" name="Size3XL" id="editSize3XL" class="form-control edit-open-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center; color:#0284c7; font-weight:600;">Açık Toplam</small><input type="number" id="editOpenTotalInput" class="form-control" readonly style="background:#e0f2fe; font-weight:bold; color:#0284c7;" value="0" /></div>
+                        <div style="display: flex; gap: 24px; margin-bottom: 16px;">
+                            <!-- Açık Adetler -->
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display:flex; flex-direction:column; flex:1;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                    <div style="margin: 0; font-size: 0.9rem; color: #0284c7; display:flex; align-items:center; gap:8px; font-weight:600;">
+                                        Açık Adet Bedenler
+                                        <div style="position:relative;" class="edit-size-dropdown-wrapper">
+                                            <button type="button" class="btn-edit-size-select" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; font-size:0.75rem; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fa-solid fa-list-ul"></i> Beden Seç</button>
+                                            <div class="edit-size-dropdown-content" id="editOpenSizeDropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:4px; background:white; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); padding:8px; z-index:50; min-width:180px; max-height:200px; overflow-y:auto;">
+                                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="editOpenCheckboxesContainer">
+                                                    <!-- Checkboxes dynamic -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span style="font-size: 0.8rem; background: #e0f2fe; padding: 2px 8px; border-radius: 12px; color:#0284c7; font-weight:600;">Top: <span id="editOpenTotalText">0</span></span>
+                                </div>
+                                <div id="editDynSizesContainerOpen" style="display:flex; flex-wrap:wrap; gap:8px; flex:1; align-content:flex-start;">
+                                    <!-- Badges dynamic -->
+                                </div>
+                                <input type="hidden" id="editOpenTotalInput" value="0" />
+                            </div>
+
+                            <!-- Asorti Adetleri -->
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display:flex; flex-direction:column; flex:1;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                    <div style="margin: 0; font-size: 0.9rem; color: #16a34a; display:flex; align-items:center; gap:8px; font-weight:600;">
+                                        Asorti Adet
+                                        <div style="position:relative;" class="edit-size-dropdown-wrapper">
+                                            <button type="button" class="btn-edit-size-select" style="background:#dcfce7; border:1px solid #bbf7d0; color:#16a34a; font-size:0.75rem; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fa-solid fa-list-ul"></i> Beden Seç</button>
+                                            <div class="edit-size-dropdown-content" id="editAsortiSizeDropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:4px; background:white; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); padding:8px; z-index:50; min-width:180px; max-height:200px; overflow-y:auto;">
+                                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="editAsortiCheckboxesContainer">
+                                                    <!-- Checkboxes dynamic -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span style="font-size: 0.8rem; background: #dcfce7; padding: 2px 8px; border-radius: 12px; color:#16a34a; font-weight:600;">Top: <span id="editAsortiTotalText">0</span></span>
+                                </div>
+                                <div id="editDynSizesContainerAsorti" style="display:flex; flex-wrap:wrap; gap:8px; flex:1; align-content:flex-start;">
+                                    <!-- Badges dynamic -->
+                                </div>
+                                <input type="hidden" id="editAsortiTotalInput" value="0" />
+                                
+                                <div style="margin-top:16px; padding-top:12px; border-top:1px dashed #cbd5e1; display:flex; gap:12px;">
+                                    <div style="flex:1;">
+                                        <label style="font-size: 0.8rem; font-weight: 600; color:#475569;">Lot Sayısı</label>
+                                        <input type="number" min="0" id="editAsortiCountInput" class="form-control edit-asorti-count" value="0" placeholder="Örn: 50" style="height:32px; font-size:0.85rem;" />
+                                    </div>
+                                    <div style="flex:1;">
+                                        <label style="font-size: 0.8rem; font-weight: 600; color:#475569;">Toplam Asorti Sipariş</label>
+                                        <input type="number" id="editAsortiFinalInput" class="form-control" readonly style="height:32px; font-size:0.85rem; background:#f8fafc; font-weight:bold; color:#16a34a; border-color:#e2e8f0;" value="0" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #16a34a;">Asorti Adetleri (Oran)</div>
-                        <div class="asorti-sizes-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 12px;">
-                            <div><small style="display:block; text-align:center;">S</small><input type="number" min="0" name="AsortiSizeS" id="editAsortiSizeS" class="form-control edit-asorti-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">M</small><input type="number" min="0" name="AsortiSizeM" id="editAsortiSizeM" class="form-control edit-asorti-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">L</small><input type="number" min="0" name="AsortiSizeL" id="editAsortiSizeL" class="form-control edit-asorti-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">XL</small><input type="number" min="0" name="AsortiSizeXL" id="editAsortiSizeXL" class="form-control edit-asorti-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">2XL</small><input type="number" min="0" name="AsortiSize2XL" id="editAsortiSize2XL" class="form-control edit-asorti-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center;">3XL</small><input type="number" min="0" name="AsortiSize3XL" id="editAsortiSize3XL" class="form-control edit-asorti-size" value="0" /></div>
-                            <div><small style="display:block; text-align:center; color:#16a34a; font-weight:600;">T.Asorti Oran</small><input type="number" id="editAsortiTotalInput" class="form-control" readonly style="background:#dcfce7; font-weight:bold; color:#16a34a;" value="0" /></div>
-                        </div>
-
-                        <div style="display: flex; gap: 16px; align-items: flex-end; background: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                            <div style="flex: 1;">
-                                <label style="font-size: 0.85rem; font-weight: 600;">Toplam Asorti Kutu Adedi</label>
-                                <input type="number" min="0" name="AsortiCount" id="editAsortiCountInput" class="form-control edit-asorti-count" value="0" />
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="font-size: 0.85rem; font-weight: 600;">Toplam Asorti Sipariş</label>
-                                <input type="number" id="editAsortiFinalInput" class="form-control" readonly style="background: transparent; font-weight: bold; border: none; padding-left: 0;" value="0" />
-                            </div>
-                            <div style="flex: 1; border-left: 2px solid #cbd5e1; padding-left: 16px;">
-                                <label style="font-size: 0.85rem; font-weight: 700; color:var(--primary-color);">Toplam Adet</label>
-                                <input type="number" id="editRowTotalQtyInput" class="form-control" readonly style="background: transparent; font-weight: bold; font-size: 1.1rem; color:var(--primary-color); border: none; padding-left: 0;" value="0" />
+                        <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                            <div style="background: #e0f2fe; border: 1px solid #bae6fd; padding: 8px 16px; border-radius: 8px; display: inline-flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 0.95rem; font-weight: 700; color:#0284c7;">Toplam Adet:</span>
+                                <input type="number" id="editRowTotalQtyInput" class="form-control" readonly style="background: transparent; font-weight: 800; font-size: 1.25rem; color:#0284c7; border: none; padding: 0; text-align: right; width: 80px; box-shadow: none;" value="0" />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div style="margin-bottom: 12px;">
-                    <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-coins" style="margin-right: 6px;"></i> Finansal Bilgiler</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label>Toplam Sipariş Miktarı (Adet)</label>
-                            <input name="Quantity" class="form-control edit-calc-trigger" type="number" id="editQty" readonly style="background:#eef2ff; font-weight:bold;" value="0" />
-                        </div>
-                        <div class="form-group">
-                            <label>Komponent Birim Fiyatı (₺)</label>
-                            <input name="ComponentUnitPrice" class="form-control edit-calc-trigger" type="number" step="0.01" id="editUnitPrice" placeholder="Örn: 45.50" />
-                        </div>
-                        <div class="form-group">
-                            <label>Toplam Tutar (₺)</label>
-                            <input name="TotalAmount" class="form-control" type="number" step="0.01" id="editTotalAmt" readonly />
-                        </div>
-                        <div class="form-group">
-                            <label>%10 KDV (₺)</label>
-                            <input name="VatAmount" class="form-control" type="number" step="0.01" id="editVatAmt" readonly />
-                        </div>
-                        <div class="form-group">
-                            <label style="color:var(--primary-color);">KDV'li Toplam Tutar (₺)</label>
-                            <input name="TotalAmountWithVat" class="form-control" type="number" step="0.01" id="editGrandTotal" readonly style="border-color:var(--primary-color); font-weight:bold; color:var(--primary-color); background:#ccfbf1;" />
-                        </div>
-                    </div>
-                </div>
+
 
                 <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
                     <button type="button" id="btnEditCancelModal" class="btn-secondary" style="padding: 10px 20px;">İptal</button>
                     <button type="submit" class="btn-planner" style="padding: 10px 24px;"><i class="fa-solid fa-save"></i> Siparişi Güncelle</button>
                 </div>
             </form>
+
+        <!-- Edit Model Detail Modal -->
+        <div id="editModelDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1100; align-items:center; justify-content:center;">
+            <div style="background:white; width: 600px; max-width: 90%; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column;">
+                <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
+                    <h5 style="margin:0; font-weight:600; color:var(--primary-color);"><i class="fa-solid fa-tags" style="margin-right:8px;"></i>Ek Model ve Aksesuar Detayları</h5>
+                    <button type="button" onclick="closeEditModelDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div style="padding: 24px; overflow-y:auto; max-height:70vh; display:flex; flex-direction:column; gap:20px;">
+                    <!-- Aksesuarlar -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Gerekli Etiket ve Kartlar</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasPriceCard" /> Fiyat Kartı</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasWashingInstruction" /> Yıkama Talimatı</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasInnerBarcode" /> İç Barkod</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasYokeLabel" /> Roba Etiketi</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasFifLabel" /> Fif Etiketi</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_KetenKarti" /> Keten Kartı</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasOtherCard" /> Diğer Kart</label>
+                        </div>
+                    </div>
+
+                    <!-- Paketleme -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Paketleme / Ambalaj</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Jelatin" /> Jelatin</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Cember" /> Çember</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Kelebek" /> Kelebek</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_LotPoseti" /> Lot Poşeti</label>
+                        </div>
+                    </div>
+
+                    <!-- Baskı Nakış -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Baskı ve Nakış</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Baski" /> Baskı Var</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Nakis" /> Nakış Var</label>
+                        </div>
+                    </div>
+
+                    <!-- Kumaş ve Düğme -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Ana Kumaş (m)</label>
+                            <input type="number" step="0.01" id="editUnitFabricMeterage" class="form-control" placeholder="Örn: 1.2" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Garni Kumaş (m)</label>
+                            <input type="number" step="0.01" id="editAcc_Garni" class="form-control" placeholder="Örn: 0.5" />
+                        </div>
+                        <div></div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Büyük Düğme</label>
+                            <input type="number" id="editLargeButtonCount" class="form-control" placeholder="Adet" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Küçük Düğme</label>
+                            <input type="number" id="editSmallButtonCount" class="form-control" placeholder="Adet" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Çıt Çıt</label>
+                            <input type="number" id="editAcc_CitCit" class="form-control" placeholder="Adet" />
+                        </div>
+                    </div>
+
+                    <!-- Tela ve Parçalar -->
+                    <div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Tela ve Ek Parça Metrajları (m)</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Yaka Telası</label>
+                                <input type="number" step="0.01" id="editCollarInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Manşet Telası</label>
+                                <input type="number" step="0.01" id="editCuffInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Pat Telası</label>
+                                <input type="number" step="0.01" id="editPlacketInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Cep Kapağı</label>
+                                <input type="number" step="0.01" id="editPocketFlapInterliningMeterage" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Tela 1</label>
+                                <input type="number" step="0.01" id="editAcc_Tela1" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Tela 2</label>
+                                <input type="number" step="0.01" id="editAcc_Tela2" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Cep</label>
+                                <input type="number" step="0.01" id="editAcc_Cep" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Roba</label>
+                                <input type="number" step="0.01" id="editAcc_Roba" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Apolet</label>
+                                <input type="number" step="0.01" id="editAcc_Apolet" class="form-control" />
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Diğer Parça</label>
+                                <input type="number" step="0.01" id="editAcc_Diger" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); background:#f8fafc; display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn-planner" onclick="closeEditModelDetailModal()"><i class="fa-solid fa-check" style="margin-right:6px;"></i> Detayları Kaydet</button>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
 </div>
@@ -894,15 +878,13 @@
                                 $("#detOrderCode").text(order.orderCode || "-");
                                 $("#detOrderDate").html(formatDetailDate(order.orderDate));
                                 $("#detModelName").text(order.modelName || "-");
-                                $("#detModelNo").text(order.modelNo || "-");
                                 $("#detColor").text(order.color || "-");
                                 $("#detBrand").text(order.brand || "-");
                                 $("#detCustomer").text(order.customer || "LC Waikiki");
-                                $("#detRegion").text(order.salesRegion || "-");
-                                $("#detInspectionType").text(order.inspectionType || "-");
-                                $("#detInspectionDate").html(formatDetailDate(order.inspectionDate));
                                 $("#detDeliveryPlace").text(order.deliveryPlace || "-");
                                 $("#detDescription").text(order.goodsDescription || "-");
+                                $("#detUnitPrice").html(formatCurrency(order.unitPrice || order.componentUnitPrice));
+                                $("#detQuantity").text((order.quantity || 0).toLocaleString('tr-TR') + " Adet");
 
                                 // Rozetler (Badges)
                                 var status = order.status || "Yeni Kayıt";
@@ -920,46 +902,62 @@
                                 else if (fStatus === "Kısmi Geldi" || fStatus === "Gecikti") $("#detFabricBadge").addClass("badge-medium");
                                 else $("#detFabricBadge").addClass("badge-high");
 
-                                if (order.isJIT) {
-                                    $("#detJITBadge").show().addClass("badge-high").text("JIT");
-                                } else {
-                                    $("#detJITBadge").hide();
-                                }
+                                $("#detJITBadge").hide();
 
-                                // Finansal Bilgiler
-                                $("#detQuantity").text((order.quantity || 0).toLocaleString('tr-TR') + " Adet");
-                                $("#detUnitPrice").html(formatCurrency(order.componentUnitPrice));
-                                $("#detTotalAmount").html(formatCurrency(order.totalAmount));
-                                $("#detVatAmount").html(formatCurrency(order.vatAmount));
-                                $("#detPaymentMethod").text(order.paymentMethod || "-");
-                                $("#detManufacturerCode").text(order.manufacturerCode || "-");
-                                $("#detManufacturerCompany").text(order.manufacturerCompany || "-");
-                                $("#detTotalWithVat").html(formatCurrency(order.totalAmountWithVat));
+                                // Beden Dağılımı (Dinamik)
+                                var openDist = {};
+                                var asortiDist = {};
+                                try { openDist = JSON.parse(order.sizeDistributionJson || "{}"); } catch(e){}
+                                try { asortiDist = JSON.parse(order.asortiDistributionJson || "{}"); } catch(e){}
+                                
+                                var allSizesSet = new Set();
+                                Object.keys(openDist).forEach(k => allSizesSet.add(k));
+                                Object.keys(asortiDist).forEach(k => allSizesSet.add(k));
+                                
+                                var standardOrder = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL", "36", "38", "40", "42", "44", "46", "2 Yaş", "4 Yaş", "6 Yaş", "8 Yaş", "10 Yaş", "12 Yaş"];
+                                var allSizes = Array.from(allSizesSet).sort(function(a, b) {
+                                    var iA = standardOrder.indexOf(a);
+                                    var iB = standardOrder.indexOf(b);
+                                    if (iA !== -1 && iB !== -1) return iA - iB;
+                                    if (iA !== -1) return -1;
+                                    if (iB !== -1) return 1;
+                                    return a.localeCompare(b);
+                                });
 
-                                // Beden Dağılımı (Açık Adet)
-                                $("#detSizeS").text(order.sizeS || 0);
-                                $("#detSizeM").text(order.sizeM || 0);
-                                $("#detSizeL").text(order.sizeL || 0);
-                                $("#detSizeXL").text(order.sizeXL || 0);
-                                $("#detSize2XL").text(order.size2XL || 0);
-                                $("#detSize3XL").text(order.size3XL || 0);
-                                var openTotal = (order.sizeS || 0) + (order.sizeM || 0) + (order.sizeL || 0) + (order.sizeXL || 0) + (order.size2XL || 0) + (order.size3XL || 0);
-                                $("#detOpenTotal").text(openTotal);
+                                var tableHtml = '<table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9rem;"><thead><tr style="border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-muted);"><th style="padding: 8px; text-align: left;">Beden Türü</th>';
+                                allSizes.forEach(s => { tableHtml += '<th style="padding: 8px;">' + s + '</th>'; });
+                                tableHtml += '<th style="padding: 8px; border-left: 1px solid var(--border-color); color: var(--text-main);">Toplam</th></tr></thead><tbody>';
 
-                                // Beden Dağılımı (Asorti Oran)
-                                $("#detAsSizeS").text(order.asortiSizeS || 0);
-                                $("#detAsSizeM").text(order.asortiSizeM || 0);
-                                $("#detAsSizeL").text(order.asortiSizeL || 0);
-                                $("#detAsSizeXL").text(order.asortiSizeXL || 0);
-                                $("#detAsSize2XL").text(order.asortiSize2XL || 0);
-                                $("#detAsSize3XL").text(order.asortiSize3XL || 0);
-                                var asortiRatioTotal = (order.asortiSizeS || 0) + (order.asortiSizeM || 0) + (order.asortiSizeL || 0) + (order.asortiSizeXL || 0) + (order.asortiSize2XL || 0) + (order.asortiSize3XL || 0);
-                                $("#detAsRatioTotal").text(asortiRatioTotal);
+                                // Açık Adetler
+                                var openTotal = 0;
+                                tableHtml += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #0284c7;">Açık Adet</td>';
+                                allSizes.forEach(s => { 
+                                    var val = parseInt(openDist[s]) || 0;
+                                    openTotal += val;
+                                    tableHtml += '<td style="padding: 12px 8px;">' + val + '</td>';
+                                });
+                                tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #0284c7; background: #e0f2fe;">' + openTotal + '</td></tr>';
 
-                                // Toplam Asorti
-                                $("#detAsortiCount").text(order.asortiCount || 0);
-                                var asortiFinalQty = asortiRatioTotal * (order.asortiCount || 0);
-                                $("#detAsortiFinalQty").text(asortiFinalQty);
+                                // Asorti Oran
+                                var asortiRatioTotal = 0;
+                                tableHtml += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #16a34a;">Asorti Oran</td>';
+                                allSizes.forEach(s => { 
+                                    var val = parseInt(asortiDist[s]) || 0;
+                                    asortiRatioTotal += val;
+                                    tableHtml += '<td style="padding: 12px 8px;">' + val + '</td>';
+                                });
+                                tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #16a34a; background: #dcfce7;">' + asortiRatioTotal + '</td></tr>';
+
+                                // Asorti Toplam
+                                var asortiCount = order.asortiCount || 0;
+                                var asortiFinalQty = asortiRatioTotal * asortiCount;
+                                tableHtml += '<tr><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #15803d;">Asorti Toplam</td>';
+                                tableHtml += '<td colspan="' + allSizes.length + '" style="padding: 12px 8px; text-align: right; color: var(--text-muted); font-style: italic;">Lot Sayısı: <strong style="color: var(--text-main); font-style: normal; margin-right: 15px;">' + asortiCount + '</strong> (Lot Sayısı × Asorti Oran Toplamı) =</td>';
+                                tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #15803d; background: #bbf7d0;">' + asortiFinalQty + '</td></tr>';
+
+                                tableHtml += '</tbody></table>';
+
+                                $("#detDynamicSizesContainer").html(tableHtml);
 
                                 // Model Detayları
                                  $("#detModelUnitPrice").html(formatCurrency(order.unitPrice));
@@ -1184,26 +1182,121 @@
                     }
                 });
 
+                // --- DİNAMİK BEDEN DEĞİŞKENLERİ VE FONKSİYONLARI (EDİT MODAL) ---
+                var editOpenSizes = {};
+                var editAsortiSizes = {};
+                var activeSizes = ["S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL", "7XL", "8XL", "34", "36", "38", "40", "42", "44", "46", "48", "50", "52", "54", "56", "58", "60", "STD"];
+
+                function renderEditSizeBadgesToContainer(type) {
+                    var containerId = type === 'open' ? '#editDynSizesContainerOpen' : '#editDynSizesContainerAsorti';
+                    var sizesObj = type === 'open' ? editOpenSizes : editAsortiSizes;
+                    var $container = $(containerId);
+                    $container.empty();
+                    var total = 0;
+                    
+                    for (var size in sizesObj) {
+                        var val = sizesObj[size];
+                        total += val;
+                        var badgeHtml = `
+                            <div class="size-badge" style="display:flex; align-items:center; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden;">
+                                <span style="background:#e2e8f0; padding:4px 8px; font-weight:700; font-size:0.8rem; color:#334155; border-right:1px solid #cbd5e1;">${size}</span>
+                                <input type="number" min="0" class="edit-dyn-size-input" data-type="${type}" data-size="${size}" value="${val}" style="width:40px; border:none; padding:4px; font-size:0.85rem; text-align:center; outline:none; background:transparent;" />
+                            </div>`;
+                        $container.append(badgeHtml);
+                    }
+                    
+                    if (type === 'open') {
+                        $("#editOpenTotalInput").val(total);
+                        $("#editOpenTotalText").text(total);
+                    } else {
+                        $("#editAsortiTotalInput").val(total);
+                        $("#editAsortiTotalText").text(total);
+                    }
+                    calculateEditTotals();
+                }
+
+                function populateEditCheckboxes(type) {
+                    var containerId = type === 'open' ? '#editOpenCheckboxesContainer' : '#editAsortiCheckboxesContainer';
+                    var sizesObj = type === 'open' ? editOpenSizes : editAsortiSizes;
+                    var $container = $(containerId);
+                    $container.empty();
+
+                    activeSizes.forEach(function(size) {
+                        var isChecked = sizesObj.hasOwnProperty(size) ? "checked" : "";
+                        var chkHtml = `<label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; cursor:pointer; padding:4px 8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox" class="edit-dyn-size-checkbox" data-type="${type}" value="${size}" ${isChecked} /> ${size}
+                                       </label>`;
+                        $container.append(chkHtml);
+                    });
+                }
+
+                $(document).on("click", ".btn-edit-size-select", function(e) {
+                    e.stopPropagation();
+                    var $dropdown = $(this).siblings(".edit-size-dropdown-content");
+                    $(".edit-size-dropdown-content").not($dropdown).hide();
+                    $dropdown.toggle();
+                });
+
+                $(document).click(function() {
+                    $(".edit-size-dropdown-content").hide();
+                });
+
+                $(".edit-size-dropdown-content").click(function(e) {
+                    e.stopPropagation();
+                });
+
+                $(document).on("change", ".edit-dyn-size-checkbox", function() {
+                    var type = $(this).data("type");
+                    var size = $(this).val();
+                    var isChecked = $(this).is(":checked");
+                    
+                    var sizesObj = type === 'open' ? editOpenSizes : editAsortiSizes;
+
+                    if (isChecked) {
+                        if (!sizesObj.hasOwnProperty(size)) {
+                            sizesObj[size] = 0;
+                        }
+                    } else {
+                        delete sizesObj[size];
+                    }
+                    renderEditSizeBadgesToContainer(type);
+                });
+
+                $(document).on("input", ".edit-dyn-size-input", function() {
+                    var type = $(this).data("type");
+                    var size = $(this).data("size");
+                    var val = parseInt($(this).val()) || 0;
+                    
+                    var sizesObj = type === 'open' ? editOpenSizes : editAsortiSizes;
+                    if (sizesObj.hasOwnProperty(size)) {
+                        sizesObj[size] = val;
+                    }
+                    
+                    var total = 0;
+                    for(var k in sizesObj) { total += sizesObj[k]; }
+                    
+                    if (type === 'open') {
+                        $("#editOpenTotalInput").val(total);
+                        $("#editOpenTotalText").text(total);
+                    } else {
+                        $("#editAsortiTotalInput").val(total);
+                        $("#editAsortiTotalText").text(total);
+                    }
+                    calculateEditTotals();
+                });
+
+                window.openEditModelDetailModal = function() {
+                    $("#editModelDetailModal").css("display", "flex");
+                };
+                window.closeEditModelDetailModal = function() {
+                    $("#editModelDetailModal").hide();
+                };
+
                 // Düzenle Modalı Hesaplamaları
                 function calculateEditTotals() {
-                    var s = parseInt($("#editSizeS").val()) || 0;
-                    var m = parseInt($("#editSizeM").val()) || 0;
-                    var l = parseInt($("#editSizeL").val()) || 0;
-                    var xl = parseInt($("#editSizeXL").val()) || 0;
-                    var xxl = parseInt($("#editSize2XL").val()) || 0;
-                    var xxxl = parseInt($("#editSize3XL").val()) || 0;
-                    var openTotal = s + m + l + xl + xxl + xxxl;
-                    $("#editOpenTotalInput").val(openTotal);
-
-                    var as = parseInt($("#editAsortiSizeS").val()) || 0;
-                    var am = parseInt($("#editAsortiSizeM").val()) || 0;
-                    var al = parseInt($("#editAsortiSizeL").val()) || 0;
-                    var axl = parseInt($("#editAsortiSizeXL").val()) || 0;
-                    var axxl = parseInt($("#editAsortiSize2XL").val()) || 0;
-                    var axxxl = parseInt($("#editAsortiSize3XL").val()) || 0;
-                    var asortiTotalRatio = as + am + al + axl + axxl + axxxl;
-                    $("#editAsortiTotalInput").val(asortiTotalRatio);
-
+                    var openTotal = parseInt($("#editOpenTotalInput").val()) || 0;
+                    var asortiTotalRatio = parseInt($("#editAsortiTotalInput").val()) || 0;
+                    
                     var asortiCount = parseInt($("#editAsortiCountInput").val()) || 0;
                     var asortiFinal = asortiTotalRatio * asortiCount;
                     $("#editAsortiFinalInput").val(asortiFinal);
@@ -1223,7 +1316,7 @@
                     $('#editGrandTotal').val(grandTotal.toFixed(2));
                 }
 
-                $(document).on("input", ".edit-open-size, .edit-asorti-size, .edit-asorti-count, .edit-calc-trigger", function() {
+                $(document).on("input", ".edit-asorti-count, .edit-calc-trigger", function() {
                     calculateEditTotals();
                 });
 
@@ -1252,37 +1345,80 @@
                                 $("#editColor").val(order.color || "");
                                 $("#editGoodsDescription").val(order.goodsDescription || "");
                                 $("#editBrand").val(order.brand || "LC WAIKIKI");
-                                $("#editInspectionType").val(order.inspectionType || "");
-                                if (order.inspectionDate) {
-                                    $("#editInspectionDate").val(order.inspectionDate.substring(0, 10));
-                                    $("#editInspectionDate").prop('disabled', false);
-                                } else {
-                                    $("#editInspectionDate").val("");
-                                    $("#editInspectionDate").prop('disabled', true);
-                                }
                                 $("#editFabricSupplier").val(order.fabricSupplier || "");
-                                $("#editDeliveryPlace").val(order.deliveryPlace || "LCWaikiki Depoları");
-                                $("#editIsJIT").val(order.isJIT ? "true" : "false");
-                                $("#editSalesRegion").val(order.salesRegion || "Yurt İçi");
 
-                                // Bedenler
-                                $("#editSizeS").val(order.sizeS || 0);
-                                $("#editSizeM").val(order.sizeM || 0);
-                                $("#editSizeL").val(order.sizeL || 0);
-                                $("#editSizeXL").val(order.sizeXL || 0);
-                                $("#editSize2XL").val(order.size2XL || 0);
-                                $("#editSize3XL").val(order.size3XL || 0);
-
-                                // Asorti
-                                $("#editAsortiSizeS").val(order.asortiSizeS || 0);
-                                $("#editAsortiSizeM").val(order.asortiSizeM || 0);
-                                $("#editAsortiSizeL").val(order.asortiSizeL || 0);
-                                $("#editAsortiSizeXL").val(order.asortiSizeXL || 0);
-                                $("#editAsortiSize2XL").val(order.asortiSize2XL || 0);
-                                $("#editAsortiSize3XL").val(order.asortiSize3XL || 0);
+                                // Bedenler - Dinamik JSON Parse
+                                try {
+                                    editOpenSizes = order.sizeDistributionJson ? JSON.parse(order.sizeDistributionJson) : {};
+                                } catch(e) { editOpenSizes = {}; }
+                                
+                                try {
+                                    editAsortiSizes = order.asortiDistributionJson ? JSON.parse(order.asortiDistributionJson) : {};
+                                } catch(e) { editAsortiSizes = {}; }
+                                
+                                // Geriye dönük uyumluluk için
+                                if (Object.keys(editOpenSizes).length === 0) {
+                                    if(order.sizeS > 0) editOpenSizes["S"] = order.sizeS;
+                                    if(order.sizeM > 0) editOpenSizes["M"] = order.sizeM;
+                                    if(order.sizeL > 0) editOpenSizes["L"] = order.sizeL;
+                                    if(order.sizeXL > 0) editOpenSizes["XL"] = order.sizeXL;
+                                    if(order.size2XL > 0) editOpenSizes["2XL"] = order.size2XL;
+                                    if(order.size3XL > 0) editOpenSizes["3XL"] = order.size3XL;
+                                }
+                                
+                                if (Object.keys(editAsortiSizes).length === 0) {
+                                    if(order.asortiSizeS > 0) editAsortiSizes["S"] = order.asortiSizeS;
+                                    if(order.asortiSizeM > 0) editAsortiSizes["M"] = order.asortiSizeM;
+                                    if(order.asortiSizeL > 0) editAsortiSizes["L"] = order.asortiSizeL;
+                                    if(order.asortiSizeXL > 0) editAsortiSizes["XL"] = order.asortiSizeXL;
+                                    if(order.asortiSize2XL > 0) editAsortiSizes["2XL"] = order.asortiSize2XL;
+                                    if(order.asortiSize3XL > 0) editAsortiSizes["3XL"] = order.asortiSize3XL;
+                                }
+                                
+                                populateEditCheckboxes('open');
+                                populateEditCheckboxes('asorti');
+                                renderEditSizeBadgesToContainer('open');
+                                renderEditSizeBadgesToContainer('asorti');
 
                                 $("#editAsortiCountInput").val(order.asortiCount || 0);
-                                $("#editUnitPrice").val(order.componentUnitPrice || "");
+                                $("#editUnitPrice").val(order.unitPrice || order.componentUnitPrice || "");
+
+                                // Model Detayları ve Aksesuarlar
+                                $("#editUnitFabricMeterage").val(order.unitFabricMeterage || "");
+                                $("#editLargeButtonCount").val(order.largeButtonCount || "");
+                                $("#editSmallButtonCount").val(order.smallButtonCount || "");
+                                $("#editCollarInterliningMeterage").val(order.collarInterliningMeterage || "");
+                                $("#editCuffInterliningMeterage").val(order.cuffInterliningMeterage || "");
+                                $("#editPlacketInterliningMeterage").val(order.placketInterliningMeterage || "");
+                                $("#editPocketFlapInterliningMeterage").val(order.pocketFlapInterliningMeterage || "");
+
+                                $("#editHasPriceCard").prop("checked", order.hasPriceCard || false);
+                                $("#editHasWashingInstruction").prop("checked", order.hasWashingInstruction || false);
+                                $("#editHasInnerBarcode").prop("checked", order.hasInnerBarcode || false);
+                                $("#editHasYokeLabel").prop("checked", order.hasYokeLabel || false);
+                                $("#editHasFifLabel").prop("checked", order.hasFifLabel || false);
+                                $("#editHasOtherCard").prop("checked", order.hasOtherCard || false);
+
+                                var acc = {};
+                                try {
+                                    acc = order.selectedAccessoriesJson ? JSON.parse(order.selectedAccessoriesJson) : {};
+                                } catch(e) { acc = {}; }
+                                
+                                $("#editAcc_KetenKarti").prop("checked", acc.KetenKarti || false);
+                                $("#editAcc_Jelatin").prop("checked", acc.Jelatin || false);
+                                $("#editAcc_Cember").prop("checked", acc.Cember || false);
+                                $("#editAcc_Kelebek").prop("checked", acc.Kelebek || false);
+                                $("#editAcc_LotPoseti").prop("checked", acc.LotPoseti || false);
+                                $("#editAcc_Baski").prop("checked", acc.Baski || false);
+                                $("#editAcc_Nakis").prop("checked", acc.Nakis || false);
+                                $("#editAcc_CitCit").val(acc.CitCit || "");
+                                $("#editAcc_Garni").val(acc.Garni || "");
+                                $("#editAcc_Tela1").val(acc.Tela1 || "");
+                                $("#editAcc_Tela2").val(acc.Tela2 || "");
+                                $("#editAcc_Cep").val(acc.Cep || "");
+                                $("#editAcc_Roba").val(acc.Roba || "");
+                                $("#editAcc_Apolet").val(acc.Apolet || "");
+                                $("#editAcc_Diger").val(acc.Diger || "");
 
                                 calculateEditTotals();
 
@@ -1303,28 +1439,30 @@
                 $("#editOrderForm").on("submit", function(e) {
                     e.preventDefault();
 
-                    var s = parseInt($("#editSizeS").val()) || 0;
-                    var m = parseInt($("#editSizeM").val()) || 0;
-                    var l = parseInt($("#editSizeL").val()) || 0;
-                    var xl = parseInt($("#editSizeXL").val()) || 0;
-                    var xxl = parseInt($("#editSize2XL").val()) || 0;
-                    var xxxl = parseInt($("#editSize3XL").val()) || 0;
+                    var acc = {
+                        KetenKarti: $("#editAcc_KetenKarti").is(":checked"),
+                        Jelatin: $("#editAcc_Jelatin").is(":checked"),
+                        Cember: $("#editAcc_Cember").is(":checked"),
+                        Kelebek: $("#editAcc_Kelebek").is(":checked"),
+                        LotPoseti: $("#editAcc_LotPoseti").is(":checked"),
+                        Baski: $("#editAcc_Baski").is(":checked"),
+                        Nakis: $("#editAcc_Nakis").is(":checked"),
+                        CitCit: parseFloat($("#editAcc_CitCit").val()) || null,
+                        Garni: parseFloat($("#editAcc_Garni").val()) || null,
+                        Tela1: parseFloat($("#editAcc_Tela1").val()) || null,
+                        Tela2: parseFloat($("#editAcc_Tela2").val()) || null,
+                        Cep: parseFloat($("#editAcc_Cep").val()) || null,
+                        Roba: parseFloat($("#editAcc_Roba").val()) || null,
+                        Apolet: parseFloat($("#editAcc_Apolet").val()) || null,
+                        Diger: parseFloat($("#editAcc_Diger").val()) || null
+                    };
 
-                    var openDist = { S: s, M: m, L: l, XL: xl, "2XL": xxl, "3XL": xxxl };
-                    Object.keys(openDist).forEach(function(key) {
-                        if (openDist[key] <= 0) delete openDist[key];
+                    Object.keys(editOpenSizes).forEach(function(key) {
+                        if (editOpenSizes[key] <= 0) delete editOpenSizes[key];
                     });
 
-                    var as = parseInt($("#editAsortiSizeS").val()) || 0;
-                    var am = parseInt($("#editAsortiSizeM").val()) || 0;
-                    var al = parseInt($("#editAsortiSizeL").val()) || 0;
-                    var axl = parseInt($("#editAsortiSizeXL").val()) || 0;
-                    var axxl = parseInt($("#editAsortiSize2XL").val()) || 0;
-                    var axxxl = parseInt($("#editAsortiSize3XL").val()) || 0;
-
-                    var asortiDist = { S: as, M: am, L: al, XL: axl, "2XL": axxl, "3XL": axxxl };
-                    Object.keys(asortiDist).forEach(function(key) {
-                        if (asortiDist[key] <= 0) delete asortiDist[key];
+                    Object.keys(editAsortiSizes).forEach(function(key) {
+                        if (editAsortiSizes[key] <= 0) delete editAsortiSizes[key];
                     });
 
                     var orderObj = {
@@ -1339,24 +1477,45 @@
                         Color: $("#editColor").val(),
                         GoodsDescription: $("#editGoodsDescription").val(),
                         Brand: $("#editBrand").val(),
-                        InspectionType: $("#editInspectionType").val(),
-                        InspectionDate: $("#editInspectionDate").val() || null,
                         FabricSupplier: $("#editFabricSupplier").val(),
-                        DeliveryPlace: $("#editDeliveryPlace").val(),
-                        IsJIT: $("#editIsJIT").val() === "true",
-                        SalesRegion: $("#editSalesRegion").val(),
 
-                        SizeS: s, SizeM: m, SizeL: l, SizeXL: xl, Size2XL: xxl, Size3XL: xxxl,
-                        AsortiSizeS: as, AsortiSizeM: am, AsortiSizeL: al, AsortiSizeXL: axl, AsortiSize2XL: axxl, AsortiSize3XL: axxxl,
-                        AsortiCount: parseInt($("#editAsortiCountInput").val()) || 0,
-                        Quantity: parseInt($("#editQty").val()) || 0,
                         ComponentUnitPrice: parseFloat($("#editUnitPrice").val()) || null,
-                        TotalAmount: parseFloat($("#editTotalAmt").val()) || null,
-                        VatAmount: parseFloat($("#editVatAmt").val()) || null,
-                        TotalAmountWithVat: parseFloat($("#editGrandTotal").val()) || null,
+                        UnitPrice: parseFloat($("#editUnitPrice").val()) || null,
+                        AsortiCount: parseInt($("#editAsortiCountInput").val()) || 0,
 
-                        SizeDistributionJson: JSON.stringify(openDist),
-                        AsortiDistributionJson: JSON.stringify(asortiDist)
+                        SizeDistributionJson: JSON.stringify(editOpenSizes),
+                        AsortiDistributionJson: JSON.stringify(editAsortiSizes),
+
+                        UnitFabricMeterage: parseFloat($("#editUnitFabricMeterage").val()) || null,
+                        LargeButtonCount: parseInt($("#editLargeButtonCount").val()) || null,
+                        SmallButtonCount: parseInt($("#editSmallButtonCount").val()) || null,
+                        CollarInterliningMeterage: parseFloat($("#editCollarInterliningMeterage").val()) || null,
+                        CuffInterliningMeterage: parseFloat($("#editCuffInterliningMeterage").val()) || null,
+                        PlacketInterliningMeterage: parseFloat($("#editPlacketInterliningMeterage").val()) || null,
+                        PocketFlapInterliningMeterage: parseFloat($("#editPocketFlapInterliningMeterage").val()) || null,
+
+                        HasPriceCard: $("#editHasPriceCard").is(":checked"),
+                        HasWashingInstruction: $("#editHasWashingInstruction").is(":checked"),
+                        HasInnerBarcode: $("#editHasInnerBarcode").is(":checked"),
+                        HasYokeLabel: $("#editHasYokeLabel").is(":checked"),
+                        HasFifLabel: $("#editHasFifLabel").is(":checked"),
+                        HasOtherCard: $("#editHasOtherCard").is(":checked"),
+
+                        SelectedAccessoriesJson: JSON.stringify(acc),
+
+                        SizeS: editOpenSizes["S"] || 0,
+                        SizeM: editOpenSizes["M"] || 0,
+                        SizeL: editOpenSizes["L"] || 0,
+                        SizeXL: editOpenSizes["XL"] || 0,
+                        Size2XL: editOpenSizes["2XL"] || 0,
+                        Size3XL: editOpenSizes["3XL"] || 0,
+
+                        AsortiSizeS: editAsortiSizes["S"] || 0,
+                        AsortiSizeM: editAsortiSizes["M"] || 0,
+                        AsortiSizeL: editAsortiSizes["L"] || 0,
+                        AsortiSizeXL: editAsortiSizes["XL"] || 0,
+                        AsortiSize2XL: editAsortiSizes["2XL"] || 0,
+                        AsortiSize3XL: editAsortiSizes["3XL"] || 0
                     };
 
                     $.ajax({

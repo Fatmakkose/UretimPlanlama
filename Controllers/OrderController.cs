@@ -291,8 +291,25 @@ namespace UretimPlanlama.Controllers
                 existingOrder.SizeDistributionJson = updatedOrder.SizeDistributionJson;
                 existingOrder.AsortiDistributionJson = updatedOrder.AsortiDistributionJson;
 
+                // Aksesuar ve Tela Bilgileri
+                existingOrder.SelectedAccessoriesJson = updatedOrder.SelectedAccessoriesJson;
+                existingOrder.UnitFabricMeterage = updatedOrder.UnitFabricMeterage;
+                existingOrder.LargeButtonCount = updatedOrder.LargeButtonCount;
+                existingOrder.SmallButtonCount = updatedOrder.SmallButtonCount;
+                existingOrder.CollarInterliningMeterage = updatedOrder.CollarInterliningMeterage;
+                existingOrder.CuffInterliningMeterage = updatedOrder.CuffInterliningMeterage;
+                existingOrder.PlacketInterliningMeterage = updatedOrder.PlacketInterliningMeterage;
+                existingOrder.PocketFlapInterliningMeterage = updatedOrder.PocketFlapInterliningMeterage;
+                existingOrder.HasPriceCard = updatedOrder.HasPriceCard;
+                existingOrder.HasWashingInstruction = updatedOrder.HasWashingInstruction;
+                existingOrder.HasInnerBarcode = updatedOrder.HasInnerBarcode;
+                existingOrder.HasYokeLabel = updatedOrder.HasYokeLabel;
+                existingOrder.HasFifLabel = updatedOrder.HasFifLabel;
+                existingOrder.HasOtherCard = updatedOrder.HasOtherCard;
+
                 // Finansal özellikleri güncelle
                 existingOrder.ComponentUnitPrice = updatedOrder.ComponentUnitPrice;
+                existingOrder.UnitPrice = updatedOrder.UnitPrice;
                 existingOrder.TotalAmount = updatedOrder.TotalAmount;
                 existingOrder.VatAmount = updatedOrder.VatAmount;
                 existingOrder.TotalAmountWithVat = updatedOrder.TotalAmountWithVat;
