@@ -135,7 +135,9 @@ namespace UretimPlanlama.Models
 
         // --- MODEL DETAYLARI VE AKSESUAR / TELA BİLGİLERİ ---
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? UnitFabricMeterage { get; set; } // Birim Kumaş Metrajı (m)
+        public decimal? UnitFabricMeterage { get; set; } // Birim Kumaş Miktarı
+
+        public string? FabricUnit { get; set; } // Kumaş Birimi (Metraj (m) veya Kg)
 
         public int? LargeButtonCount { get; set; } // Büyük Düğme Sayısı
         public int? SmallButtonCount { get; set; } // Küçük Düğme Sayısı
@@ -148,18 +150,21 @@ namespace UretimPlanlama.Models
         public bool HasFifLabel { get; set; } // Fif Etiketi
         public bool HasOtherCard { get; set; } // Diğer Kart
 
-        // Tela Bilgisi (Birim Metraj)
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? CollarInterliningMeterage { get; set; } // Yaka Telası (m)
+        // --- ASTAR VE TELA BİLGİLERİ (CİNSİ / GRAM / RENK) ---
+        public string? KusakAstarGram { get; set; }
+        public string? KusakTelaRenk { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? CuffInterliningMeterage { get; set; } // Manşet Telası (m)
+        public string? YakaAstarGram { get; set; }
+        public string? YakaTelaRenk { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? PlacketInterliningMeterage { get; set; } // Pat Telası (m)
+        public string? MansetAstarGram { get; set; }
+        public string? MansetTelaRenk { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? PocketFlapInterliningMeterage { get; set; } // Cep Kapağı Telası (m)
+        public string? KapakAstarGram { get; set; }
+        public string? KapakTelaRenk { get; set; }
+
+        public string? BossAstarGram { get; set; }
+        public string? BossTelaRenk { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal? TargetFabricQty { get; set; }

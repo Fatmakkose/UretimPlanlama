@@ -295,12 +295,19 @@ namespace UretimPlanlama.Controllers
                 // Aksesuar ve Tela Bilgileri
                 existingOrder.SelectedAccessoriesJson = updatedOrder.SelectedAccessoriesJson;
                 existingOrder.UnitFabricMeterage = updatedOrder.UnitFabricMeterage;
+                existingOrder.FabricUnit = updatedOrder.FabricUnit;
                 existingOrder.LargeButtonCount = updatedOrder.LargeButtonCount;
                 existingOrder.SmallButtonCount = updatedOrder.SmallButtonCount;
-                existingOrder.CollarInterliningMeterage = updatedOrder.CollarInterliningMeterage;
-                existingOrder.CuffInterliningMeterage = updatedOrder.CuffInterliningMeterage;
-                existingOrder.PlacketInterliningMeterage = updatedOrder.PlacketInterliningMeterage;
-                existingOrder.PocketFlapInterliningMeterage = updatedOrder.PocketFlapInterliningMeterage;
+                existingOrder.KusakAstarGram = updatedOrder.KusakAstarGram;
+                existingOrder.KusakTelaRenk = updatedOrder.KusakTelaRenk;
+                existingOrder.YakaAstarGram = updatedOrder.YakaAstarGram;
+                existingOrder.YakaTelaRenk = updatedOrder.YakaTelaRenk;
+                existingOrder.MansetAstarGram = updatedOrder.MansetAstarGram;
+                existingOrder.MansetTelaRenk = updatedOrder.MansetTelaRenk;
+                existingOrder.KapakAstarGram = updatedOrder.KapakAstarGram;
+                existingOrder.KapakTelaRenk = updatedOrder.KapakTelaRenk;
+                existingOrder.BossAstarGram = updatedOrder.BossAstarGram;
+                existingOrder.BossTelaRenk = updatedOrder.BossTelaRenk;
                 existingOrder.HasPriceCard = updatedOrder.HasPriceCard;
                 existingOrder.HasWashingInstruction = updatedOrder.HasWashingInstruction;
                 existingOrder.HasInnerBarcode = updatedOrder.HasInnerBarcode;

@@ -695,11 +695,11 @@
                 
                 <div class="dash-card" style="flex: 1; background: #0f172a; color: white; padding: 20px; display: flex; flex-direction: column;">
                     <div style="font-size: 1.1rem; font-weight: 600;">Üretim Verimliliği</div>
-                    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px;">Son 7 günlük performans analizi</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px;">Zamanında (gecikmeden) tamamlanan siparişlerin oranı</div>
                     
                     <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: auto;">
-                        <span style="font-size: 2.8rem; font-weight: 700;">%92.4</span>
-                        <span style="color: #22c55e; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-arrow-trend-up"></i> 1.2%</span>
+                        <span style="font-size: 2.8rem; font-weight: 700;">%@(ViewBag.EfficiencyPercentage ?? 0)</span>
+                        <span style="color: #94a3b8; font-size: 0.9rem; font-weight: 500;">(@(ViewBag.OnTimeCompleted ?? 0) / @(ViewBag.TotalCompleted ?? 0) sipariş)</span>
                     </div>
 
                     <!-- CSS Bar Chart Mockup -->
@@ -1419,9 +1419,10 @@
 
                             // Model Detayları
                             $("#detModelUnitPrice").html(formatCurrency(order.unitPrice));
-                            $("#detUnitFabric").text(order.unitFabricMeterage ? order.unitFabricMeterage + " m" : "-");
+                            var fUnit = order.fabricUnit ? " " + order.fabricUnit : " m";
+                            $("#detUnitFabric").text(order.unitFabricMeterage ? order.unitFabricMeterage + fUnit : "-");
                             
-                            var totalFabric = order.unitFabricMeterage ? (openTotal * order.unitFabricMeterage).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + " m" : "-";
+                            var totalFabric = order.unitFabricMeterage ? (openTotal * order.unitFabricMeterage).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + fUnit : "-";
                             $("#detTotalFabricNeed").text(totalFabric);
                             
                             $("#detUnitLargeButton").text(order.largeButtonCount !== null ? order.largeButtonCount + " Adet" : "-");

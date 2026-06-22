@@ -128,84 +128,72 @@
                         </div>
                     </div>
 
-                    <!-- Baskı Nakış -->
-                    <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Baskı ve Nakış</label>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Baski" value="true" /> Baskı Var</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Nakis" value="true" /> Nakış Var</label>
-                        </div>
-                    </div>
+
 
                     <!-- Kumaş ve Düğme -->
                     <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
                         <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Ana Kumaş (m)</label>
-                            <input type="number" step="0.01" name="UnitFabricMeterage" class="form-control" placeholder="Örn: 1.2" />
+                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Ana Kumaş Miktarı</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="number" step="0.01" name="UnitFabricMeterage" class="form-control" placeholder="Miktar" style="flex: 1;" />
+                                <select name="FabricUnit" class="form-control" style="width: 110px; flex-shrink: 0; padding: 0 8px;">
+                                    <option value="Metraj (m)">Metraj</option>
+                                    <option value="Kg">Kg</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Garni Kumaş (m)</label>
-                            <input type="number" step="0.01" name="Acc_Garni" class="form-control" placeholder="Örn: 0.5" />
-                        </div>
+
                         <div></div>
                         <div>
                             <label style="font-size:0.85rem; font-weight:600; color:#475569;">Büyük Düğme</label>
-                            <input type="number" name="LargeButtonCount" class="form-control" placeholder="Adet" />
+                            <input type="number" step="1" name="LargeButtonCount" class="form-control" placeholder="Adet" />
                         </div>
                         <div>
                             <label style="font-size:0.85rem; font-weight:600; color:#475569;">Küçük Düğme</label>
-                            <input type="number" name="SmallButtonCount" class="form-control" placeholder="Adet" />
-                        </div>
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Çıt Çıt</label>
-                            <input type="number" name="Acc_CitCit" class="form-control" placeholder="Adet" />
+                            <input type="number" step="1" name="SmallButtonCount" class="form-control" placeholder="Adet" />
                         </div>
                     </div>
 
-                    <!-- Tela ve Parçalar -->
+                    <!-- Astar ve Tela İhtiyacı -->
                     <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Tela ve Ek Parça Metrajları (m)</label>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Yaka Telası</label>
-                                <input type="number" step="0.01" name="CollarInterliningMeterage" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Manşet Telası</label>
-                                <input type="number" step="0.01" name="CuffInterliningMeterage" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Pat Telası</label>
-                                <input type="number" step="0.01" name="PlacketInterliningMeterage" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Cep Kapağı</label>
-                                <input type="number" step="0.01" name="PocketFlapInterliningMeterage" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Tela 1</label>
-                                <input type="number" step="0.01" name="Acc_Tela1" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Tela 2</label>
-                                <input type="number" step="0.01" name="Acc_Tela2" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Cep</label>
-                                <input type="number" step="0.01" name="Acc_Cep" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Roba</label>
-                                <input type="number" step="0.01" name="Acc_Roba" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Apolet</label>
-                                <input type="number" step="0.01" name="Acc_Apolet" class="form-control" />
-                            </div>
-                            <div>
-                                <label style="font-size:0.8rem; color:#64748b; font-weight:600;">Diğer Parça</label>
-                                <input type="number" step="0.01" name="Acc_Diger" class="form-control" />
-                            </div>
+                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Astar ve Tela İhtiyacı</label>
+                        <div style="overflow-x: auto;">
+                            <table class="table" style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 0;">
+                                <thead style="background-color: #f1f5f9;">
+                                    <tr>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">CİNSİ</th>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">ASTAR (GRAM)</th>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA İHTİYACI (RENK)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">KUŞAK</td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">YAKA</td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">MANŞET</td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">KAPAK</td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">BOSS</td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -666,11 +654,7 @@
                     customAcc.Cember = $("#newOrderForm input[name='Acc_Cember']").is(':checked');
                     customAcc.Kelebek = $("#newOrderForm input[name='Acc_Kelebek']").is(':checked');
                     customAcc.LotPoseti = $("#newOrderForm input[name='Acc_LotPoseti']").is(':checked');
-                    customAcc.Baski = $("#newOrderForm input[name='Acc_Baski']").is(':checked');
-                    customAcc.Nakis = $("#newOrderForm input[name='Acc_Nakis']").is(':checked');
 
-                    customAcc.CitCit = parseFloat($("#newOrderForm input[name='Acc_CitCit']").val()) || null;
-                    customAcc.Garni = parseFloat($("#newOrderForm input[name='Acc_Garni']").val()) || null;
                     customAcc.Tela1 = parseFloat($("#newOrderForm input[name='Acc_Tela1']").val()) || null;
                     customAcc.Tela2 = parseFloat($("#newOrderForm input[name='Acc_Tela2']").val()) || null;
                     customAcc.Cep = parseFloat($("#newOrderForm input[name='Acc_Cep']").val()) || null;

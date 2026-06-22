@@ -224,6 +224,16 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction("AccessDenied", "Account");
             }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
+            
+            var completedOrders = orders.Where(o => o.Status == "Tamamlandı" || o.PackagingEndDate.HasValue).ToList();
+            int totalCompleted = completedOrders.Count;
+            int onTimeCompleted = completedOrders.Count(o => o.PlannedPackagingEndDate.HasValue && o.PackagingEndDate.HasValue && o.PackagingEndDate.Value.Date <= o.PlannedPackagingEndDate.Value.Date);
+            double efficiency = totalCompleted > 0 ? Math.Round((double)onTimeCompleted / totalCompleted * 100, 1) : 0;
+            
+            ViewBag.EfficiencyPercentage = efficiency;
+            ViewBag.TotalCompleted = totalCompleted;
+            ViewBag.OnTimeCompleted = onTimeCompleted;
+
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             ViewBag.SelectedId = selectedId;

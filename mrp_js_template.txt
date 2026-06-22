@@ -1,0 +1,177 @@
+function calculateMRP() {
+    var hasMissing = false;
+
+    document.querySelectorAll('.color-pane').forEach(function(pane) {
+        var siparisAdetiEl = pane.querySelector('.mrp-siparis-adeti');
+        if(!siparisAdetiEl) return;
+        
+        var siparisAdeti = parseTurkishFloat(siparisAdetiEl.value || "0");
+        
+        var bedenMiktar = parseTurkishFloat(pane.querySelector('.mrp-beden-miktar')?.value || "0");
+        var bedenMetraj = parseTurkishFloat(pane.querySelector('.mrp-beden-metraj')?.value || "1");
+        var istenenMetraj = parseTurkishFloat(pane.querySelector('.mrp-istenen-metraj')?.value || "1");
+
+        var bedenCikacak = (bedenMiktar / bedenMetraj) || 0;
+        var bedenCikacakEl = pane.querySelector('.mrp-beden-cikacak');
+        if(bedenCikacakEl) bedenCikacakEl.innerText = Math.round(bedenCikacak).toLocaleString('tr-TR');
+
+        var istenenKumasMiktarEl = pane.querySelector('.mrp-istenen-kumas-miktar');
+        if(istenenKumasMiktarEl) istenenKumasMiktarEl.innerText = Math.round(siparisAdeti * istenenMetraj).toLocaleString('tr-TR');
+
+        var istenenCikacakEl = pane.querySelector('.mrp-istenen-kumas-cikacak');
+        if(istenenCikacakEl) istenenCikacakEl.innerText = siparisAdeti.toLocaleString('tr-TR');
+
+        var jobQty = bedenCikacak;
+
+        pane.querySelectorAll('.mrp-row').forEach(function(row) {
+            var birimInput = row.querySelector('.row-birim');
+            var isAdetiEl = row.querySelector('.row-is-adeti');
+            var toplamEl = row.querySelector('.row-toplam');
+            var fireInput = row.querySelector('.row-fire');
+            var fazlaEl = row.querySelector('.row-fazla');
+            var istenenEl = row.querySelector('.row-istenen');
+            var gelenInput = row.querySelector('.row-gelen');
+            var artiEksiEl = row.querySelector('.row-arti-eksi');
+
+            var birim = parseTurkishFloat(birimInput?.value || "0");
+            var fire = parseTurkishFloat(fireInput?.value || "0");
+            var gelen = parseTurkishFloat(gelenInput?.value || "0");
+
+            if(isAdetiEl) isAdetiEl.innerText = Math.round(jobQty).toLocaleString('tr-TR');
+
+            var toplam = jobQty * birim;
+            if(toplamEl) toplamEl.innerText = Math.round(toplam).toLocaleString('tr-TR');
+
+            var fazla = Math.round(toplam * (fire / 100));
+            if(fazlaEl) fazlaEl.innerText = fazla.toLocaleString('tr-TR');
+
+            var istenen = Math.round(toplam + fazla);
+            if(istenenEl) istenenEl.innerText = istenen.toLocaleString('tr-TR');
+
+            var artiEksi = gelen - istenen;
+            if(artiEksi < 0) hasMissing = true;
+
+            if(artiEksiEl) {
+                artiEksiEl.innerText = Math.round(artiEksi).toLocaleString('tr-TR');
+                if(artiEksi < 0) artiEksiEl.style.color = '#dc2626';
+                else if (artiEksi > 0) artiEksiEl.style.color = '#16a34a';
+                else artiEksiEl.style.color = '#0f172a';
+            }
+        });
+
+        pane.querySelectorAll('.interlining-row').forEach(function(row) {
+            var isMiktariEl = row.querySelector('.row-is-miktari');
+            var birimInput = row.querySelector('.row-tela-birim');
+            var ihtiyacEl = row.querySelector('.row-ihtiyac');
+
+            var birim = parseTurkishFloat(birimInput?.value || "0");
+
+            if(isMiktariEl) isMiktariEl.innerText = Math.round(jobQty).toLocaleString('tr-TR');
+
+            var ihtiyac = Math.round(jobQty * birim);
+            if(ihtiyacEl) ihtiyacEl.innerText = ihtiyac.toLocaleString('tr-TR');
+        });
+    });
+
+    var missingInput = document.getElementById('pur_has_missing_materials');
+    if(missingInput) missingInput.value = hasMissing ? "true" : "false";
+}
+
+document.getElementById('colorTabsContainer')?.addEventListener('click', function(e) {
+    if(e.target.closest('.color-tab-add')) {
+        var color = prompt("Yeni renk adi girin (Orn: BLACK, NAVY):");
+        if(color && color.trim() !== "") {
+            color = color.trim().toUpperCase();
+            var existing = document.querySelector(`.color-tab[data-color="${color}"]`);
+            if(existing) {
+                alert("Bu renk zaten var!");
+                return;
+            }
+            
+            var baseColor = null;
+            if(confirm("Yeni rengin tum aksesuar/astar bilgileri mevcut renkten (su an acik olandan) kopyalansin mi?")) {
+                var activeTab = document.querySelector('.color-tab.active');
+                if(activeTab) {
+                    baseColor = activeTab.getAttribute('data-color');
+                }
+            }
+            
+            var paneToClone = document.querySelector('.color-pane.active') || document.querySelector('.color-pane');
+            if(!paneToClone) return;
+            
+            var newPane = paneToClone.cloneNode(true);
+            newPane.id = "pane-" + color;
+            newPane.classList.remove("active");
+            
+            var sourceColor = paneToClone.id.replace("pane-", "");
+            
+            newPane.querySelectorAll('input, select, textarea').forEach(function(input) {
+                if(input.name) {
+                    input.name = input.name.replace("pur_color_" + sourceColor + "_", "pur_color_" + color + "_");
+                }
+                if(!baseColor) {
+                    if(input.type === "text" || input.type === "number") input.value = "0";
+                    else if(input.type === "date") input.value = "";
+                }
+            });
+            
+            // replace color names in titles
+            var titles = newPane.querySelectorAll('.section-title');
+            titles.forEach(function(t) {
+                t.innerHTML = t.innerHTML.replace(sourceColor, color);
+            });
+            var labels = newPane.querySelectorAll('.data-label');
+            labels.forEach(function(t) {
+                t.innerHTML = t.innerHTML.replace(sourceColor, color);
+            });
+            
+            document.getElementById('colorPanesContainer').appendChild(newPane);
+            
+            var newTab = document.createElement('div');
+            newTab.className = "color-tab";
+            newTab.setAttribute("data-color", color);
+            newTab.innerText = color;
+            
+            document.getElementById('btnAddColor').before(newTab);
+            
+            newTab.click();
+            calculateMRP();
+        }
+        return;
+    }
+    
+    var tab = e.target.closest('.color-tab');
+    if(tab) {
+        document.querySelectorAll('.color-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.color-pane').forEach(p => p.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById('pane-' + tab.getAttribute('data-color')).classList.add('active');
+    }
+});
+
+// Event delegation for dynamically added inputs
+document.getElementById('colorPanesContainer')?.addEventListener('input', function(e) {
+    if(e.target.classList.contains('mrp-input') || e.target.classList.contains('interlining-input')) {
+        calculateMRP();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    calculateMRP();
+
+    var purForm = document.getElementById('purchasing-form');
+    if(purForm) {
+        purForm.addEventListener('submit', function(e) {
+            var hasMissing = document.getElementById('pur_has_missing_materials').value === "true";
+            var isCompleted = document.querySelector('input[name="IsPurchasingCompleted"]')?.checked;
+            
+            if (hasMissing && isCompleted) {
+                var result = confirm("Dikkat: Bu sipariste eksik malzemeler bulunmaktadir. Yine de Satin Alma asamasini tamamlanmis olarak isaretlemek istiyor musunuz?");
+                if (!result) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+});
