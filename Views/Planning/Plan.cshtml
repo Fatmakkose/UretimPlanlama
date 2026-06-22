@@ -373,11 +373,12 @@
             </form>
         </div>
 
-        <!-- Sekme 2: Satın Alma -->
+        <!-- Sekme 2: Satın Alma (MRP) -->
         <div id="tab-satinalma" class="tab-content @(activeTab == "satinalma" ? "active" : "")">
-            <form action="/Planning/UpdatePurchasingPlan" method="post">
+            <form id="purchasing-form" action="/Planning/UpdatePurchasingPlan" method="post">
                 <input type="hidden" name="Id" value="@Model.Id" />
-                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Satın Alma & Tedarik Detayları <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">Kumaş ve aksesuar stok durumu ve terminleri</span></h3>
+                <input type="hidden" name="pur_has_missing_materials" id="pur_has_missing_materials" value="false" />
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Kumaş ve Aksesuar Planlaması (MRP) <span style="font-size: 0.85rem; color: #64748b; font-weight: normal;">Kumaş ve aksesuar stok durumu ve hesaplamaları</span></h3>
             
             @{
                 var purData = new System.Collections.Generic.Dictionary<string, string>();
@@ -387,22 +388,23 @@
                         purData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(Model.PurchasingMaterialsJson);
                     } catch {}
                 }
-                string GetPurVal(string key) => purData.ContainsKey(key) ? purData[key] : "";
+                string GetPurVal(string key, string def = "") => purData.ContainsKey(key) ? purData[key] : def;
             }
 
             <input type="hidden" name="ActualFabricMeterage" value="@Model.ActualFabricMeterage" />
             <input type="hidden" name="ActualFabricQty" value="@Model.ActualFabricQty" />
             <input type="hidden" name="AccessoryCompletionDate" value="@(Model.AccessoryCompletionDate?.ToString("yyyy-MM-dd"))" />
+            <input type="hidden" name="PurchasingMaterialsJson" id="PurchasingMaterialsJson" value="@Model.PurchasingMaterialsJson" />
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 <!-- Ana Kumaş Kartı -->
-                <div class="content-section">
+                <div class="content-section" style="margin-bottom: 0;">
                     <div class="section-title">
-                        <i class="fa-solid fa-layer-group"></i> Ana Kumaş
+                        <i class="fa-solid fa-layer-group"></i> Kumaş Metraj Hesabı
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div>
-                            <div class="data-label">KUMAŞÇI</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div style="grid-column: span 2;">
+                            <div class="data-label">KUMAŞ TEDARİKÇİSİ</div>
                             <select name="FabricSupplier" class="input-field">
                                 <option value="">-- Kumaşçı Seçin --</option>
                                 @if (ViewBag.Fabricators != null)
@@ -422,22 +424,52 @@
                             </select>
                         </div>
                         <div>
-                            <div class="data-label">KUMAŞ SEVK-ANLAŞILAN</div>
+                            <div class="data-label">SEVK ANLAŞILAN</div>
                             <input type="date" name="FabricArrivalAgreedDate" class="input-field" value="@(Model.FabricArrivalAgreedDate?.ToString("yyyy-MM-dd"))" />
                         </div>
                         <div>
-                            <div class="data-label">KUMAŞ GELİŞ TARİHİ</div>
+                            <div class="data-label">GELİŞ TARİHİ</div>
                             <input type="date" name="FabricArrivalActualDate" class="input-field" value="@(Model.FabricArrivalActualDate?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                        <div style="grid-column: span 2; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fde68a;">
+                            <div class="data-label" style="color: #b45309;">SİPARİŞ ADETİ</div>
+                            <input type="text" name="pur_siparis_adeti" id="mrp_siparis_adeti" class="input-field mrp-input" value="@GetPurVal("pur_siparis_adeti", Model.Quantity.ToString())" />
+                        </div>
+                        <div style="grid-column: span 2; margin-top: 10px;">
+                            <table class="table-details" style="margin-top:0;">
+                                <thead>
+                                    <tr>
+                                        <th>CİNSİ</th>
+                                        <th>MİKTAR</th>
+                                        <th>METRAJ</th>
+                                        <th>ÇIKACAK / AD</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background-color: #e0e7ff;">
+                                        <td style="font-weight: bold;">BEDEN İÇİN-</td>
+                                        <td><input type="text" name="pur_beden_miktar" id="mrp_beden_miktar" class="input-field mrp-input" value="@GetPurVal("pur_beden_miktar", "0")" style="width: 100%; max-width: 120px; padding: 4px;"/></td>
+                                        <td><input type="text" name="pur_beden_metraj" id="mrp_beden_metraj" class="input-field mrp-input" value="@GetPurVal("pur_beden_metraj", "1")" style="width: 100%; max-width: 120px; padding: 4px;"/></td>
+                                        <td style="font-weight: bold; text-align: right; color: #1e40af; font-size: 1.1rem;" id="mrp_beden_cikacak">0</td>
+                                    </tr>
+                                    <tr style="background-color: #fef08a;">
+                                        <td style="font-weight: bold;">İSTENEN KUMAŞ</td>
+                                        <td style="font-weight: bold; text-align: right; color: #b45309; padding-right: 16px;" id="mrp_istenen_kumas_miktar">0</td>
+                                        <td><input type="text" name="pur_istenen_metraj" id="mrp_istenen_metraj" class="input-field mrp-input" value="@GetPurVal("pur_istenen_metraj", "1")" style="width: 100%; max-width: 120px; padding: 4px;"/></td>
+                                        <td style="font-weight: bold; text-align: right; color: #b45309; font-size: 1.1rem;" id="mrp_istenen_kumas_cikacak">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- Düğme Kartı -->
-                <div class="content-section">
+                <!-- Aksesuar Tarihleri Kartı -->
+                <div class="content-section" style="margin-bottom: 0;">
                     <div class="section-title">
-                        <i class="fa-solid fa-circle-dot"></i> Düğme
+                        <i class="fa-solid fa-calendar-days"></i> Aksesuar Geliş Tarihleri
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
                             <div class="data-label">DÜĞME-GELİŞİ</div>
                             <input type="date" name="pur_dugme_gelisi" class="input-field" value="@GetPurVal("pur_dugme_gelisi")" />
@@ -446,15 +478,6 @@
                             <div class="data-label">DÜĞME DİKİŞ İPİ</div>
                             <input type="date" name="pur_dugme_dikis_ipi" class="input-field" value="@GetPurVal("pur_dugme_dikis_ipi")" />
                         </div>
-                    </div>
-                </div>
-
-                <!-- Aksesuar Kartı -->
-                <div class="content-section">
-                    <div class="section-title">
-                        <i class="fa-solid fa-tags"></i> Aksesuar
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
                         <div>
                             <div class="data-label">ETİKET-GELİŞİ</div>
                             <input type="date" name="pur_etiket_gelisi" class="input-field" value="@GetPurVal("pur_etiket_gelisi")" />
@@ -467,15 +490,6 @@
                             <div class="data-label">FİYAT KART-GELİŞİ</div>
                             <input type="date" name="pur_fiyat_kart_gelisi" class="input-field" value="@GetPurVal("pur_fiyat_kart_gelisi")" />
                         </div>
-                    </div>
-                </div>
-
-                <!-- UKP Malzeme Kartı -->
-                <div class="content-section">
-                    <div class="section-title">
-                        <i class="fa-solid fa-box"></i> UKP Malzeme
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
                         <div>
                             <div class="data-label">YK-İÇ GELİŞİ</div>
                             <input type="date" name="pur_yk_ic_gelisi" class="input-field" value="@GetPurVal("pur_yk_ic_gelisi")" />
@@ -484,75 +498,145 @@
                 </div>
             </div>
 
-            <!-- Malzeme Tablosu (JSON Simülasyonu İçin Gizli Alan) -->
-            <input type="hidden" name="PurchasingMaterialsJson" id="PurchasingMaterialsJson" value="@Model.PurchasingMaterialsJson" />
-            <table class="table-details">
-                <thead>
-                    <tr>
-                        <th>MALZEME TÜRÜ</th>
-                        <th>BİRİM</th>
-                        <th>PLAN</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        var materials = new List<dynamic>();
+            <!-- Malzeme İhtiyaç Tablosu -->
+            <div class="content-section" style="padding: 0; overflow-x: auto;">
+                <div class="section-title" style="padding: 16px 16px 0 16px;">
+                    <i class="fa-solid fa-table-list"></i> Malzeme İhtiyaç Tablosu
+                </div>
+                <table class="table-details" id="mrp-table">
+                    <thead>
+                        <tr>
+                            <th>CİNSİ</th>
+                            <th style="width: 100px;">İŞ ADETİ</th>
+                            <th style="width: 80px;">BİRİM</th>
+                            <th style="width: 100px;">TOPLAM</th>
+                            <th style="width: 60px;">%</th>
+                            <th style="width: 80px; background:#e2e8f0;">% FAZLA</th>
+                            <th style="width: 100px; background:#fef08a;">İSTENEN</th>
+                            <th style="width: 100px; background:#bbf7d0;">GELEN</th>
+                            <th style="width: 100px; background:#fef08a;">ARTI / EKSİ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var materials = new List<dynamic>();
+                            var interlinings = new List<dynamic>();
 
-                        if (Model.LargeButtonCount.HasValue && Model.LargeButtonCount > 0)
-                            materials.Add(new { Name = "Büyük Düğme", DefaultPlan = (decimal)(Model.Quantity * Model.LargeButtonCount.Value), Unit = "ADET", Key = "pur_plan_buyuk_dugme" });
+                            if (Model.LargeButtonCount.HasValue && Model.LargeButtonCount > 0)
+                                materials.Add(new { Name = "Büyük Düğme", DefaultUnit = Model.LargeButtonCount.Value.ToString(), Key = "buyuk_dugme" });
 
-                        if (Model.SmallButtonCount.HasValue && Model.SmallButtonCount > 0)
-                            materials.Add(new { Name = "Küçük Düğme", DefaultPlan = (decimal)(Model.Quantity * Model.SmallButtonCount.Value), Unit = "ADET", Key = "pur_plan_kucuk_dugme" });
+                            if (Model.SmallButtonCount.HasValue && Model.SmallButtonCount > 0)
+                                materials.Add(new { Name = "Küçük Düğme", DefaultUnit = Model.SmallButtonCount.Value.ToString(), Key = "kucuk_dugme" });
 
-                        if (Model.HasPriceCard)
-                            materials.Add(new { Name = "Fiyat Kartı", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_fiyat_karti" });
+                            if (Model.HasPriceCard)
+                                materials.Add(new { Name = "Fiyat Kartı", DefaultUnit = "1", Key = "fiyat_karti" });
 
-                        if (Model.HasWashingInstruction)
-                            materials.Add(new { Name = "Yıkama Talimatı", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_yikama_talimat" });
+                            if (Model.HasWashingInstruction)
+                                materials.Add(new { Name = "Yıkama Talimatı", DefaultUnit = "1", Key = "yikama_talimat" });
 
-                        if (Model.HasInnerBarcode)
-                            materials.Add(new { Name = "İç Barkod", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_ic_barkod" });
+                            if (Model.HasInnerBarcode)
+                                materials.Add(new { Name = "İç Barkod", DefaultUnit = "1", Key = "ic_barkod" });
 
-                        if (Model.HasYokeLabel)
-                            materials.Add(new { Name = "Roba Etiketi", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_roba_etiket" });
+                            if (Model.HasYokeLabel)
+                                materials.Add(new { Name = "Roba Etiketi", DefaultUnit = "1", Key = "roba_etiket" });
 
-                        if (Model.HasFifLabel)
-                            materials.Add(new { Name = "Fif Etiketi", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_fif_etiket" });
+                            if (Model.HasFifLabel)
+                                materials.Add(new { Name = "Fif Etiketi", DefaultUnit = "1", Key = "fif_etiket" });
 
-                        if (Model.HasOtherCard)
-                            materials.Add(new { Name = "Diğer Kart", DefaultPlan = (decimal)Model.Quantity, Unit = "ADET", Key = "pur_plan_diger_kart" });
+                            if (Model.HasOtherCard)
+                                materials.Add(new { Name = "Diğer Kart", DefaultUnit = "1", Key = "diger_kart" });
 
-                        if (Model.CollarInterliningMeterage.HasValue && Model.CollarInterliningMeterage > 0)
-                            materials.Add(new { Name = "Yaka Telası", DefaultPlan = (decimal)(Model.Quantity * Model.CollarInterliningMeterage.Value), Unit = "METRE", Key = "pur_plan_yaka_tela" });
+                            // Telaları ayırıyoruz
+                            if (Model.CollarInterliningMeterage.HasValue && Model.CollarInterliningMeterage > 0)
+                                interlinings.Add(new { Name = "Yaka Telası", DefaultUnit = Model.CollarInterliningMeterage.Value.ToString("0.###").Replace(",", "."), Key = "yaka_tela" });
 
-                        if (Model.CuffInterliningMeterage.HasValue && Model.CuffInterliningMeterage > 0)
-                            materials.Add(new { Name = "Manşet Telası", DefaultPlan = (decimal)(Model.Quantity * Model.CuffInterliningMeterage.Value), Unit = "METRE", Key = "pur_plan_manset_tela" });
+                            if (Model.CuffInterliningMeterage.HasValue && Model.CuffInterliningMeterage > 0)
+                                interlinings.Add(new { Name = "Manşet Telası", DefaultUnit = Model.CuffInterliningMeterage.Value.ToString("0.###").Replace(",", "."), Key = "manset_tela" });
 
-                        if (Model.PlacketInterliningMeterage.HasValue && Model.PlacketInterliningMeterage > 0)
-                            materials.Add(new { Name = "Pat Telası", DefaultPlan = (decimal)(Model.Quantity * Model.PlacketInterliningMeterage.Value), Unit = "METRE", Key = "pur_plan_pat_tela" });
+                            if (Model.PlacketInterliningMeterage.HasValue && Model.PlacketInterliningMeterage > 0)
+                                interlinings.Add(new { Name = "Pat Telası", DefaultUnit = Model.PlacketInterliningMeterage.Value.ToString("0.###").Replace(",", "."), Key = "pat_tela" });
 
-                        if (!materials.Any())
-                        {
-                            <tr>
-                                <td colspan="3" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş herhangi bir aksesuar/malzeme bulunmamaktadır.</td>
-                            </tr>
-                        }
-                        else
-                        {
-                            foreach (var item in materials)
+                            if (!materials.Any())
                             {
-                                string valStr = GetPurVal(item.Key);
-
                                 <tr>
-                                    <td>@item.Name</td>
-                                    <td style="font-weight: 600; color: #64748b;">@item.Unit</td>
-                                    <td><input type="text" name="@item.Key" class="input-field" value="@valStr" style="width: 150px; padding: 4px;" /></td>
+                                    <td colspan="9" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş herhangi bir aksesuar bulunmamaktadır.</td>
                                 </tr>
                             }
+                            else
+                            {
+                                foreach (var item in materials)
+                                {
+                                    string unitVal = GetPurVal($"pur_birim_{item.Key}", item.DefaultUnit);
+                                    string fireVal = GetPurVal($"pur_fire_{item.Key}", "0");
+                                    string gelenVal = GetPurVal($"pur_gelen_{item.Key}", "0");
+
+                                    <tr class="mrp-row">
+                                        <td style="font-weight: 600;">@item.Name</td>
+                                        <td class="row-is-adeti" style="text-align: right; color: #64748b; font-weight: 600;">0</td>
+                                        <td><input type="text" name="pur_birim_@item.Key" class="input-field mrp-input row-birim" value="@unitVal" style="width: 100%; padding: 4px;" /></td>
+                                        <td class="row-toplam" style="text-align: right; font-weight: 600; color: #0f172a;">0</td>
+                                        <td><input type="text" name="pur_fire_@item.Key" class="input-field mrp-input row-fire" value="@fireVal" style="width: 100%; padding: 4px;" /></td>
+                                        <td class="row-fazla" style="text-align: right; background:#e2e8f0; color: #0f172a; font-weight: 600;">0</td>
+                                        <td class="row-istenen" style="text-align: right; font-weight: 700; color: #b45309; background:#fef08a;">0</td>
+                                        <td style="background:#bbf7d0; padding: 4px;"><input type="text" name="pur_gelen_@item.Key" class="input-field mrp-input row-gelen" value="@gelenVal" style="width: 100%; padding: 4px; border-color: #4ade80;" /></td>
+                                        <td class="row-arti-eksi" style="text-align: right; font-weight: 700; background:#fef08a;">0</td>
+                                    </tr>
+                                }
+                            }
                         }
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Astar Tela İhtiyaç Tablosu -->
+            <div class="content-section" style="padding: 0; overflow-x: auto; margin-top: 16px;">
+                <div class="section-title" style="padding: 16px 16px 0 16px;">
+                    <i class="fa-solid fa-layer-group"></i> Astar Tela İhtiyacı
+                </div>
+                <table class="table-details" id="interlining-table">
+                    <thead>
+                        <tr>
+                            <th>CİNSİ</th>
+                            <th style="width: 100px;">İŞ MİKTARI</th>
+                            <th style="width: 80px;">BİRİM</th>
+                            <th style="width: 100px; background:#fef08a;">İHTİYAÇ</th>
+                            <th style="width: 100px;">TELA (METRE)</th>
+                            <th style="width: 100px;">ADET</th>
+                            <th style="width: 100px;">METRAJ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            if (!interlinings.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş herhangi bir tela bulunmamaktadır.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var item in interlinings)
+                                {
+                                    string unitVal = GetPurVal($"pur_tela_birim_{item.Key}", item.DefaultUnit);
+                                    string metreVal = GetPurVal($"pur_tela_metre_{item.Key}", "0");
+                                    string adetVal = GetPurVal($"pur_tela_adet_{item.Key}", "0");
+                                    string metrajVal = GetPurVal($"pur_tela_metraj_{item.Key}", "0");
+
+                                    <tr class="interlining-row">
+                                        <td style="font-weight: 600;">@item.Name</td>
+                                        <td class="row-is-miktari" style="text-align: right; color: #64748b; font-weight: 600;">0</td>
+                                        <td><input type="text" name="pur_tela_birim_@item.Key" class="input-field interlining-input row-tela-birim" value="@unitVal" style="width: 100%; padding: 4px;" /></td>
+                                        <td class="row-ihtiyac" style="text-align: right; font-weight: 700; color: #b45309; background:#fef08a;">0</td>
+                                        <td><input type="text" name="pur_tela_metre_@item.Key" class="input-field" value="@metreVal" style="width: 100%; padding: 4px;" /></td>
+                                        <td><input type="text" name="pur_tela_adet_@item.Key" class="input-field" value="@adetVal" style="width: 100%; padding: 4px;" /></td>
+                                        <td><input type="text" name="pur_tela_metraj_@item.Key" class="input-field" value="@metrajVal" style="width: 100%; padding: 4px;" /></td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
             
             <div style="display: flex; justify-content: space-between; margin-top: 20px; align-items: center;">
                 <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0f172a;">
@@ -739,4 +823,166 @@
 
     document.getElementById('orderSearch').addEventListener('keyup', filterOrders);
     document.getElementById('showAllOrders').addEventListener('change', filterOrders);
+
+    // Yardımcı Fonksiyon: Sayı çevirici (11.800,25 gibi Türkçe formatları destekler)
+    function parseTurkishFloat(str) {
+        if (!str) return 0;
+        // Eğer içinde hem nokta hem virgül varsa (örn: 11.800,25) -> noktaları sil, virgülü noktaya çevir
+        // Eğer sadece nokta varsa ve ondalık kısımsa veya binlik kısımsa -> duruma göre ele almak lazım.
+        // Güvenli yöntem: Tüm noktaları sil, sadece virgülü ondalık olarak kabul et. (11.800 -> 11800)
+        // Ancak kullanıcı bazen İngilizce formatta "11.8" girebilir.
+        // Şöyle yapalım: Son ayırıcıyı bulalım.
+        var s = str.trim();
+        if(s === "") return 0;
+        
+        // Eğer string'de virgül varsa, noktaları binlik ayracı sayıp silelim, virgülü ondalık yapalım.
+        if (s.indexOf(',') > -1) {
+            s = s.replace(/\./g, '').replace(',', '.');
+        } else {
+            // Eğer string'de nokta varsa ve birden fazlaysa veya 3 haneden sonraysa, bunu binlik yap.
+            // En iyisi Excel mantığı: Virgül ondalıktır. Nokta varsa binlik ayracıdır.
+            // Ama kullanıcı ondalık için nokta kullanıyorsa? (Örn 1.23)
+            // Noktadan sonra 2 hane veya 1 hane varsa genelde ondalıktır.
+            // Biz basitçe virgülü ondalık nokta yapalım. Noktaları silelim.
+            // Ancak kullanıcı "1.23" yazarsa bu 123 olur! 
+            // O yüzden nokta varsa ve virgül yoksa, noktanın sonuncu olduğu duruma bakalım.
+            var lastDot = s.lastIndexOf('.');
+            if (lastDot > -1 && s.length - lastDot <= 3) {
+                // Muhtemelen ondalık noktası
+            } else {
+                // Binlik ayracı
+                s = s.replace(/\./g, '');
+            }
+        }
+        return parseFloat(s) || 0;
+    }
+
+    // MRP Hesaplamaları
+    function calculateMRP() {
+        // Beden İçin Çıkacak İş Adeti
+        var bedenMiktarStr = document.getElementById('mrp_beden_miktar')?.value || "0";
+        var bedenMetrajStr = document.getElementById('mrp_beden_metraj')?.value || "1";
+        
+        var bedenMiktar = parseTurkishFloat(bedenMiktarStr);
+        var bedenMetraj = parseTurkishFloat(bedenMetrajStr);
+        if(bedenMetraj === 0) bedenMetraj = 1;
+        
+        var bedenCikacak = Math.floor(bedenMiktar / bedenMetraj);
+        
+        var bedenCikacakEl = document.getElementById('mrp_beden_cikacak');
+        if(bedenCikacakEl) bedenCikacakEl.innerText = bedenCikacak.toLocaleString('tr-TR');
+
+        // İstenen Kumaş Miktarı ve Çıkacak
+        var siparisAdetiStr = document.getElementById('mrp_siparis_adeti')?.value || "0";
+        var siparisAdeti = parseInt(parseTurkishFloat(siparisAdetiStr)) || 0;
+        
+        var istenenMetrajStr = document.getElementById('mrp_istenen_metraj')?.value || "1";
+        var istenenMetraj = parseTurkishFloat(istenenMetrajStr);
+        if(istenenMetraj === 0) istenenMetraj = 1;
+
+        var istenenMiktar = siparisAdeti * istenenMetraj;
+        var istenenMiktarEl = document.getElementById('mrp_istenen_kumas_miktar');
+        if(istenenMiktarEl) istenenMiktarEl.innerText = istenenMiktar.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        // İstenen kumaş çıkacak adeti her zaman siparisAdeti'dir
+        var istenenCikacakEl = document.getElementById('mrp_istenen_kumas_cikacak');
+        if(istenenCikacakEl) istenenCikacakEl.innerText = siparisAdeti.toLocaleString('tr-TR');
+
+        // Tablo hesaplamalarında kullanılacak genel "İş Adeti", Beden İçin çıkacak adettir.
+        var jobQty = bedenCikacak;
+
+        var hasMissing = false;
+
+        // Tablo Satırları Hesaplamaları
+        document.querySelectorAll('.mrp-row').forEach(function(row) {
+            var birimInput = row.querySelector('.row-birim');
+            var isAdetiEl = row.querySelector('.row-is-adeti');
+            var toplamEl = row.querySelector('.row-toplam');
+            var fireInput = row.querySelector('.row-fire');
+            var fazlaEl = row.querySelector('.row-fazla');
+            var istenenEl = row.querySelector('.row-istenen');
+            var gelenInput = row.querySelector('.row-gelen');
+            var artiEksiEl = row.querySelector('.row-arti-eksi');
+
+            var birim = parseTurkishFloat(birimInput?.value || "0");
+            var fire = parseTurkishFloat(fireInput?.value || "0");
+            var gelen = parseTurkishFloat(gelenInput?.value || "0");
+
+            // İş Adeti (Ana kumaştan hesaplanan)
+            if(isAdetiEl) isAdetiEl.innerText = jobQty.toLocaleString('tr-TR');
+
+            // Toplam
+            var toplam = jobQty * birim;
+            if(toplamEl) toplamEl.innerText = Math.round(toplam).toLocaleString('tr-TR');
+
+            // % Fazla
+            var fazla = Math.round(toplam * (fire / 100));
+            if(fazlaEl) fazlaEl.innerText = fazla.toLocaleString('tr-TR');
+
+            // İstenen = Toplam + Fazla
+            var istenen = Math.round(toplam + fazla);
+            if(istenenEl) istenenEl.innerText = istenen.toLocaleString('tr-TR');
+
+            // Artı/Eksi
+            var artiEksi = gelen - istenen;
+            if(artiEksi < 0) hasMissing = true;
+
+            if(artiEksiEl) {
+                artiEksiEl.innerText = Math.round(artiEksi).toLocaleString('tr-TR');
+                if(artiEksi < 0) {
+                    artiEksiEl.style.color = '#dc2626'; // Kırmızı
+                } else if (artiEksi > 0) {
+                    artiEksiEl.style.color = '#16a34a'; // Yeşil
+                } else {
+                    artiEksiEl.style.color = '#0f172a'; // Siyah
+                }
+            }
+        });
+
+        // Astar Tela İhtiyacı Hesaplamaları
+        document.querySelectorAll('.interlining-row').forEach(function(row) {
+            var isMiktariEl = row.querySelector('.row-is-miktari');
+            var birimInput = row.querySelector('.row-tela-birim');
+            var ihtiyacEl = row.querySelector('.row-ihtiyac');
+
+            var birim = parseTurkishFloat(birimInput?.value || "0");
+
+            // İş Miktarı (Ana kumaştan hesaplanan)
+            if(isMiktariEl) isMiktariEl.innerText = jobQty.toLocaleString('tr-TR');
+
+            // İhtiyaç = İş Miktarı * Birim
+            var ihtiyac = Math.round(jobQty * birim);
+            if(ihtiyacEl) ihtiyacEl.innerText = ihtiyac.toLocaleString('tr-TR');
+        });
+
+        var missingInput = document.getElementById('pur_has_missing_materials');
+        if(missingInput) missingInput.value = hasMissing ? "true" : "false";
+    }
+
+    document.querySelectorAll('.mrp-input').forEach(function(input) {
+        input.addEventListener('input', calculateMRP);
+    });
+
+    document.querySelectorAll('.interlining-input').forEach(function(input) {
+        input.addEventListener('input', calculateMRP);
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateMRP();
+
+        var purForm = document.getElementById('purchasing-form');
+        if(purForm) {
+            purForm.addEventListener('submit', function(e) {
+                var hasMissing = document.getElementById('pur_has_missing_materials').value === "true";
+                var isCompleted = document.querySelector('input[name="IsPurchasingCompleted"]').checked;
+                
+                if (hasMissing && isCompleted) {
+                    var result = confirm("Dikkat: Bu siparişte eksik malzemeler bulunmaktadır (kırmızı değerler). Yine de Satın Alma aşamasını tamamlanmış olarak işaretlemek istiyor musunuz? (Eksikler takip listesine eklenecektir)");
+                    if (!result) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        }
+    });
 </script>

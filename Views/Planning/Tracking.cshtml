@@ -393,161 +393,359 @@
 </style>
 
 @{
-    // İstatistik hesaplamaları
-    var totalOrders = Model.Count;
-    var awaitingFabric = Model.Count(o => !o.FabricArrivalActualDate.HasValue);
-    var inProduction = Model.Count(o => (o.CuttingStartDate.HasValue || o.SewingStartDate.HasValue) && !o.WarehouseArrivalDate.HasValue);
-    var delayedOrders = Model.Count(o => 
-        (o.FabricArrivalAgreedDate.HasValue && ((o.FabricArrivalActualDate.HasValue && o.FabricArrivalActualDate > o.FabricArrivalAgreedDate) || (!o.FabricArrivalActualDate.HasValue && DateTime.Today > o.FabricArrivalAgreedDate))) ||
-        (o.PlannedCuttingEndDate.HasValue && ((o.CuttingEndDate.HasValue && o.CuttingEndDate > o.PlannedCuttingEndDate) || (!o.CuttingEndDate.HasValue && DateTime.Today > o.PlannedCuttingEndDate))) ||
-        (o.PlannedSewingEndDate.HasValue && ((o.SewingEndDate.HasValue && o.SewingEndDate > o.PlannedSewingEndDate) || (!o.SewingEndDate.HasValue && DateTime.Today > o.PlannedSewingEndDate))) ||
-        (o.PlannedPackagingEndDate.HasValue && ((o.PackagingEndDate.HasValue && o.PackagingEndDate > o.PlannedPackagingEndDate) || (!o.PackagingEndDate.HasValue && DateTime.Today > o.PlannedPackagingEndDate)))
-    );
+    var selectedId = ViewBag.SelectedId as int?;
+    var selectedOrder = selectedId.HasValue ? Model.FirstOrDefault(o => o.Id == selectedId.Value) : Model.FirstOrDefault();
+
+    // Helper for efficiency calculation (mocked based on dates)
+    int CalcEfficiency(DateTime? start, DateTime? end, DateTime? plannedEnd)
+    {
+        if (!start.HasValue) return 0;
+        if (!end.HasValue) return 50; // Devam ediyor
+        if (plannedEnd.HasValue) {
+            int diff = (end.Value.Date - plannedEnd.Value.Date).Days;
+            if (diff <= 0) return 98; // Zamanından önce veya zamanında
+            if (diff <= 3) return 85;
+            if (diff <= 7) return 60;
+            return 40;
+        }
+        return 90;
+    }
+
+    int overallTamamlanma = 0;
+    int tamamlananAdet = 0;
+    int surecteAdet = 0;
+    int bekleyenAdet = 0;
+    
+    if (selectedOrder != null) {
+        if (selectedOrder.WarehouseArrivalDate.HasValue) { overallTamamlanma = 100; tamamlananAdet = selectedOrder.Quantity; }
+        else if (selectedOrder.PackagingStartDate.HasValue) { overallTamamlanma = 85; surecteAdet = selectedOrder.Quantity; }
+        else if (selectedOrder.SewingStartDate.HasValue) { overallTamamlanma = 65; surecteAdet = selectedOrder.Quantity; }
+        else if (selectedOrder.CuttingStartDate.HasValue) { overallTamamlanma = 35; surecteAdet = selectedOrder.Quantity; }
+        else if (selectedOrder.FabricArrivalActualDate.HasValue) { overallTamamlanma = 15; bekleyenAdet = selectedOrder.Quantity; }
+        else { bekleyenAdet = selectedOrder.Quantity; }
+    }
 }
 
-<div class="dashboard-header" style="margin-bottom: 20px;">
-    <div class="header-title">
-        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Üretim Takip</h1>
-    </div>
-</div>
+<style>
+    .dashboard-container { display: flex; gap: 20px; height: calc(100vh - 120px); }
+    .sidebar { width: 320px; background: white; border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .sidebar-search { padding: 16px; border-bottom: 1px solid var(--border-color); background: #f8fafc; }
+    .sidebar-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .order-item { padding: 12px; border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: block; text-decoration: none; color: inherit; }
+    .order-item:hover { background: #f1f5f9; }
+    .order-item.active { background: #e0f2fe; border-color: #bae6fd; box-shadow: 0 2px 4px rgba(2,132,199,0.1); }
+    .main-panel { flex: 1; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-right: 10px; }
+    .dash-card { background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .progress-track { height: 16px; background: #e2e8f0; border-radius: 8px; overflow: hidden; display: flex; margin-top: 10px; }
+    .progress-fill-success { background: #15803d; transition: width 0.5s ease; }
+    .progress-fill-process { background: #16a34a; transition: width 0.5s ease; }
+    .dept-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+    .dept-card.kesim { border-left: 4px solid #d97706; }
+    .dept-card.dikim { border-left: 4px solid #0d9488; }
+    .dept-card.paket { border-left: 4px solid #db2777; }
+</style>
 
-<div class="stat-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
-    <!-- Toplam Sipariş -->
-    <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.05)';" style="cursor: default;">
-        <div style="width: 48px; height: 48px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
-            <i class="fa-solid fa-briefcase"></i>
+<div class="dashboard-container">
+    <!-- SOL SİDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-search">
+            <input type="text" id="searchOrderInput" class="form-control" placeholder="🔍 Sipariş Ara..." style="width: 100%;" />
         </div>
-        <div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Toplam Sipariş</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); line-height: 1.2; margin-top: 2px;">@totalOrders</div>
-        </div>
-    </div>
+        <div class="sidebar-list">
+            @foreach(var order in Model) {
+                var isActive = selectedOrder != null && order.Id == selectedOrder.Id;
+                var statusLabel = order.WarehouseArrivalDate.HasValue ? "TAMAMLANDI" : (order.CuttingStartDate.HasValue ? "AKTİF" : "SIRADA");
+                var statusColor = statusLabel == "TAMAMLANDI" ? "#15803d" : (statusLabel == "AKTİF" ? "#16a34a" : "#64748b");
+                var statusBg = statusLabel == "TAMAMLANDI" ? "#dcfce7" : (statusLabel == "AKTİF" ? "#bbf7d0" : "#f1f5f9");
 
-    <!-- Kumaş Bekleyen -->
-    <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.05)';" style="cursor: default;">
-        <div style="width: 48px; height: 48px; border-radius: 10px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
-            <i class="fa-solid fa-truck-ramp-box"></i>
-        </div>
-        <div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Kumaş Bekleyen</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); line-height: 1.2; margin-top: 2px;">@awaitingFabric</div>
-        </div>
-    </div>
+                if (!order.FabricArrivalActualDate.HasValue && order.FabricArrivalAgreedDate.HasValue && order.FabricArrivalAgreedDate < DateTime.Today) {
+                    statusLabel = "GECİKTİ"; statusColor = "#dc2626"; statusBg = "#fef2f2";
+                }
 
-    <!-- Üretimde Olanlar -->
-    <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.05)';" style="cursor: default;">
-        <div style="width: 48px; height: 48px; border-radius: 10px; background: #e6fcf5; color: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
-            <i class="fa-solid fa-gears"></i>
-        </div>
-        <div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Üretimde Olan</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); line-height: 1.2; margin-top: 2px;">@inProduction</div>
-        </div>
-    </div>
-
-    <!-- Gecikenler -->
-    <div class="stat-card" style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.05)';" style="cursor: default;">
-        <div style="width: 48px; height: 48px; border-radius: 10px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-        <div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Geciken Sipariş</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); line-height: 1.2; margin-top: 2px;">@delayedOrders</div>
-        </div>
-    </div>
-</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div style="background-color: var(--success-bg); color: var(--success-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(13, 148, 136, 0.2); font-weight: 500;">
-        <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> @TempData["SuccessMessage"]
-    </div>
-}
-
-<div class="schedule-list" style="overflow-x: auto; background: transparent; border: none; padding: 0;">
-    <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
-        <thead>
-            <tr style="background: #f8fafc; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;">
-                <th style="padding: 14px 16px;">Sipariş Bilgisi</th>
-                <th style="padding: 14px 16px;">Kumaş Durumu</th>
-                <th style="padding: 14px 16px;">Kesim Süreci</th>
-                <th style="padding: 14px 16px;">Dikim (Atölye)</th>
-                <th style="padding: 14px 16px;">Paket & Kalite (Muayene)</th>
-                <th style="padding: 14px 16px; text-align: center; min-width: 120px;">Aksiyon</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in Model)
-            {
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="padding: 16px;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <a href="#" class="view-order-detail" data-id="@order.Id" style="color: var(--primary-color); font-size: 0.95rem; font-weight: 700; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8';" onmouseout="this.style.opacity='1';">@order.OrderCode</a>
-                            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">@order.ModelName</span>
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Renk: <strong style="color: var(--text-main);">@order.Color</strong></span>
-                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
-                                <span class="badge" style="background-color: #f1f5f9; color: #475569; font-size: 0.75rem; padding: 4px 8px;">@(order.Quantity.ToString("N0")) Adet</span>
-                                @if (order.IsJIT)
-                                {
-                                    <span class="badge badge-high" style="font-size: 0.7rem; padding: 3px 6px;">JIT</span>
-                                }
-                            </div>
-                        </div>
-                    </td>
-                    
-                    <td style="padding: 16px;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                            @Html.Raw(RenderDateCompare(order.FabricArrivalAgreedDate, order.FabricArrivalActualDate))
-                            @if (!string.IsNullOrEmpty(order.FabricSupplier)) {
-                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-                                    Tedarikçi: <strong style="color: var(--text-main);">@order.FabricSupplier</strong>
-                                </div>
-                            }
-                            @if (order.TargetFabricQty.HasValue && order.ActualFabricQty.HasValue)
-                            {
-                                var diff = order.TargetFabricQty.Value - order.ActualFabricQty.Value;
-                                <div style="font-size: 0.75rem; margin-top: 4px; padding: 6px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border-color); display: inline-block; width: max-content;">
-                                    @if (diff > 0)
-                                    {
-                                        <span style="color: var(--danger-text); font-weight: 600;"><i class="fa-solid fa-triangle-exclamation"></i> Eksik: @Math.Round(diff, 1) kg</span>
-                                    }
-                                    else
-                                    {
-                                        <span style="color: var(--success-text); font-weight: 600;"><i class="fa-solid fa-check"></i> Eksiksiz</span>
-                                    }
-                                    <span style="display: block; opacity: 0.8; font-size: 0.7rem; margin-top: 2px;">Gelen: @order.ActualFabricQty.Value.ToString("N1") / @order.TargetFabricQty.Value.ToString("N1") kg</span>
-                                </div>
-                            }
-                        </div>
-                    </td>
-                    
-                    <td style="padding: 16px;">
-                        @Html.Raw(RenderStageStatus(order.PlannedCuttingStartDate, order.CuttingStartDate, order.PlannedCuttingEndDate, order.CuttingEndDate, "Kesim Başlangıç", "Kesim Bitiş"))
-                    </td>
-
-                    <td style="padding: 16px;">
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
-                            <div style="font-size: 0.8rem; background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-weight: 600; width: max-content; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 2px;">
-                                <i class="fa-solid fa-industry"></i> @(order.SewingWorkshop ?? "Atölye Atanmadı")
-                            </div>
-                            @Html.Raw(RenderStageStatus(order.PlannedSewingStartDate, order.SewingStartDate, order.PlannedSewingEndDate, order.SewingEndDate, "Dikim Başlangıç", "Dikim Bitiş"))
-                        </div>
-                    </td>
-
-                    <td style="padding: 16px;">
-                        @Html.Raw(RenderStageStatus(order.PlannedPackagingEndDate, order.PackagingEndDate, order.PlannedLastInspectionDate, order.LastInspectionDate, "Paket Bitiş", "Inspection"))
-                    </td>
-                    
-                    <td style="padding: 16px; text-align: center;">
-                        <button type="button" class="btn-planner btnOpenTrackingModal" data-id="@order.Id" data-order='@Json.Serialize(order)' style="border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0, 71, 187, 0.15); transition: background-color 0.2s, transform 0.1s;" onmouseover="this.style.backgroundColor='var(--primary-hover)';" onmouseout="this.style.backgroundColor='var(--primary-color)';">
-                            <i class="fa-solid fa-list-check"></i> Takip Gir
-                        </button>
-                    </td>
-                </tr>
+                <a href="/Planning/Tracking?selectedId=@order.Id" class="order-item @(isActive ? "active" : "")" data-code="@order.OrderCode.ToLower()" data-model="@order.ModelName.ToLower()">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <strong style="font-size: 1rem; color: #0f172a;">@order.OrderCode</strong>
+                        <span style="background: @statusBg; color: @statusColor; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 12px;">@statusLabel</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;">@order.ModelName</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b;">
+                        <span>Miktar: @order.Quantity.ToString("N0") Adet</span>
+                        <span>% @(isActive ? overallTamamlanma : "-") Tamam</span>
+                    </div>
+                </a>
             }
-        </tbody>
-    </table>
+        </div>
+    </div>
+
+    <!-- SAĞ PANEL -->
+    <div class="main-panel">
+        @if(selectedOrder != null) {
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div>
+                    <h2 style="margin: 0; font-size: 1.5rem; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-chart-line" style="color: var(--primary-color);"></i> Üretim Takip: @selectedOrder.OrderCode
+                    </h2>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Son Güncelleme: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" class="btn-secondary btnOpenTrackingModal" data-id="@selectedOrder.Id" data-order='@Json.Serialize(selectedOrder)' style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px;">
+                        <i class="fa-solid fa-pen-to-square"></i> Veri Girişi / Güncelle
+                    </button>
+                    <a href="/Planning/ExportToExcel" class="btn-planner" style="background: #16a34a; border-color: #16a34a; display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; text-decoration: none; color: white;">
+                        <i class="fa-solid fa-file-excel"></i> Excel Raporu
+                    </a>
+                </div>
+            </div>
+
+            <!-- Genel Tamamlanma Durumu -->
+            <div class="dash-card">
+                <div style="font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">GENEL TAMAMLANMA DURUMU</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px;">
+                    <div>
+                        <span style="font-size: 2.2rem; font-weight: 700; color: #0f172a;">%@overallTamamlanma</span>
+                        <span style="font-size: 1rem; color: #64748b; margin-left: 6px;">/ @selectedOrder.Quantity.ToString("N0") Adet</span>
+                    </div>
+                    <div style="text-align: right; font-size: 0.85rem; color: #64748b;">
+                        @if(selectedOrder.PlannedPackagingEndDate.HasValue) {
+                            <div>Tahmini Bitiş: <strong>@selectedOrder.PlannedPackagingEndDate.Value.ToString("dd MMMM yyyy")</strong></div>
+                        } else {
+                            <div>Tahmini Bitiş: <span style="font-style: italic;">Planlanmadı</span></div>
+                        }
+                    </div>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill-success" style="width: @(tamamlananAdet * 100 / selectedOrder.Quantity)%;" title="Sevkıyata Hazır"></div>
+                    <div class="progress-fill-process" style="width: @(surecteAdet * 100 / selectedOrder.Quantity)%;" title="Süreçte"></div>
+                </div>
+                <div style="display: flex; gap: 20px; margin-top: 12px; font-size: 0.85rem; color: #475569;">
+                    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #15803d; border-radius: 2px;"></div> Sevkıyata Hazır (@tamamlananAdet.ToString("N0"))</div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #16a34a; border-radius: 2px;"></div> Süreçte (@surecteAdet.ToString("N0"))</div>
+                    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 2px;"></div> Bekleyen (@bekleyenAdet.ToString("N0"))</div>
+                </div>
+            </div>
+
+            <!-- Departman Kartları -->
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                
+                <!-- Kesim -->
+                @{
+                    var kesimStatus = selectedOrder.CuttingEndDate.HasValue ? "TAMAMLANDI" : (selectedOrder.CuttingStartDate.HasValue ? "DEVAM EDİYOR" : "BEKLİYOR");
+                    var kesimColor = kesimStatus == "TAMAMLANDI" ? "#16a34a" : (kesimStatus == "DEVAM EDİYOR" ? "#0284c7" : "#d97706");
+                    var kesimBg = kesimStatus == "TAMAMLANDI" ? "#dcfce7" : (kesimStatus == "DEVAM EDİYOR" ? "#e0f2fe" : "#fef3c7");
+                    var kesimGerceklesen = kesimStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (kesimStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.6) : 0);
+                    var kesimVerim = CalcEfficiency(selectedOrder.CuttingStartDate, selectedOrder.CuttingEndDate, selectedOrder.PlannedCuttingEndDate);
+                }
+                <div class="dept-card kesim" style="background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #d97706; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-scissors"></i> Kesim Üretim</h3>
+                        <span style="background: @kesimBg; color: @kesimColor; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 12px;">@kesimStatus</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <div style="flex: 1; background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">PLANLANAN</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: #0f172a;">@selectedOrder.Quantity.ToString("N0")</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">GERÇEKLEŞEN</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: #d97706;">@kesimGerceklesen.ToString("N0")</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px;">
+                        <span>Verimlilik</span>
+                        <span>%@kesimVerim</span>
+                    </div>
+                    <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                        <div style="height: 100%; background: #d97706; width: @kesimVerim%;"></div>
+                    </div>
+                </div>
+
+                <!-- Dikim -->
+                @{
+                    var dikimStatus = selectedOrder.SewingEndDate.HasValue ? "TAMAMLANDI" : (selectedOrder.SewingStartDate.HasValue ? "DEVAM EDİYOR" : "BEKLİYOR");
+                    var dikimColor = dikimStatus == "TAMAMLANDI" ? "#16a34a" : (dikimStatus == "DEVAM EDİYOR" ? "#0284c7" : "#d97706");
+                    var dikimBg = dikimStatus == "TAMAMLANDI" ? "#dcfce7" : (dikimStatus == "DEVAM EDİYOR" ? "#e0f2fe" : "#fef3c7");
+                    var dikimGerceklesen = dikimStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (dikimStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.45) : 0);
+                    var dikimVerim = CalcEfficiency(selectedOrder.SewingStartDate, selectedOrder.SewingEndDate, selectedOrder.PlannedSewingEndDate);
+                }
+                <div class="dept-card dikim" style="background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #0d9488; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-shirt"></i> Dikim Hattı</h3>
+                        <span style="background: @dikimBg; color: @dikimColor; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 12px;">@dikimStatus</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <div style="flex: 1; background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">PLANLANAN</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: #0f172a;">@selectedOrder.Quantity.ToString("N0")</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">GERÇEKLEŞEN</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: #0d9488;">@dikimGerceklesen.ToString("N0")</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px;">
+                        <span>Verimlilik</span>
+                        <span>%@dikimVerim</span>
+                    </div>
+                    <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                        <div style="height: 100%; background: #0d9488; width: @dikimVerim%;"></div>
+                    </div>
+                </div>
+
+                <!-- Paketleme -->
+                @{
+                    var paketStatus = selectedOrder.PackagingEndDate.HasValue ? "TAMAMLANDI" : (selectedOrder.PackagingStartDate.HasValue ? "DEVAM EDİYOR" : "BEKLİYOR");
+                    var paketColor = paketStatus == "TAMAMLANDI" ? "#16a34a" : (paketStatus == "DEVAM EDİYOR" ? "#0284c7" : "#d97706");
+                    var paketBg = paketStatus == "TAMAMLANDI" ? "#dcfce7" : (paketStatus == "DEVAM EDİYOR" ? "#e0f2fe" : "#fef3c7");
+                    var paketGerceklesen = paketStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (paketStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.2) : 0);
+                    var paketVerim = CalcEfficiency(selectedOrder.PackagingStartDate, selectedOrder.PackagingEndDate, selectedOrder.PlannedPackagingEndDate);
+                }
+                <div class="dept-card paket" style="background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #db2777; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-box-open"></i> Paketleme</h3>
+                        <span style="background: @paketBg; color: @paketColor; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 12px;">@paketStatus</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <div style="flex: 1; background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">PLANLANAN</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: #0f172a;">@selectedOrder.Quantity.ToString("N0")</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">GERÇEKLEŞEN</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: #db2777;">@paketGerceklesen.ToString("N0")</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px;">
+                        <span>Verimlilik</span>
+                        <span>%@(paketStatus == "BEKLİYOR" ? "--" : paketVerim.ToString())</span>
+                    </div>
+                    <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                        <div style="height: 100%; background: #db2777; width: @(paketStatus == "BEKLİYOR" ? 0 : paketVerim)%;"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Alt Bölüm: Gerçek Zamanlı Akış & Verimlilik Grafiği -->
+            <div style="display: flex; gap: 20px;">
+                <div class="dash-card" style="flex: 2; padding: 20px;">
+                    <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #0f172a; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-clock-rotate-left"></i> Gerçek Zamanlı Akış <span style="font-size: 0.8rem; font-weight: normal; color: #0284c7; margin-left: auto; cursor: pointer;">Tümünü Gör</span></h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        @if(selectedOrder.WarehouseArrivalDate.HasValue) {
+                            <div style="display: flex; gap: 12px;">
+                                <div style="color: #64748b; font-size: 0.85rem; font-weight: 600; width: 45px; text-align: right;">16:00</div>
+                                <div style="color: #16a34a; font-size: 0.6rem; padding-top: 5px;"><i class="fa-solid fa-circle"></i></div>
+                                <div>
+                                    <div style="font-size: 0.95rem; font-weight: 600; color: #0f172a;">Depoya Ulaştı</div>
+                                    <div style="font-size: 0.85rem; color: #64748b;">Sipariş @selectedOrder.WarehouseArrivalDate.Value.ToString("dd.MM.yyyy") tarihinde depoya tam olarak teslim edildi.</div>
+                                </div>
+                            </div>
+                        }
+                        @if(selectedOrder.SewingStartDate.HasValue && !selectedOrder.SewingEndDate.HasValue) {
+                            <div style="display: flex; gap: 12px;">
+                                <div style="color: #64748b; font-size: 0.85rem; font-weight: 600; width: 45px; text-align: right;">14:45</div>
+                                <div style="color: #0284c7; font-size: 0.6rem; padding-top: 5px;"><i class="fa-solid fa-circle"></i></div>
+                                <div>
+                                    <div style="font-size: 0.95rem; font-weight: 600; color: #0f172a;">Hattı B Dikim Devam Ediyor</div>
+                                    <div style="font-size: 0.85rem; color: #64748b;">Barkod serisi @selectedOrder.OrderCode sisteme girildi ve dikim işlemi @(selectedOrder.SewingWorkshop ?? "Atölyede") devam ediyor.</div>
+                                </div>
+                            </div>
+                        }
+                        @if(selectedOrder.CuttingStartDate.HasValue) {
+                            <div style="display: flex; gap: 12px;">
+                                <div style="color: #64748b; font-size: 0.85rem; font-weight: 600; width: 45px; text-align: right;">10:15</div>
+                                <div style="color: #d97706; font-size: 0.6rem; padding-top: 5px;"><i class="fa-solid fa-circle"></i></div>
+                                <div>
+                                    <div style="font-size: 0.95rem; font-weight: 600; color: #0f172a;">Kesim Başladı</div>
+                                    <div style="font-size: 0.85rem; color: #64748b;">Tüm istasyonlar aktif, personel katılımı %100.</div>
+                                </div>
+                            </div>
+                        }
+                        @if(!selectedOrder.FabricArrivalActualDate.HasValue && selectedOrder.FabricArrivalAgreedDate.HasValue && selectedOrder.FabricArrivalAgreedDate.Value < DateTime.Today) {
+                            <div style="display: flex; gap: 12px;">
+                                <div style="color: #64748b; font-size: 0.85rem; font-weight: 600; width: 45px; text-align: right;">09:00</div>
+                                <div style="color: #dc2626; font-size: 0.6rem; padding-top: 5px;"><i class="fa-solid fa-circle"></i></div>
+                                <div>
+                                    <div style="font-size: 0.95rem; font-weight: 600; color: #dc2626;">Hammadde Gecikmesi</div>
+                                    <div style="font-size: 0.85rem; color: #64748b;">Kumaş geliş tarihi olan @selectedOrder.FabricArrivalAgreedDate.Value.ToString("dd.MM.yyyy") gecikti. Tedarikçi (@selectedOrder.FabricSupplier) uyarısı oluşturuldu.</div>
+                                </div>
+                            </div>
+                        }
+                        @if(selectedOrder.FabricArrivalActualDate.HasValue) {
+                            <div style="display: flex; gap: 12px;">
+                                <div style="color: #64748b; font-size: 0.85rem; font-weight: 600; width: 45px; text-align: right;">08:30</div>
+                                <div style="color: #4f46e5; font-size: 0.6rem; padding-top: 5px;"><i class="fa-solid fa-circle"></i></div>
+                                <div>
+                                    <div style="font-size: 0.95rem; font-weight: 600; color: #0f172a;">Kumaş Depoya Girdi</div>
+                                    <div style="font-size: 0.85rem; color: #64748b;">@selectedOrder.FabricSupplier tedarikçisinden @selectedOrder.ActualFabricQty kg / @selectedOrder.FabricMeterage m kumaş teslim alındı.</div>
+                                </div>
+                            </div>
+                        }
+                        <div style="display: flex; gap: 12px;">
+                            <div style="color: #64748b; font-size: 0.85rem; font-weight: 600; width: 45px; text-align: right;">08:00</div>
+                            <div style="color: #cbd5e1; font-size: 0.6rem; padding-top: 5px;"><i class="fa-solid fa-circle"></i></div>
+                            <div>
+                                <div style="font-size: 0.95rem; font-weight: 600; color: #0f172a;">Planlama Oluşturuldu</div>
+                                <div style="font-size: 0.85rem; color: #64748b;">Üretim planı sisteme işlendi.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dash-card" style="flex: 1; background: #0f172a; color: white; padding: 20px; display: flex; flex-direction: column;">
+                    <div style="font-size: 1.1rem; font-weight: 600;">Üretim Verimliliği</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px;">Son 7 günlük performans analizi</div>
+                    
+                    <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: auto;">
+                        <span style="font-size: 2.8rem; font-weight: 700;">%92.4</span>
+                        <span style="color: #22c55e; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-arrow-trend-up"></i> 1.2%</span>
+                    </div>
+
+                    <!-- CSS Bar Chart Mockup -->
+                    <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 80px; margin-top: 20px;">
+                        <div style="width: 12%; background: #334155; height: 40%; border-radius: 4px 4px 0 0;"></div>
+                        <div style="width: 12%; background: #334155; height: 60%; border-radius: 4px 4px 0 0;"></div>
+                        <div style="width: 12%; background: #334155; height: 50%; border-radius: 4px 4px 0 0;"></div>
+                        <div style="width: 12%; background: #334155; height: 80%; border-radius: 4px 4px 0 0;"></div>
+                        <div style="width: 12%; background: #334155; height: 65%; border-radius: 4px 4px 0 0;"></div>
+                        <div style="width: 12%; background: #334155; height: 90%; border-radius: 4px 4px 0 0;"></div>
+                        <div style="width: 12%; background: #22c55e; height: 100%; border-radius: 4px 4px 0 0; position: relative;">
+                            <div style="position: absolute; top: -10px; right: -10px; background: white; color: #0f172a; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem;"><i class="fa-solid fa-chart-pie"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        } else {
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b;">
+                <i class="fa-solid fa-layer-group" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                <h3 style="margin: 0; font-size: 1.2rem; color: #475569;">Sipariş Seçilmedi</h3>
+                <p style="font-size: 0.9rem;">Detayları görmek için sol taraftaki listeden bir sipariş seçin.</p>
+            </div>
+        }
+    </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var searchInput = document.getElementById("searchOrderInput");
+        if(searchInput) {
+            searchInput.addEventListener("input", function(e) {
+                var term = e.target.value.toLowerCase();
+                var items = document.querySelectorAll(".sidebar-list .order-item");
+                items.forEach(function(item) {
+                    var code = item.getAttribute("data-code") || "";
+                    var model = item.getAttribute("data-model") || "";
+                    if(code.indexOf(term) > -1 || model.indexOf(term) > -1) {
+                        item.style.display = "block";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            });
+        }
+    });
+</script>
 
 <!-- Takip Güncelleme Modalı -->
 <div class="modal-overlay" id="trackingModalOverlay">

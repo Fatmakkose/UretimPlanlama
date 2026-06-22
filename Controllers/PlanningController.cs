@@ -217,7 +217,7 @@ namespace UretimPlanlama.Controllers
             return NotFound();
         }
         [HttpGet]
-        public IActionResult Tracking()
+        public IActionResult Tracking(int? selectedId)
         {
             if (!User.HasPermission("View"))
             {
@@ -226,6 +226,7 @@ namespace UretimPlanlama.Controllers
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.SelectedId = selectedId;
             return View(orders);
         }
 
