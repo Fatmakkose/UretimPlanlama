@@ -294,8 +294,10 @@ namespace UretimPlanlama.Controllers
 
                 // Aksesuar ve Tela Bilgileri
                 existingOrder.SelectedAccessoriesJson = updatedOrder.SelectedAccessoriesJson;
+                existingOrder.FabricsJson = updatedOrder.FabricsJson;
                 existingOrder.UnitFabricMeterage = updatedOrder.UnitFabricMeterage;
                 existingOrder.FabricUnit = updatedOrder.FabricUnit;
+                existingOrder.WastageRate = updatedOrder.WastageRate;
                 existingOrder.LargeButtonCount = updatedOrder.LargeButtonCount;
                 existingOrder.SmallButtonCount = updatedOrder.SmallButtonCount;
                 existingOrder.KusakAstarGram = updatedOrder.KusakAstarGram;

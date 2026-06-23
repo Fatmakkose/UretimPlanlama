@@ -97,7 +97,7 @@
 
         <!-- Model Detail Modal -->
         <div id="modelDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1050; align-items:center; justify-content:center;">
-            <div style="background:white; width: 600px; max-width: 90%; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column;">
+            <div style="background:white; width: 800px; max-width: 95%; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column;">
                 <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
                     <h5 style="margin:0; font-weight:600; color:var(--primary-color);"><i class="fa-solid fa-tags" style="margin-right:8px;"></i>Ek Model ve Aksesuar Detayları</h5>
                     <button type="button" onclick="closeModelDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
@@ -130,28 +130,25 @@
 
 
 
-                    <!-- Kumaş ve Düğme -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Ana Kumaş Miktarı</label>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="number" step="0.01" name="UnitFabricMeterage" class="form-control" placeholder="Miktar" style="flex: 1;" />
-                                <select name="FabricUnit" class="form-control" style="width: 110px; flex-shrink: 0; padding: 0 8px;">
-                                    <option value="Metraj (m)">Metraj</option>
-                                    <option value="Kg">Kg</option>
-                                </select>
-                            </div>
-                        </div>
+                    <!-- Fire Oranı (Kaldırıldı, artık her kumaşın içinde) -->
 
-                        <div></div>
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Büyük Düğme</label>
-                            <input type="number" step="1" name="LargeButtonCount" class="form-control" placeholder="Adet" />
+                    <!-- Kumaşlar ve Düğmeler -->
+                    <div style="background:#f8fafc; padding:16px; border:1px solid #e2e8f0; border-radius:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <label style="font-size:0.9rem; font-weight:600; color:#475569; margin:0;">Kumaş ve Düğme Bilgileri</label>
+                            <button type="button" id="btnAddFabric" style="padding:4px 12px; border:1px solid var(--primary-color); background:#e0f2fe; color:var(--primary-color); font-size:0.8rem; font-weight:600; cursor:pointer; border-radius:6px;"><i class="fa-solid fa-plus" style="margin-right:4px;"></i> Kumaş Ekle</button>
                         </div>
-                        <div>
-                            <label style="font-size:0.85rem; font-weight:600; color:#475569;">Küçük Düğme</label>
-                            <input type="number" step="1" name="SmallButtonCount" class="form-control" placeholder="Adet" />
+                        <div id="fabricsContainer" style="display:flex; flex-direction:column; gap:12px;">
+                            <!-- Dinamik kumaş satırları buraya eklenecek -->
                         </div>
+                        <input type="hidden" name="FabricsJson" id="fabricsJson" value="[]" />
+                        
+                        <!-- Geri dönük uyumluluk için hidden alanlar (ilk kumaş verisi buraya yansıtılır) -->
+                        <input type="hidden" name="UnitFabricMeterage" id="hiddenUnitFabricMeterage" />
+                        <input type="hidden" name="FabricUnit" id="hiddenFabricUnit" value="Metraj (m)" />
+                        <input type="hidden" name="WastageRate" id="hiddenWastageRate" />
+                        <input type="hidden" name="LargeButtonCount" id="hiddenLargeButtonCount" />
+                        <input type="hidden" name="SmallButtonCount" id="hiddenSmallButtonCount" />
                     </div>
 
                     <!-- Astar ve Tela İhtiyacı -->
@@ -161,36 +158,46 @@
                             <table class="table" style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 0;">
                                 <thead style="background-color: #f1f5f9;">
                                     <tr>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">CİNSİ</th>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; width:150px;">CİNSİ</th>
                                         <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">ASTAR (GRAM)</th>
                                         <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA İHTİYACI (RENK)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">KUŞAK</td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="kusak" /> KUŞAK</label>
+                                        </td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakAstarGram" id="kusakAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakTelaRenk" id="kusakTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">YAKA</td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="yaka" /> YAKA</label>
+                                        </td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaAstarGram" id="yakaAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaTelaRenk" id="yakaTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">MANŞET</td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="manset" /> MANŞET</label>
+                                        </td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetAstarGram" id="mansetAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetTelaRenk" id="mansetTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">KAPAK</td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="kapak" /> KAPAK</label>
+                                        </td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakAstarGram" id="kapakAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakTelaRenk" id="kapakTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">BOSS</td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossAstarGram" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossTelaRenk" class="form-control" style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center;" /></td>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="boss" /> BOSS</label>
+                                        </td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossAstarGram" id="bossAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossTelaRenk" id="bossTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -207,8 +214,118 @@
 
 @section Scripts {
     <script>
+        // Tela Checkbox logic
+        $(document).on('change', '.chk-tela', function() {
+            var targetPrefix = $(this).data('target'); // kusak, yaka, manset vs.
+            var isChecked = $(this).is(':checked');
+            
+            var astarInput = $('#' + targetPrefix + 'Astar');
+            var telaInput = $('#' + targetPrefix + 'Tela');
+            
+            if (isChecked) {
+                astarInput.prop('disabled', false).css('background', 'white');
+                telaInput.prop('disabled', false).css('background', 'white');
+            } else {
+                astarInput.prop('disabled', true).css('background', '#f8fafc').val('');
+                telaInput.prop('disabled', true).css('background', '#f8fafc').val('');
+            }
+        });
+
+        // Dynamic Fabrics logic
+        function addFabricRow(name = '', meterage = '', unit = 'm', wastage = '', largeBtn = '', smallBtn = '') {
+            var rowHtml = `
+                <div class="fabric-row" style="display:grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap:12px; align-items:end; background:white; padding:12px; border:1px solid #cbd5e1; border-radius:6px; position:relative;">
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block;">Kumaş Adı / Kodu</label>
+                        <input type="text" class="form-control fabric-name" value="${name}" placeholder="Örn: Ana Kumaş" />
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block;">Birim Metraj</label>
+                        <div style="display:flex; gap:4px;">
+                            <input type="number" step="0.01" class="form-control fabric-meterage no-spinner" value="${meterage}" style="flex:1; min-width:70px; text-align:center; padding: 0.375rem 0.5rem;" />
+                            <select class="form-control fabric-unit" style="width:65px; padding:0 4px; flex-shrink:0;">
+                                <option value="m" ${unit === 'm' ? 'selected' : ''}>m</option>
+                                <option value="Kg" ${unit === 'Kg' ? 'selected' : ''}>Kg</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">Fire (%)</label>
+                        <input type="number" step="0.01" class="form-control fabric-wastage no-spinner" value="${wastage}" placeholder="5" style="text-align:center;" />
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">24/ Düğme</label>
+                        <input type="number" step="1" class="form-control fabric-large-btn no-spinner" value="${largeBtn}" style="text-align:center;" />
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">14/ Düğme</label>
+                        <input type="number" step="1" class="form-control fabric-small-btn no-spinner" value="${smallBtn}" style="text-align:center;" />
+                    </div>
+                    <div style="padding-bottom: 6px;">
+                        <button type="button" class="btnRemoveFabric" style="background:transparent; border:none; color:#dc2626; cursor:pointer; padding:4px;" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            $('#fabricsContainer').append(rowHtml);
+            updateFabricsJson();
+        }
+
+        $(document).on('click', '#btnAddFabric', function() {
+            addFabricRow();
+        });
+
+        $(document).on('click', '.btnRemoveFabric', function() {
+            $(this).closest('.fabric-row').remove();
+            updateFabricsJson();
+        });
+
+        $(document).on('input change', '.fabric-row input, .fabric-row select', function() {
+            updateFabricsJson();
+        });
+
+        function updateFabricsJson() {
+            var fabrics = [];
+            $('.fabric-row').each(function(index) {
+                var meterage = parseFloat($(this).find('.fabric-meterage').val()) || null;
+                var unit = $(this).find('.fabric-unit').val();
+                var wastage = parseFloat($(this).find('.fabric-wastage').val()) || null;
+                var largeBtn = parseInt($(this).find('.fabric-large-btn').val()) || null;
+                var smallBtn = parseInt($(this).find('.fabric-small-btn').val()) || null;
+
+                fabrics.push({
+                    Name: $(this).find('.fabric-name').val() || ("Kumaş " + (index + 1)),
+                    Meterage: meterage,
+                    Unit: unit === 'm' ? 'Metraj (m)' : 'Kg',
+                    WastageRate: wastage,
+                    LargeButtonCount: largeBtn,
+                    SmallButtonCount: smallBtn
+                });
+                
+                // İlk kumaşın verisini eski hidden alanlara yaz ki sistemdeki diğer yerler bozulmasın
+                if (index === 0) {
+                    $('#hiddenUnitFabricMeterage').val(meterage || '');
+                    $('#hiddenFabricUnit').val(unit === 'm' ? 'Metraj (m)' : 'Kg');
+                    $('#hiddenWastageRate').val(wastage || '');
+                    $('#hiddenLargeButtonCount').val(largeBtn || '');
+                    $('#hiddenSmallButtonCount').val(smallBtn || '');
+                }
+            });
+
+            if (fabrics.length === 0) {
+                $('#hiddenUnitFabricMeterage').val('');
+                $('#hiddenWastageRate').val('');
+                $('#hiddenLargeButtonCount').val('');
+                $('#hiddenSmallButtonCount').val('');
+            }
+
+            $('#fabricsJson').val(JSON.stringify(fabrics));
+        }
+
         function openModelDetailModal() {
             $('#modelDetailModal').css('display', 'flex').hide().fadeIn(200);
+            if ($('.fabric-row').length === 0) {
+                addFabricRow();
+            }
         }
         function closeModelDetailModal() {
             $('#modelDetailModal').fadeOut(200);
@@ -275,7 +392,7 @@
                         <div class="size-badge ${type}-size-badge" style="background:#f1f5f9; border: 1px solid #cbd5e1; padding: 12px 8px 8px 8px; border-radius: 6px; display:flex; flex-direction:column; align-items:center; gap:6px; position:relative;">
                             <i class="fa-solid fa-xmark btnRemoveDynSize" data-size="${size}" data-type="${type}" style="cursor:pointer; color:#dc2626; position:absolute; top:4px; right:6px; font-size:0.8rem;"></i>
                             <span style="font-weight:600; font-size:0.9rem; margin-top:2px;">${size}</span>
-                            <input type="number" min="0" data-size="${size}" data-type="${type}" class="form-control dyn-size-input ${type}-size" value="${val}" placeholder="Adet" style="width: 70px; height: 28px; padding: 2px 6px; font-size: 0.85rem; text-align:center;" />
+                            <input type="number" min="0" data-size="${size}" data-type="${type}" class="form-control dyn-size-input ${type}-size no-spinner" value="${val}" placeholder="Adet" style="width: 70px; height: 28px; padding: 2px 6px; font-size: 0.85rem; text-align:center;" />
                         </div>
                     `;
                 });

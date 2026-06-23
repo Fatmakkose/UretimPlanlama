@@ -139,8 +139,13 @@ namespace UretimPlanlama.Models
 
         public string? FabricUnit { get; set; } // Kumaş Birimi (Metraj (m) veya Kg)
 
-        public int? LargeButtonCount { get; set; } // Büyük Düğme Sayısı
-        public int? SmallButtonCount { get; set; } // Küçük Düğme Sayısı
+        public int? LargeButtonCount { get; set; } // Büyük Düğme Sayısı (24/ Boy Düğme)
+        public int? SmallButtonCount { get; set; } // Küçük Düğme Sayısı (14/ Boy Düğme)
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? WastageRate { get; set; } // Fire Oranı (%)
+
+        public string? FabricsJson { get; set; } // Çoklu Kumaş Bilgileri JSON (Metraj, Düğme vb.)
 
         // Diğer Aksesuarlar (1'er Adet)
         public bool HasPriceCard { get; set; } // Fiyat Kartı

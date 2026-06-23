@@ -6,22 +6,19 @@ function calculateMRP() {
         if(!siparisAdetiEl) return;
         
         var siparisAdeti = parseTurkishFloat(siparisAdetiEl.value || "0");
-        
         var bedenMiktar = parseTurkishFloat(pane.querySelector('.mrp-beden-miktar')?.value || "0");
-        var bedenMetraj = parseTurkishFloat(pane.querySelector('.mrp-beden-metraj')?.value || "1");
-        var istenenMetraj = parseTurkishFloat(pane.querySelector('.mrp-istenen-metraj')?.value || "1");
-
-        var bedenCikacak = (bedenMiktar / bedenMetraj) || 0;
-        var bedenCikacakEl = pane.querySelector('.mrp-beden-cikacak');
-        if(bedenCikacakEl) bedenCikacakEl.innerText = Math.round(bedenCikacak).toLocaleString('tr-TR');
-
+        var bedenCikacak = parseTurkishFloat(pane.querySelector('.mrp-beden-cikacak')?.value || "0");
+        
+        var istenenMetrajEl = pane.querySelector('.mrp-istenen-metraj');
         var istenenKumasMiktarEl = pane.querySelector('.mrp-istenen-kumas-miktar');
-        if(istenenKumasMiktarEl) istenenKumasMiktarEl.innerText = Math.round(siparisAdeti * istenenMetraj).toLocaleString('tr-TR');
+        
+        // Ihtiyac Olan Kumas satirindaki degerler modelden sabit geldigi icin her zaman otomatik hesapla
+        if (istenenKumasMiktarEl && istenenMetrajEl) {
+            var istenenMetraj = parseTurkishFloat(istenenMetrajEl.value || "1");
+            istenenKumasMiktarEl.value = Math.round(siparisAdeti * istenenMetraj).toLocaleString('tr-TR');
+        }
 
-        var istenenCikacakEl = pane.querySelector('.mrp-istenen-kumas-cikacak');
-        if(istenenCikacakEl) istenenCikacakEl.innerText = siparisAdeti.toLocaleString('tr-TR');
-
-        var jobQty = bedenCikacak;
+        var jobQty = bedenMiktar > 0 ? bedenCikacak : siparisAdeti;
 
         pane.querySelectorAll('.mrp-row').forEach(function(row) {
             var birimInput = row.querySelector('.row-birim');
@@ -30,16 +27,13 @@ function calculateMRP() {
             var fireInput = row.querySelector('.row-fire');
             var fazlaEl = row.querySelector('.row-fazla');
             var istenenEl = row.querySelector('.row-istenen');
-            var gelenInput = row.querySelector('.row-gelen');
-            var artiEksiEl = row.querySelector('.row-arti-eksi');
 
             var birim = parseTurkishFloat(birimInput?.value || "0");
             var fire = parseTurkishFloat(fireInput?.value || "0");
-            var gelen = parseTurkishFloat(gelenInput?.value || "0");
 
-            if(isAdetiEl) isAdetiEl.innerText = Math.round(jobQty).toLocaleString('tr-TR');
+            if(isAdetiEl) isAdetiEl.innerText = Math.round(siparisAdeti).toLocaleString('tr-TR');
 
-            var toplam = jobQty * birim;
+            var toplam = siparisAdeti * birim;
             if(toplamEl) toplamEl.innerText = Math.round(toplam).toLocaleString('tr-TR');
 
             var fazla = Math.round(toplam * (fire / 100));
@@ -47,16 +41,6 @@ function calculateMRP() {
 
             var istenen = Math.round(toplam + fazla);
             if(istenenEl) istenenEl.innerText = istenen.toLocaleString('tr-TR');
-
-            var artiEksi = gelen - istenen;
-            if(artiEksi < 0) hasMissing = true;
-
-            if(artiEksiEl) {
-                artiEksiEl.innerText = Math.round(artiEksi).toLocaleString('tr-TR');
-                if(artiEksi < 0) artiEksiEl.style.color = '#dc2626';
-                else if (artiEksi > 0) artiEksiEl.style.color = '#16a34a';
-                else artiEksiEl.style.color = '#0f172a';
-            }
         });
 
         pane.querySelectorAll('.interlining-row').forEach(function(row) {
@@ -70,6 +54,30 @@ function calculateMRP() {
 
             var ihtiyac = Math.round(jobQty * birim);
             if(ihtiyacEl) ihtiyacEl.innerText = ihtiyac.toLocaleString('tr-TR');
+        });
+
+        pane.querySelectorAll('.mrp-label-row').forEach(function(row) {
+            var asortiInput = row.querySelector('.row-label-asorti');
+            var asorti = parseTurkishFloat(asortiInput?.value || "1");
+
+            var rowTotal = 0;
+            var baseQtySum = 0;
+            row.querySelectorAll('.row-label-size-qty').forEach(function(td) {
+                var baseQty = parseInt(td.getAttribute('data-base-qty') || "0");
+                baseQtySum += baseQty;
+                var sizeTotal = Math.round(baseQty * asorti);
+                td.innerText = sizeTotal.toLocaleString('tr-TR');
+                rowTotal += sizeTotal;
+            });
+
+            if (baseQtySum === 0 && siparisAdeti > 0) {
+                rowTotal = Math.round(siparisAdeti * asorti);
+            }
+
+            var toplamEl = row.querySelector('.row-label-toplam');
+            if(toplamEl) {
+                toplamEl.innerText = rowTotal.toLocaleString('tr-TR');
+            }
         });
     });
 
@@ -152,7 +160,56 @@ document.getElementById('colorTabsContainer')?.addEventListener('click', functio
 
 // Event delegation for dynamically added inputs
 document.getElementById('colorPanesContainer')?.addEventListener('input', function(e) {
-    if(e.target.classList.contains('mrp-input') || e.target.classList.contains('interlining-input')) {
+    if (e.target.classList.contains('mrp-calc-source-adet')) {
+        var tr = e.target.closest('tr');
+        if (tr) {
+            var adet = parseTurkishFloat(e.target.value);
+            var metrajEl = tr.querySelector('.mrp-calc-source-metraj');
+            var kumasEl = tr.querySelector('.mrp-calc-source-kumas');
+            if (metrajEl && kumasEl) {
+                var metraj = parseTurkishFloat(metrajEl.value);
+                kumasEl.value = Math.round(adet * metraj).toLocaleString('tr-TR');
+            }
+        }
+    } else if (e.target.classList.contains('mrp-calc-source-kumas')) {
+        var tr = e.target.closest('tr');
+        if (tr) {
+            var kumas = parseTurkishFloat(e.target.value);
+            var metrajEl = tr.querySelector('.mrp-calc-source-metraj');
+            var adetEl = tr.querySelector('.mrp-calc-source-adet');
+            
+            if (adetEl && metrajEl) {
+                var adet = parseTurkishFloat(adetEl.value);
+                // Siparis adeti sabit oldugu icin, kumas miktari degisirse metraj hesaplanir.
+                // Eldeki kumas satirinda (Kumas 2) ise, adet hesaplanabilir, ama "Siparis Adeti" readonly yapildi.
+                // Eger Kumas 2 ise adet hesaplanmali, Ihtiyac Olan Kumas ise metraj hesaplanmali.
+                if (adetEl.hasAttribute('readonly') && adetEl.classList.contains('mrp-siparis-adeti')) {
+                    if (adet > 0) {
+                        var hesaplananMetraj = kumas / adet;
+                        metrajEl.value = Number.isInteger(hesaplananMetraj) ? hesaplananMetraj.toString() : hesaplananMetraj.toFixed(3);
+                    }
+                } else {
+                    var metraj = parseTurkishFloat(metrajEl.value);
+                    if (metraj > 0) {
+                        adetEl.value = Math.round(kumas / metraj).toLocaleString('tr-TR');
+                    }
+                }
+            }
+        }
+    } else if (e.target.classList.contains('mrp-calc-source-metraj')) {
+        var tr = e.target.closest('tr');
+        if (tr) {
+            var metraj = parseTurkishFloat(e.target.value);
+            var adetEl = tr.querySelector('.mrp-calc-source-adet');
+            var kumasEl = tr.querySelector('.mrp-calc-source-kumas');
+            if (adetEl && kumasEl) {
+                var adet = parseTurkishFloat(adetEl.value);
+                kumasEl.value = Math.round(adet * metraj).toLocaleString('tr-TR');
+            }
+        }
+    }
+
+    if(e.target.classList.contains('mrp-input') || e.target.classList.contains('interlining-input') || e.target.classList.contains('mrp-label-input')) {
         calculateMRP();
     }
 });
