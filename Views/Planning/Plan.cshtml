@@ -422,15 +422,15 @@
                 }
 
                 if (!string.IsNullOrEmpty(Model.KusakAstarGram) || !string.IsNullOrEmpty(Model.KusakTelaRenk))
-                    interlinings.Add(new { Name = "Kuşak", DefaultUnit = "0", Key = "kusak" });
+                    interlinings.Add(new { Name = "Kuşak", DefaultUnit = !string.IsNullOrEmpty(Model.KusakAstarGram) ? Model.KusakAstarGram : "0", Color = Model.KusakTelaRenk ?? "", Key = "kusak" });
                 if (!string.IsNullOrEmpty(Model.YakaAstarGram) || !string.IsNullOrEmpty(Model.YakaTelaRenk))
-                    interlinings.Add(new { Name = "Yaka", DefaultUnit = "0", Key = "yaka" });
+                    interlinings.Add(new { Name = "Yaka", DefaultUnit = !string.IsNullOrEmpty(Model.YakaAstarGram) ? Model.YakaAstarGram : "0", Color = Model.YakaTelaRenk ?? "", Key = "yaka" });
                 if (!string.IsNullOrEmpty(Model.MansetAstarGram) || !string.IsNullOrEmpty(Model.MansetTelaRenk))
-                    interlinings.Add(new { Name = "Manşet", DefaultUnit = "0", Key = "manset" });
+                    interlinings.Add(new { Name = "Manşet", DefaultUnit = !string.IsNullOrEmpty(Model.MansetAstarGram) ? Model.MansetAstarGram : "0", Color = Model.MansetTelaRenk ?? "", Key = "manset" });
                 if (!string.IsNullOrEmpty(Model.KapakAstarGram) || !string.IsNullOrEmpty(Model.KapakTelaRenk))
-                    interlinings.Add(new { Name = "Kapak", DefaultUnit = "0", Key = "kapak" });
+                    interlinings.Add(new { Name = "Kapak", DefaultUnit = !string.IsNullOrEmpty(Model.KapakAstarGram) ? Model.KapakAstarGram : "0", Color = Model.KapakTelaRenk ?? "", Key = "kapak" });
                 if (!string.IsNullOrEmpty(Model.BossAstarGram) || !string.IsNullOrEmpty(Model.BossTelaRenk))
-                    interlinings.Add(new { Name = "Boss", DefaultUnit = "0", Key = "boss" });
+                    interlinings.Add(new { Name = "Boss", DefaultUnit = !string.IsNullOrEmpty(Model.BossAstarGram) ? Model.BossAstarGram : "0", Color = Model.BossTelaRenk ?? "", Key = "boss" });
 
                 if (Model.LargeButtonCount.HasValue && Model.LargeButtonCount > 0)
                     basicMaterials.Add(new { Name = "Büyük Düğme", DefaultUnit = Model.LargeButtonCount.Value.ToString(), Key = "buyuk_dugme" });
@@ -569,7 +569,7 @@
                                                     <td><input type="text" name="pur_color_@(c)_istenen_kumas_miktar" class="input-field mrp-input mrp-istenen-kumas-miktar mrp-calc-source-kumas" value="@GetPurVal($"pur_color_{c}_istenen_kumas_miktar", "0")" style="width: 100%; padding: 6px; font-weight: bold; color: #b45309; text-align: center; background-color: #fdf6e3; cursor: not-allowed;" readonly tabindex="-1" /></td>
                                                 </tr>
                                                 <tr style="background-color: #e0e7ff;">
-                                                    <td style="font-weight: bold;">ELDEKİ KUMAŞ (Kumaş 2)</td>
+                                                    <td style="font-weight: bold;">İstenen Kumaş</td>
                                                     <td><input type="text" name="pur_color_@(c)_beden_cikacak" class="input-field mrp-input mrp-beden-cikacak mrp-calc-source-adet" value="@GetPurVal($"pur_color_{c}_beden_cikacak", "0")" style="width: 100%; padding: 6px; font-weight: bold; color: #1e40af; text-align: center;" /></td>
                                                     <td><input type="text" name="pur_color_@(c)_beden_metraj" class="input-field mrp-input mrp-beden-metraj mrp-calc-source-metraj" value="@GetPurVal($"pur_color_{c}_beden_metraj", firstFabricMeterageStr)" style="width: 100%; padding: 6px; text-align: center;"/></td>
                                                     <td><input type="text" name="pur_color_@(c)_beden_miktar" class="input-field mrp-input mrp-beden-miktar mrp-calc-source-kumas" value="@GetPurVal($"pur_color_{c}_beden_miktar", "0")" style="width: 100%; padding: 6px; font-weight: bold; color: #1e40af; text-align: center;"/></td>
@@ -636,56 +636,60 @@
                                 <thead>
                                     <tr>
                                         <th>CİNSİ</th>
-                                        <th style="width: 80px;">FİRE (%)</th>
                                         @foreach(var size in finalSizes.Keys) {
                                             <th style="width: 70px; text-align: center; background:#e0f2fe; color:#0284c7;">@size</th>
                                         }
-                                        <th style="width: 120px; background:#fef08a;">TOPLAM SAYI</th>
+                                        <th style="width: 80px; text-align: center;">FİRE (%)</th>
+                                        <th style="width: 120px; background:#fef08a; text-align: center;">İHTİYAÇ (TOPLAM)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @if (labelMaterials.Any()) {
                                         <tr style="background:#f1f5f9;" class="label-param-row">
-                                            <td colspan="2" style="font-weight:bold;">ASORTİ ORANLARI</td>
+                                            <td style="font-weight:bold;">ASORTİ ORANLARI</td>
                                             @foreach(var sizeKvp in finalSizes) {
                                                 int asortiO = asortiSizes.ContainsKey(sizeKvp.Key) ? asortiSizes[sizeKvp.Key] : 0;
                                                 string val = GetPurVal($"pur_color_{c}_label_asorti_oran_{sizeKvp.Key}", asortiO.ToString());
                                                 <td><input type="text" name="pur_color_@(c)_label_asorti_oran_@sizeKvp.Key" class="input-field mrp-input label-asorti-oran" data-size="@sizeKvp.Key" value="@val" style="width:100%; padding:4px; text-align:center;" /></td>
                                             }
+                                            <td></td>
                                             <td class="label-asorti-oran-toplam" style="text-align:right; font-weight:bold;">0</td>
                                         </tr>
                                         <tr style="background:#f1f5f9;" class="label-param-row">
-                                            <td colspan="2" style="font-weight:bold;">SİP ADETİ (ASORTİ)</td>
-                                            @{ string sipAsortiVal = GetPurVal($"pur_color_{c}_label_sip_adeti", Model.Quantity.ToString()); }
-                                            <td colspan="@finalSizes.Count">
-                                                <input type="text" name="pur_color_@(c)_label_sip_adeti" class="input-field mrp-input label-sip-adeti" value="@sipAsortiVal" style="width:120px; padding:4px; text-align:center;" />
-                                            </td>
-                                            <td class="label-sip-adeti-toplam" style="text-align:right; font-weight:bold;">0</td>
-                                        </tr>
-                                        <tr style="background:#f1f5f9;" class="label-param-row">
-                                            <td colspan="2" style="font-weight:bold;">AÇIK ADET</td>
+                                            <td style="font-weight:bold;">AÇIK ADET</td>
                                             @foreach(var sizeKvp in finalSizes) {
                                                 int openQ = openSizes.ContainsKey(sizeKvp.Key) ? openSizes[sizeKvp.Key] : 0;
                                                 string val = GetPurVal($"pur_color_{c}_label_acik_adet_{sizeKvp.Key}", openQ.ToString());
                                                 <td><input type="text" name="pur_color_@(c)_label_acik_adet_@sizeKvp.Key" class="input-field mrp-input label-acik-adet" data-size="@sizeKvp.Key" value="@val" style="width:100%; padding:4px; text-align:center;" /></td>
                                             }
+                                            <td></td>
                                             <td class="label-acik-adet-toplam" style="text-align:right; font-weight:bold;">0</td>
                                         </tr>
+
+                                        <tr style="background:#f0fdf4;" class="label-param-row">
+                                            <td style="font-weight:bold; color:#16a34a;">ASORTİ SAYISI</td>
+                                            <td colspan="@(finalSizes.Count + 2)" class="label-kalan-adet-val" style="text-align:right; font-weight:bold; color:#16a34a; padding-right:12px;">0</td>
+                                        </tr>
+                                        <tr style="background:#f0fdf4;" class="label-param-row">
+                                            <td style="font-weight:bold; color:#16a34a;">YENİ LOT SAYISI</td>
+                                            <td colspan="@(finalSizes.Count + 2)" class="label-yeni-lot-val" style="text-align:right; font-weight:bold; color:#16a34a; padding-right:12px;">0</td>
+                                        </tr>
                                         <tr style="background:#e2e8f0;" class="label-param-row">
-                                            <td colspan="2" style="font-weight:bold; text-align:right;">TOPLAM:</td>
+                                            <td style="font-weight:bold; text-align:right;">TOPLAM:</td>
                                             @foreach(var sizeKvp in finalSizes) {
                                                 <td class="label-toplam-beden" data-size="@sizeKvp.Key" style="text-align:center; font-weight:bold; color:#1e40af;">0</td>
                                             }
+                                            <td></td>
                                             <td class="label-genel-toplam" style="text-align:right; font-weight:bold; color:#b45309;">0</td>
                                         </tr>
                                         foreach (var item in labelMaterials) {
                                             string fireVal = GetPurVal($"pur_color_{c}_label_fire_{item.Key}", "0");
                                             <tr class="mrp-label-row">
                                                 <td style="font-weight: 600;">@item.Name</td>
-                                                <td><input type="text" name="pur_color_@(c)_label_fire_@item.Key" class="input-field mrp-input row-label-fire" value="@fireVal" style="width: 100%; padding: 4px; text-align: center;" /></td>
                                                 @foreach(var sizeKvp in finalSizes) {
                                                     <td class="row-label-size-qty" data-size="@sizeKvp.Key" style="text-align: center; color: #475569; font-weight: 700; background:#f8fafc;">0</td>
                                                 }
+                                                <td><input type="text" name="pur_color_@(c)_label_fire_@item.Key" class="input-field mrp-input row-label-fire" value="@fireVal" style="width: 100%; padding: 4px; text-align: center;" /></td>
                                                 <td class="row-label-toplam" style="text-align: right; font-weight: 700; color: #b45309; background:#fef08a;">0</td>
                                             </tr>
                                         }
@@ -706,30 +710,26 @@
                                     <tr>
                                         <th>CİNSİ</th>
                                         <th style="width: 100px;">İŞ MİKTARI</th>
-                                        <th style="width: 80px;">BİRİM</th>
+                                        <th style="width: 100px;">ASTAR</th>
                                         <th style="width: 100px; background:#fef08a;">İHTİYAÇ</th>
-                                        <th style="width: 100px;">TELA (METRE)</th>
-                                        <th style="width: 100px;">ADET</th>
-                                        <th style="width: 100px;">METRAJ</th>
+                                        <th style="width: 150px;">TELA TİPİ</th>
+                                        <th style="width: 150px; text-align: center;">TELA İHTİYACI (RENK)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @if (!interlinings.Any()) {
-                                        <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş tela yok.</td></tr>
+                                        <tr><td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş tela yok.</td></tr>
                                     } else {
                                         foreach (var item in interlinings) {
                                             string unitVal = GetPurVal($"pur_color_{c}_tela_birim_{item.Key}", item.DefaultUnit);
-                                            string metreVal = GetPurVal($"pur_color_{c}_tela_metre_{item.Key}", "0");
-                                            string adetVal = GetPurVal($"pur_color_{c}_tela_adet_{item.Key}", "0");
-                                            string metrajVal = GetPurVal($"pur_color_{c}_tela_metraj_{item.Key}", "0");
+                                            string tipiVal = GetPurVal($"pur_color_{c}_tela_tipi_{item.Key}", "");
                                             <tr class="interlining-row">
                                                 <td style="font-weight: 600;">@item.Name</td>
                                                 <td class="row-is-miktari" style="text-align: right; color: #64748b; font-weight: 600;">0</td>
-                                                <td><input type="text" name="pur_color_@(c)_tela_birim_@item.Key" class="input-field interlining-input row-tela-birim" value="@unitVal" style="width: 100%; padding: 4px;" /></td>
+                                                <td><input type="text" name="pur_color_@(c)_tela_birim_@item.Key" class="input-field interlining-input row-tela-birim" value="@unitVal" style="width: 100%; padding: 4px; text-align: center;" /></td>
                                                 <td class="row-ihtiyac" style="text-align: right; font-weight: 700; color: #b45309; background:#fef08a;">0</td>
-                                                <td><input type="text" name="pur_color_@(c)_tela_metre_@item.Key" class="input-field" value="@metreVal" style="width: 100%; padding: 4px;" /></td>
-                                                <td><input type="text" name="pur_color_@(c)_tela_adet_@item.Key" class="input-field" value="@adetVal" style="width: 100%; padding: 4px;" /></td>
-                                                <td><input type="text" name="pur_color_@(c)_tela_metraj_@item.Key" class="input-field" value="@metrajVal" style="width: 100%; padding: 4px;" /></td>
+                                                <td><input type="text" name="pur_color_@(c)_tela_tipi_@item.Key" class="input-field" value="@tipiVal" placeholder="Örn: 1.75'lik" style="width: 100%; padding: 4px;" /></td>
+                                                <td style="text-align: center; font-weight: 600; color: #475569;">@item.Color</td>
                                             </tr>
                                         }
                                     }
@@ -1049,8 +1049,13 @@ function calculateMRP() {
             if(labelTable.querySelector('.label-sip-adeti-toplam')) labelTable.querySelector('.label-sip-adeti-toplam').innerText = sipAdeti.toLocaleString('tr-TR');
             if(labelTable.querySelector('.label-acik-adet-toplam')) labelTable.querySelector('.label-acik-adet-toplam').innerText = totalAcikAdet.toLocaleString('tr-TR');
             
-            var asortiMultiplier = sipAdeti - totalAcikAdet;
+            var birimAsorti = totalAsortiOran > 0 ? totalAsortiOran : 1;
+            var kalanAdet = Math.round(bedenCikacak - totalAcikAdet);
+            var asortiMultiplier = Math.round(kalanAdet / birimAsorti);
             if (asortiMultiplier < 0) asortiMultiplier = 0;
+            
+            if(labelTable.querySelector('.label-kalan-adet-val')) labelTable.querySelector('.label-kalan-adet-val').innerText = kalanAdet.toLocaleString('tr-TR');
+            if(labelTable.querySelector('.label-yeni-lot-val')) labelTable.querySelector('.label-yeni-lot-val').innerText = asortiMultiplier.toLocaleString('tr-TR');
             
             var sizeBaseTotals = {};
             var genelToplam = 0;
