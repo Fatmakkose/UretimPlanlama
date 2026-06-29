@@ -1,0 +1,162 @@
+@model UretimPlanlama.Controllers.WorkshopDetailsViewModel
+@{
+    ViewData["Title"] = "Atölye Detayı: " + Model.Workshop.Name;
+}
+
+<div class="planning-dashboard">
+    <!-- Üst Başlık ve Aksiyonlar -->
+    <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 12px;">
+                <a href="/WorkshopCapacity" style="color: #64748b; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i></a>
+                Atölye Detayı: @Model.Workshop.Name
+            </h1>
+            <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.95rem;">
+                <span class="badge" style="background: #e0f2fe; color: #0284c7; border-radius: 4px; padding: 2px 8px; font-weight: 600;">@Model.Workshop.Type Atölyesi</span>
+                &bull; Günlük Kapasite Hedefi: <strong>@Model.Workshop.DailyCapacity.ToString("N0")</strong> Adet
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="/Planning/Tracking" class="btn btn-outline" style="border: 1px solid #cbd5e1; background: white; color: #334155; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                <i class="fa-solid fa-chart-line"></i> Genel Takip
+            </a>
+        </div>
+    </div>
+
+    <!-- Özet İstatistikler -->
+    <div class="top-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 28px;">
+        <div class="stat-card" style="background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #3b82f6;">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.85rem; color: #64748b; font-weight: 600; margin-bottom: 6px;">AKTİF SİPARİŞ SAYISI</div>
+                <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1;">@Model.TotalActiveOrderCount.ToString("N0")</div>
+            </div>
+        </div>
+        
+        <div class="stat-card" style="background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: #f0fdf4; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #22c55e;">
+                <i class="fa-solid fa-shirt"></i>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.85rem; color: #64748b; font-weight: 600; margin-bottom: 6px;">TOPLAM İŞ YÜKÜ (ADET)</div>
+                <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1;">@Model.TotalActivePieces.ToString("N0")</div>
+            </div>
+        </div>
+        
+        <div class="stat-card" style="background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+            @{
+                var hasCapacity = Model.Workshop.DailyCapacity > 0;
+                var workloadDays = hasCapacity ? (double)Model.TotalActivePieces / Model.Workshop.DailyCapacity : 0;
+            }
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: #fefce8; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #eab308;">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.85rem; color: #64748b; font-weight: 600; margin-bottom: 6px;">TAHMİNİ BİTİŞ SÜRESİ</div>
+                <div style="font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1;">
+                    @(hasCapacity ? Math.Ceiling(workloadDays).ToString() + " Gün" : "Belirsiz")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aktif Siparişler Listesi -->
+    <div style="background: white; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); overflow: hidden;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+            <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-main);">Atölyedeki Aktif Siparişler</h2>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="background: white; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 14px 24px;">Sipariş Kodu</th>
+                        <th style="padding: 14px 24px;">Model Adı</th>
+                        <th style="padding: 14px 24px;">Müşteri / Marka</th>
+                        <th style="padding: 14px 24px; text-align: right;">Sipariş Adedi</th>
+                        <th style="padding: 14px 24px; text-align: center;">Sipariş Tarihi</th>
+                        <th style="padding: 14px 24px; text-align: center;">Paket Bitiş (Termin)</th>
+                        <th style="padding: 14px 24px; text-align: center;">Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.ActiveOrders != null && Model.ActiveOrders.Count > 0)
+                    {
+                        foreach (var order in Model.ActiveOrders)
+                        {
+                            <tr style="border-bottom: 1px solid #e2e8f0; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9';" onmouseout="this.style.backgroundColor='transparent';">
+                                <td style="padding: 16px 24px; font-weight: 600; color: #0f172a;">@order.OrderCode</td>
+                                <td style="padding: 16px 24px; color: #334155;">@order.ModelName</td>
+                                <td style="padding: 16px 24px; color: #475569;">
+                                    <div style="font-weight: 600; color: #0f172a;">@order.Customer</div>
+                                    <div style="font-size: 0.75rem;">@order.Brand</div>
+                                </td>
+                                <td style="padding: 16px 24px; text-align: right; font-weight: 700; color: #0f172a;">
+                                    @order.Quantity.ToString("N0")
+                                </td>
+                                <td style="padding: 16px 24px; text-align: center; color: #64748b;">
+                                    @order.OrderDate.ToString("dd.MM.yyyy")
+                                </td>
+                                <td style="padding: 16px 24px; text-align: center; font-weight: 500; color: @(order.PlannedPackagingEndDate.HasValue && order.PlannedPackagingEndDate.Value < DateTime.Today ? "#dc2626" : "#0f172a")">
+                                    @(order.PlannedPackagingEndDate.HasValue ? order.PlannedPackagingEndDate.Value.ToString("dd.MM.yyyy") : "-")
+                                </td>
+                                <td style="padding: 16px 24px; text-align: center;">
+                                    @{
+                                        var statusBg = "#f1f5f9";
+                                        var statusColor = "#475569";
+                                        if (order.Status == "Dikim" || order.Status == "Kesim" || order.Status == "Planlama")
+                                        {
+                                            statusBg = "#e0e7ff"; statusColor = "#4338ca";
+                                        }
+                                        else if (order.Status == "Paket" || order.Status == "Kalite")
+                                        {
+                                            statusBg = "#fef3c7"; statusColor = "#b45309";
+                                        }
+                                    }
+                                    <span style="background: @statusBg; color: @statusColor; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                        @order.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="padding: 32px; text-align: center; color: #94a3b8;">
+                                <i class="fa-solid fa-clipboard-list" style="font-size: 2rem; margin-bottom: 12px; color: #cbd5e1; display: block;"></i>
+                                Bu atölyeye atanmış aktif bir sipariş bulunmuyor.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: #0047bb;
+        --secondary-color: #f8fafc;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+    }
+    
+    .planning-dashboard {
+        padding: 24px;
+        background-color: #f1f5f9;
+        min-height: calc(100vh - 64px);
+    }
+    
+    .btn {
+        transition: all 0.2s;
+    }
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+</style>

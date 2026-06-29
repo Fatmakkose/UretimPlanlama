@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UretimPlanlama.Data;
 
@@ -11,9 +12,11 @@ using UretimPlanlama.Data;
 namespace UretimPlanlama.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625112650_AddTelaTipiAndPat")]
+    partial class AddTelaTipiAndPat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -313,13 +316,7 @@ namespace UretimPlanlama.Migrations
                     b.Property<decimal>("KalanBakiye")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("Miktar")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StokKartiId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Tutar")
@@ -330,8 +327,6 @@ namespace UretimPlanlama.Migrations
                     b.HasIndex("CariHesapId");
 
                     b.HasIndex("OrderId");
-
-                    b.HasIndex("StokKartiId");
 
                     b.ToTable("CariHareketler");
                 });
@@ -1091,15 +1086,9 @@ namespace UretimPlanlama.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("UretimPlanlama.Models.StokKarti", "StokKarti")
-                        .WithMany()
-                        .HasForeignKey("StokKartiId");
-
                     b.Navigation("CariHesap");
 
                     b.Navigation("Order");
-
-                    b.Navigation("StokKarti");
                 });
 
             modelBuilder.Entity("UretimPlanlama.Models.StokHareket", b =>

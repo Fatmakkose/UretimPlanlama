@@ -159,7 +159,8 @@
                                 <thead style="background-color: #f1f5f9;">
                                     <tr>
                                         <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; width:150px;">CİNSİ</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">ASTAR (GRAM)</th>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">BİRİM</th>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">GRAM</th>
                                         <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA İHTİYACI (RENK)</th>
                                     </tr>
                                 </thead>
@@ -169,6 +170,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="kusak" /> KUŞAK</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakAstarGram" id="kusakAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakTelaTipi" id="kusakTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakTelaRenk" id="kusakTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -176,6 +178,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="yaka" /> YAKA</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaAstarGram" id="yakaAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaTelaTipi" id="yakaTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaTelaRenk" id="yakaTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -183,6 +186,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="manset" /> MANŞET</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetAstarGram" id="mansetAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetTelaTipi" id="mansetTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetTelaRenk" id="mansetTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -190,6 +194,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="kapak" /> KAPAK</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakAstarGram" id="kapakAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakTelaTipi" id="kapakTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakTelaRenk" id="kapakTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -197,7 +202,16 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="boss" /> BOSS</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossAstarGram" id="bossAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossTelaTipi" id="bossTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossTelaRenk" id="bossTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="pat" /> PAT</label>
+                                        </td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="PatAstarGram" id="patAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="PatTelaTipi" id="patTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="PatTelaRenk" id="patTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -220,19 +234,22 @@
             var isChecked = $(this).is(':checked');
             
             var astarInput = $('#' + targetPrefix + 'Astar');
+            var telaTipiInput = $('#' + targetPrefix + 'TelaTipi');
             var telaInput = $('#' + targetPrefix + 'Tela');
             
             if (isChecked) {
                 astarInput.prop('disabled', false).css('background', 'white');
+                telaTipiInput.prop('disabled', false).css('background', 'white');
                 telaInput.prop('disabled', false).css('background', 'white');
             } else {
                 astarInput.prop('disabled', true).css('background', '#f8fafc').val('');
+                telaTipiInput.prop('disabled', true).css('background', '#f8fafc').val('');
                 telaInput.prop('disabled', true).css('background', '#f8fafc').val('');
             }
         });
 
         // Dynamic Fabrics logic
-        function addFabricRow(name = '', meterage = '', unit = 'm', wastage = '', largeBtn = '', smallBtn = '') {
+        function addFabricRow(name = '', meterage = '', unit = 'm', wastage = '', btn1Size = '24/', btn1Qty = '', btn2Size = '14/', btn2Qty = '') {
             var rowHtml = `
                 <div class="fabric-row" style="display:grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap:12px; align-items:end; background:white; padding:12px; border:1px solid #cbd5e1; border-radius:6px; position:relative;">
                     <div>
@@ -254,12 +271,30 @@
                         <input type="number" step="0.01" class="form-control fabric-wastage no-spinner" value="${wastage}" placeholder="5" style="text-align:center;" />
                     </div>
                     <div>
-                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">24/ Düğme</label>
-                        <input type="number" step="1" class="form-control fabric-large-btn no-spinner" value="${largeBtn}" style="text-align:center;" />
+                        <select class="form-control fabric-btn1-size" style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; border:none; background:transparent; padding:0; height:auto; cursor:pointer;">
+                            <option value="">1. Düğme Boyu</option>
+                            <option value="14/" ${btn1Size === '14/' ? 'selected' : ''}>14/ Düğme</option>
+                            <option value="16/" ${btn1Size === '16/' ? 'selected' : ''}>16/ Düğme</option>
+                            <option value="18/" ${btn1Size === '18/' ? 'selected' : ''}>18/ Düğme</option>
+                            <option value="20/" ${btn1Size === '20/' ? 'selected' : ''}>20/ Düğme</option>
+                            <option value="24/" ${btn1Size === '24/' ? 'selected' : ''}>24/ Düğme</option>
+                            <option value="28/" ${btn1Size === '28/' ? 'selected' : ''}>28/ Düğme</option>
+                            <option value="32/" ${btn1Size === '32/' ? 'selected' : ''}>32/ Düğme</option>
+                        </select>
+                        <input type="number" step="1" class="form-control fabric-btn1-qty no-spinner" value="${btn1Qty}" style="text-align:center;" placeholder="Adet" />
                     </div>
                     <div>
-                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">14/ Düğme</label>
-                        <input type="number" step="1" class="form-control fabric-small-btn no-spinner" value="${smallBtn}" style="text-align:center;" />
+                        <select class="form-control fabric-btn2-size" style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; border:none; background:transparent; padding:0; height:auto; cursor:pointer;">
+                            <option value="">2. Düğme Boyu</option>
+                            <option value="14/" ${btn2Size === '14/' ? 'selected' : ''}>14/ Düğme</option>
+                            <option value="16/" ${btn2Size === '16/' ? 'selected' : ''}>16/ Düğme</option>
+                            <option value="18/" ${btn2Size === '18/' ? 'selected' : ''}>18/ Düğme</option>
+                            <option value="20/" ${btn2Size === '20/' ? 'selected' : ''}>20/ Düğme</option>
+                            <option value="24/" ${btn2Size === '24/' ? 'selected' : ''}>24/ Düğme</option>
+                            <option value="28/" ${btn2Size === '28/' ? 'selected' : ''}>28/ Düğme</option>
+                            <option value="32/" ${btn2Size === '32/' ? 'selected' : ''}>32/ Düğme</option>
+                        </select>
+                        <input type="number" step="1" class="form-control fabric-btn2-qty no-spinner" value="${btn2Qty}" style="text-align:center;" placeholder="Adet" />
                     </div>
                     <div style="padding-bottom: 6px;">
                         <button type="button" class="btnRemoveFabric" style="background:transparent; border:none; color:#dc2626; cursor:pointer; padding:4px;" title="Sil"><i class="fa-solid fa-trash"></i></button>
@@ -289,16 +324,22 @@
                 var meterage = parseFloat($(this).find('.fabric-meterage').val()) || null;
                 var unit = $(this).find('.fabric-unit').val();
                 var wastage = parseFloat($(this).find('.fabric-wastage').val()) || null;
-                var largeBtn = parseInt($(this).find('.fabric-large-btn').val()) || null;
-                var smallBtn = parseInt($(this).find('.fabric-small-btn').val()) || null;
+                var btn1Size = $(this).find('.fabric-btn1-size').val();
+                var btn1Qty = parseInt($(this).find('.fabric-btn1-qty').val()) || null;
+                var btn2Size = $(this).find('.fabric-btn2-size').val();
+                var btn2Qty = parseInt($(this).find('.fabric-btn2-qty').val()) || null;
 
                 fabrics.push({
                     Name: $(this).find('.fabric-name').val() || ("Kumaş " + (index + 1)),
                     Meterage: meterage,
                     Unit: unit === 'm' ? 'Metraj (m)' : 'Kg',
                     WastageRate: wastage,
-                    LargeButtonCount: largeBtn,
-                    SmallButtonCount: smallBtn
+                    Button1Size: btn1Size,
+                    Button1Qty: btn1Qty,
+                    Button2Size: btn2Size,
+                    Button2Qty: btn2Qty,
+                    LargeButtonCount: btn1Qty,
+                    SmallButtonCount: btn2Qty
                 });
                 
                 // İlk kumaşın verisini eski hidden alanlara yaz ki sistemdeki diğer yerler bozulmasın
@@ -306,8 +347,8 @@
                     $('#hiddenUnitFabricMeterage').val(meterage || '');
                     $('#hiddenFabricUnit').val(unit === 'm' ? 'Metraj (m)' : 'Kg');
                     $('#hiddenWastageRate').val(wastage || '');
-                    $('#hiddenLargeButtonCount').val(largeBtn || '');
-                    $('#hiddenSmallButtonCount').val(smallBtn || '');
+                    $('#hiddenLargeButtonCount').val(btn1Qty || '');
+                    $('#hiddenSmallButtonCount').val(btn2Qty || '');
                 }
             });
 

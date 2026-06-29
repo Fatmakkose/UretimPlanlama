@@ -267,6 +267,17 @@ namespace UretimPlanlama.Controllers
                 existingOrder.FabricSupplier = updatedOrder.FabricSupplier;
                 existingOrder.DeliveryPlace = updatedOrder.DeliveryPlace;
                 existingOrder.Color = updatedOrder.Color;
+                
+                // Add new color to ColorDefs if it doesn't exist
+                if (!string.IsNullOrWhiteSpace(updatedOrder.Color))
+                {
+                    bool colorExists = _context.ColorDefs.Any(c => c.Name == updatedOrder.Color);
+                    if (!colorExists)
+                    {
+                        _context.ColorDefs.Add(new UretimPlanlama.Models.ColorDef { Name = updatedOrder.Color });
+                    }
+                }
+
                 existingOrder.IsJIT = updatedOrder.IsJIT;
                 existingOrder.SalesRegion = updatedOrder.SalesRegion;
                 existingOrder.PlannedPackagingEndDate = updatedOrder.PlannedPackagingEndDate;
@@ -291,6 +302,12 @@ namespace UretimPlanlama.Controllers
 
                 existingOrder.SizeDistributionJson = updatedOrder.SizeDistributionJson;
                 existingOrder.AsortiDistributionJson = updatedOrder.AsortiDistributionJson;
+                
+                // Keep existing ProductionJson but update KNN Revize Termin if provided
+                if (!string.IsNullOrEmpty(updatedOrder.ProductionJson))
+                {
+                    existingOrder.ProductionJson = updatedOrder.ProductionJson;
+                }
 
                 // Aksesuar ve Tela Bilgileri
                 existingOrder.SelectedAccessoriesJson = updatedOrder.SelectedAccessoriesJson;
@@ -302,14 +319,22 @@ namespace UretimPlanlama.Controllers
                 existingOrder.SmallButtonCount = updatedOrder.SmallButtonCount;
                 existingOrder.KusakAstarGram = updatedOrder.KusakAstarGram;
                 existingOrder.KusakTelaRenk = updatedOrder.KusakTelaRenk;
+                existingOrder.KusakTelaTipi = updatedOrder.KusakTelaTipi;
                 existingOrder.YakaAstarGram = updatedOrder.YakaAstarGram;
                 existingOrder.YakaTelaRenk = updatedOrder.YakaTelaRenk;
+                existingOrder.YakaTelaTipi = updatedOrder.YakaTelaTipi;
                 existingOrder.MansetAstarGram = updatedOrder.MansetAstarGram;
                 existingOrder.MansetTelaRenk = updatedOrder.MansetTelaRenk;
+                existingOrder.MansetTelaTipi = updatedOrder.MansetTelaTipi;
                 existingOrder.KapakAstarGram = updatedOrder.KapakAstarGram;
                 existingOrder.KapakTelaRenk = updatedOrder.KapakTelaRenk;
+                existingOrder.KapakTelaTipi = updatedOrder.KapakTelaTipi;
                 existingOrder.BossAstarGram = updatedOrder.BossAstarGram;
                 existingOrder.BossTelaRenk = updatedOrder.BossTelaRenk;
+                existingOrder.BossTelaTipi = updatedOrder.BossTelaTipi;
+                existingOrder.PatAstarGram = updatedOrder.PatAstarGram;
+                existingOrder.PatTelaRenk = updatedOrder.PatTelaRenk;
+                existingOrder.PatTelaTipi = updatedOrder.PatTelaTipi;
                 existingOrder.HasPriceCard = updatedOrder.HasPriceCard;
                 existingOrder.HasWashingInstruction = updatedOrder.HasWashingInstruction;
                 existingOrder.HasInnerBarcode = updatedOrder.HasInnerBarcode;
@@ -406,6 +431,43 @@ namespace UretimPlanlama.Controllers
             {
                 return string.Empty;
             }
+        }
+
+        [HttpGet]
+        public IActionResult GetOrderMaterials(int id)
+        {
+            var order = _context.Orders.Find(id);
+            if (order == null) return Json(new { success = false, message = "Sipariş bulunamadı." });
+
+            var materials = new List<object>();
+
+            if (order.UnitFabricMeterage > 0)
+            {
+                var total = order.Quantity * order.UnitFabricMeterage;
+                materials.Add(new { ad = "Kumaş", miktar = total, birim = order.FabricUnit ?? "Metre", kategori = "Kumaş" });
+            }
+
+            if (order.LargeButtonCount > 0)
+                materials.Add(new { ad = "Büyük Düğme (24/Boy)", miktar = order.Quantity * order.LargeButtonCount, birim = "Adet", kategori = "Düğme" });
+            
+            if (order.SmallButtonCount > 0)
+                materials.Add(new { ad = "Küçük Düğme (14/Boy)", miktar = order.Quantity * order.SmallButtonCount, birim = "Adet", kategori = "Düğme" });
+
+            if (order.HasPriceCard) materials.Add(new { ad = "Fiyat Kartı", miktar = order.Quantity, birim = "Adet", kategori = "Etiket" });
+            if (order.HasWashingInstruction) materials.Add(new { ad = "Yıkama Talimatı", miktar = order.Quantity, birim = "Adet", kategori = "Etiket" });
+            if (order.HasInnerBarcode) materials.Add(new { ad = "İç Barkod", miktar = order.Quantity, birim = "Adet", kategori = "Etiket" });
+            if (order.HasYokeLabel) materials.Add(new { ad = "Roba Etiketi", miktar = order.Quantity, birim = "Adet", kategori = "Etiket" });
+            if (order.HasFifLabel) materials.Add(new { ad = "Fif Etiketi", miktar = order.Quantity, birim = "Adet", kategori = "Etiket" });
+            if (order.HasOtherCard) materials.Add(new { ad = "Diğer Kart", miktar = order.Quantity, birim = "Adet", kategori = "Etiket" });
+
+            if (!string.IsNullOrEmpty(order.KusakTelaTipi)) materials.Add(new { ad = "Kuşak Tela (" + order.KusakTelaTipi + ")", miktar = order.Quantity, birim = "Adet", kategori = "Tela" });
+            if (!string.IsNullOrEmpty(order.YakaTelaTipi)) materials.Add(new { ad = "Yaka Tela (" + order.YakaTelaTipi + ")", miktar = order.Quantity, birim = "Adet", kategori = "Tela" });
+            if (!string.IsNullOrEmpty(order.MansetTelaTipi)) materials.Add(new { ad = "Manşet Tela (" + order.MansetTelaTipi + ")", miktar = order.Quantity, birim = "Adet", kategori = "Tela" });
+            if (!string.IsNullOrEmpty(order.KapakTelaTipi)) materials.Add(new { ad = "Kapak Tela (" + order.KapakTelaTipi + ")", miktar = order.Quantity, birim = "Adet", kategori = "Tela" });
+            if (!string.IsNullOrEmpty(order.BossTelaTipi)) materials.Add(new { ad = "Boss Tela (" + order.BossTelaTipi + ")", miktar = order.Quantity, birim = "Adet", kategori = "Tela" });
+            if (!string.IsNullOrEmpty(order.PatTelaTipi)) materials.Add(new { ad = "Pat Tela (" + order.PatTelaTipi + ")", miktar = order.Quantity, birim = "Adet", kategori = "Tela" });
+
+            return Json(new { success = true, materials = materials });
         }
     }
 }

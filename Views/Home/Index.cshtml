@@ -10,73 +10,7 @@
         padding-bottom: 16px;
         border-bottom: 1px solid var(--border-color);
     }
-    .header-title h1 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0 0 4px 0;
-    }
-    .header-title p {
-        font-size: 0.9rem;
-        color: #64748b;
-        margin: 0;
-    }
 
-    .top-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        margin-bottom: 24px;
-    }
-    .top-stat-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .top-stat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-    .top-stat-title {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .top-stat-icon {
-        color: #0047bb;
-        font-size: 1.1rem;
-    }
-    .top-stat-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 8px;
-    }
-    .top-stat-progress-bar {
-        height: 4px;
-        background: #e2e8f0;
-        border-radius: 2px;
-        margin-bottom: 8px;
-        overflow: hidden;
-    }
-    .top-stat-progress-fill {
-        height: 100%;
-        background: #0047bb;
-        border-radius: 2px;
-    }
-    .top-stat-desc {
-        font-size: 0.75rem;
-        color: #64748b;
-    }
-    
     .middle-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -251,7 +185,7 @@
 
 <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
     <div class="header-title">
-        <h1>Üretim Genel Bakış</h1>
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Üretim Genel Bakış</h1>
     </div>
     <div class="header-actions" style="display: flex; gap: 10px;">
         <a href="/Order/Create" class="btn btn-primary" style="background: #0047bb; color: white; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-plus"></i> Yeni Sipariş</a>
@@ -296,56 +230,53 @@
     </div>
 }
 
-<div class="top-stats-grid">
+<div class="stat-cards" style="margin-bottom: 25px;">
     <!-- Toplam Sipariş -->
-    <div class="top-stat-card">
-        <div class="top-stat-header">
-            <span class="top-stat-title">TOPLAM SİPARİŞ</span>
-            <i class="fa-solid fa-cart-shopping top-stat-icon"></i>
+    <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-title">TOPLAM SİPARİŞ</div>
+            <div class="stat-value">@((ViewBag.TotalOrdersQty ?? 0).ToString("N0"))</div>
+            <div class="stat-desc">Sistemdeki siparişlerin toplam adedi</div>
         </div>
-        <div class="top-stat-value">@((ViewBag.TotalOrdersQty ?? 0).ToString("N0"))</div>
-        <div class="top-stat-desc" style="color: #0d9488;"><i class="fa-solid fa-arrow-trend-up"></i> Sistemdeki siparişlerin toplam adedi</div>
+        <div class="stat-icon icon-teal">
+            <i class="fa-solid fa-cart-shopping"></i>
+        </div>
     </div>
     
     <!-- Kesimdeki Adet -->
-    <div class="top-stat-card">
-        <div class="top-stat-header">
-            <span class="top-stat-title">KESİMDEKİ ADET</span>
-            <i class="fa-solid fa-scissors top-stat-icon" style="color: #0284c7;"></i>
+    <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-title">KESİMDEKİ ADET</div>
+            <div class="stat-value">@((ViewBag.CuttingQty ?? 0).ToString("N0"))</div>
+            <div class="stat-desc text-info">Atölyelerde kesim sürecinde olanlar</div>
         </div>
-        <div class="top-stat-value">@((ViewBag.CuttingQty ?? 0).ToString("N0"))</div>
-        <div class="top-stat-progress-bar">
-            @{
-                var total = (ViewBag.TotalOrdersQty ?? 0) > 0 ? ViewBag.TotalOrdersQty : 1;
-                var cutPct = Math.Min(100, Math.Round((double)(ViewBag.CuttingQty ?? 0) / (double)total * 100, 0));
-            }
-            <div class="top-stat-progress-fill" style="width: @cutPct%; background: #0284c7;"></div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0284c7;">
+            <i class="fa-solid fa-scissors"></i>
         </div>
     </div>
     
     <!-- Dikimdeki Adet -->
-    <div class="top-stat-card">
-        <div class="top-stat-header">
-            <span class="top-stat-title">DİKİMDEKİ ADET</span>
-            <i class="fa-solid fa-shirt top-stat-icon" style="color: #16a34a;"></i>
+    <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-title">DİKİMDEKİ ADET</div>
+            <div class="stat-value">@((ViewBag.SewingQty ?? 0).ToString("N0"))</div>
+            <div class="stat-desc text-success">Atölyelerde dikim sürecinde olanlar</div>
         </div>
-        <div class="top-stat-value">@((ViewBag.SewingQty ?? 0).ToString("N0"))</div>
-        <div class="top-stat-progress-bar">
-            @{
-                var sewPct = Math.Min(100, Math.Round((double)(ViewBag.SewingQty ?? 0) / (double)total * 100, 0));
-            }
-            <div class="top-stat-progress-fill" style="width: @sewPct%; background: #16a34a;"></div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #10b981;">
+            <i class="fa-solid fa-shirt"></i>
         </div>
     </div>
     
     <!-- Sevkiyata Hazır -->
-    <div class="top-stat-card">
-        <div class="top-stat-header">
-            <span class="top-stat-title">SEVKİYATA HAZIR</span>
-            <i class="fa-solid fa-box-open top-stat-icon" style="color: #4f46e5;"></i>
+    <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-title">SEVKİYATA HAZIR</div>
+            <div class="stat-value">@((ViewBag.ReadyToShipQty ?? 0).ToString("N0"))</div>
+            <div class="stat-desc" style="color: #6366f1;">Paketleme & Sevkiyat aşamasındakiler</div>
         </div>
-        <div class="top-stat-value">@((ViewBag.ReadyToShipQty ?? 0).ToString("N0"))</div>
-        <div class="top-stat-desc">Paketleme & Sevkiyat aşamasındaki siparişler</div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #8b5cf6;">
+            <i class="fa-solid fa-box-open"></i>
+        </div>
     </div>
 </div>
 
@@ -371,7 +302,7 @@
                 if(upcoming.Any()) {
                     foreach (var u in upcoming.Take(5))
                     {
-                        var daysLeft = (u.PlannedPackagingEndDate.Value.Date - DateTime.Today).Days;
+                        var daysLeft = (u.EffectiveTerminDate.Value.Date - DateTime.Today).Days;
                         var badgeColor = daysLeft <= 3 ? "#dc2626" : (daysLeft <= 7 ? "#eab308" : "#16a34a");
                         <li class="workshop-item" style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
@@ -380,7 +311,7 @@
                             </div>
                             <div style="text-align: right;">
                                 <div style="font-size: 0.8rem; font-weight: 700; color: @badgeColor;">@daysLeft Gün Kaldı</div>
-                                <div style="font-size: 0.7rem; color: #94a3b8;">@u.PlannedPackagingEndDate.Value.ToString("dd MMM")</div>
+                                <div style="font-size: 0.7rem; color: #94a3b8;">@u.EffectiveTerminDate.Value.ToString("dd MMM")</div>
                             </div>
                         </li>
                     }

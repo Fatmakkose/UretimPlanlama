@@ -117,36 +117,44 @@
 
 <div class="stat-cards" style="margin-bottom: 25px;">
     <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-title">Toplam Sipariş</div>
+            <div class="stat-value">@Model.Count</div>
+            <div class="stat-desc">Sistemdeki toplam iş emri</div>
+        </div>
         <div class="stat-icon icon-teal">
             <i class="fa-solid fa-briefcase"></i>
         </div>
-        <div class="stat-title">Toplam Sipariş</div>
-        <div class="stat-value">@Model.Count</div>
-        <div class="stat-desc">Sistemdeki toplam iş emri</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon icon-light-teal" style="background: #e0f2fe; color: #0284c7;">
+        <div class="stat-content">
+            <div class="stat-title">Yeni Kayıt / Bekleyen</div>
+            <div class="stat-value">@Model.Count(o => o.Status == "Yeni Kayıt" || string.IsNullOrEmpty(o.Status))</div>
+            <div class="stat-desc text-info">Üretime başlamayı bekleyenler</div>
+        </div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0284c7;">
             <i class="fa-solid fa-circle-info"></i>
         </div>
-        <div class="stat-title">Yeni Kayıt / Bekleyen</div>
-        <div class="stat-value">@Model.Count(o => o.Status == "Yeni Kayıt" || string.IsNullOrEmpty(o.Status))</div>
-        <div class="stat-desc text-info">Üretime başlamayı bekleyenler</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon icon-light-teal" style="background: #fef3c7; color: #d97706;">
+        <div class="stat-content">
+            <div class="stat-title">Aktif Üretimde</div>
+            <div class="stat-value">@Model.Count(o => o.Status != "Yeni Kayıt" && o.Status != "Tamamlandı" && o.Status != "İptal Edildi" && !string.IsNullOrEmpty(o.Status))</div>
+            <div class="stat-desc text-warning">Atölyelerde dikim/kesim aşamasında</div>
+        </div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706;">
             <i class="fa-solid fa-spinner"></i>
         </div>
-        <div class="stat-title">Aktif Üretimde</div>
-        <div class="stat-value">@Model.Count(o => o.Status != "Yeni Kayıt" && o.Status != "Tamamlandı" && o.Status != "İptal Edildi" && !string.IsNullOrEmpty(o.Status))</div>
-        <div class="stat-desc text-warning">Atölyelerde dikim/kesim aşamasında</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon icon-light-teal" style="background: #ecfdf5; color: #10b981;">
+        <div class="stat-content">
+            <div class="stat-title">Tamamlanan</div>
+            <div class="stat-value">@Model.Count(o => o.Status == "Tamamlandı")</div>
+            <div class="stat-desc text-success">Sevkiyatı yapılmış siparişler</div>
+        </div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #10b981;">
             <i class="fa-solid fa-circle-check"></i>
         </div>
-        <div class="stat-title">Tamamlanan</div>
-        <div class="stat-value">@Model.Count(o => o.Status == "Tamamlandı")</div>
-        <div class="stat-desc text-success">Sevkiyatı yapılmış siparişler</div>
     </div>
 </div>
 
@@ -209,6 +217,7 @@
                         <th>MODEL</th>
                         <th>DETAY</th>
                         <th>KUMAŞÇI</th>
+                        <th>ATÖLYE</th>
                         <th style="text-align: right;">SİPARİŞ ADEDİ</th>
                         <th style="text-align: center; width: 120px; padding-right: 24px;">İŞLEM</th>
                     </tr>
@@ -247,6 +256,20 @@
                                 </td>
                                 <td>
                                     <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-truck" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@firstOrder.FabricSupplier</span>
+                                </td>
+                                <td>
+                                    @{
+                                        string atolyeStr = "-";
+                                        if(!string.IsNullOrEmpty(firstOrder.ProductionJson)) {
+                                            try {
+                                                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(firstOrder.ProductionJson);
+                                                if(dict != null && dict.ContainsKey("prod_dikim_atolyesi") && !string.IsNullOrEmpty(dict["prod_dikim_atolyesi"])) {
+                                                    atolyeStr = dict["prod_dikim_atolyesi"];
+                                                }
+                                            } catch {}
+                                        }
+                                    }
+                                    <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-industry" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@atolyeStr</span>
                                 </td>
                                 <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #0f172a;">
                                     @firstOrder.Quantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
@@ -291,6 +314,9 @@
                                 <td>
                                     <span style="color: #94a3b8; font-size: 0.8rem; font-style:italic;">Çoklu (Genişletiniz)</span>
                                 </td>
+                                <td>
+                                    <span style="color: #94a3b8; font-size: 0.8rem; font-style:italic;">Çoklu (Genişletiniz)</span>
+                                </td>
                                 <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #0f172a;">
                                     @totalQty.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
                                 </td>
@@ -318,6 +344,20 @@
                                     </td>
                                     <td>
                                         <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-truck" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@order.FabricSupplier</span>
+                                    </td>
+                                    <td>
+                                        @{
+                                            string childAtolyeStr = "-";
+                                            if(!string.IsNullOrEmpty(order.ProductionJson)) {
+                                                try {
+                                                    var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.ProductionJson);
+                                                    if(dict != null && dict.ContainsKey("prod_dikim_atolyesi") && !string.IsNullOrEmpty(dict["prod_dikim_atolyesi"])) {
+                                                        childAtolyeStr = dict["prod_dikim_atolyesi"];
+                                                    }
+                                                } catch {}
+                                            }
+                                        }
+                                        <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-industry" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@childAtolyeStr</span>
                                     </td>
                                     <td style="text-align: right; font-weight: 600; font-size: 0.95rem; color: #0f172a;">
                                         @order.Quantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
@@ -352,6 +392,8 @@
                 </h3>
                 <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
                     <i class="fa-regular fa-calendar"></i> Sipariş Tarihi: <span id="detOrderDate">...</span>
+                    &nbsp;|&nbsp; <i class="fa-solid fa-clock" style="margin-left: 8px;"></i> Termin: <span id="detPlannedPackagingEndDate" style="font-weight:600;">...</span>
+                    &nbsp;|&nbsp; <i class="fa-solid fa-clock-rotate-left" style="margin-left: 8px;"></i> KNN Revize: <span id="detKnnRevizeTermin" style="font-weight:600; color: #dc2626;">...</span>
                 </p>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; margin-right: 20px;">
@@ -458,6 +500,7 @@
         <div style="overflow-y: auto; padding: 24px; flex-grow: 1;">
             <form id="editOrderForm">
                 <input type="hidden" name="Id" id="editOrderId" />
+                <input type="hidden" id="editProductionJson" />
 
                 <div style="margin-bottom: 24px;">
                     <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Genel Bilgiler</h4>
@@ -490,8 +533,8 @@
                         </div>
                         <div class="form-group">
                             <label>Renk / Option</label>
-                            <select name="Color" id="editColor" class="form-control" required>
-                                <option value="">-- Renk Seçin --</option>
+                            <input list="editColorOptions" name="Color" id="editColor" class="form-control" placeholder="Renk Seçin veya Yazın" required autocomplete="off" />
+                            <datalist id="editColorOptions">
                                 @if (ViewBag.Colors != null)
                                 {
                                     foreach (var c in (List<UretimPlanlama.Models.ColorDef>)ViewBag.Colors)
@@ -499,7 +542,7 @@
                                         <option value="@c.Name">@c.Name</option>
                                     }
                                 }
-                            </select>
+                            </datalist>
                         </div>
                         <div class="form-group">
                             <label style="display:flex; justify-content:space-between; align-items:center;">
@@ -542,15 +585,29 @@
                             <label>Birim Fiyatı (₺)</label>
                             <input name="ComponentUnitPrice" class="form-control edit-calc-trigger" type="number" step="0.01" id="editUnitPrice" placeholder="Örn: 45.50" />
                         </div>
-                        <div class="form-group">
-                            <label>Termin Tarihi</label>
+                    </div>
+                </div>
+
+                <!-- TERMIN BILGILERI KARTI -->
+                <div style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                    <h4 style="margin: 0 0 16px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-calendar-check" style="margin-right: 6px;"></i> Termin Bilgileri</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #64748b;">TERMİN TARİHİ</label>
                             <input name="PlannedPackagingEndDate" id="editPlannedPackagingEndDate" class="form-control" type="date" />
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #64748b;">KNN REVİZE TERMİN</label>
+                            <input name="KnnRevizeTermin" id="editKnnRevizeTermin" class="form-control" type="date" />
                         </div>
                     </div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-layer-group" style="margin-right: 6px;"></i> Renk ve Beden Dağılımları</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+                        <h4 style="margin: 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-layer-group" style="margin-right: 6px;"></i> Renk ve Beden Dağılımları</h4>
+                        <button type="submit" id="btnSaveAsNewColor" class="btn-secondary" style="padding: 6px 14px; font-size: 0.85rem; border: 1px solid var(--border-color); background: white; color: var(--text-main); font-weight: 600; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-plus"></i> Yeni Renk Ekle</button>
+                    </div>
                     
                     <div style="background: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
                         <div style="display: flex; gap: 24px; margin-bottom: 16px;">
@@ -695,7 +752,8 @@
                                 <thead style="background-color: #f1f5f9;">
                                     <tr>
                                         <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">CİNSİ</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">ASTAR (GRAM)</th>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">BİRİM</th>
+                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA TİPİ</th>
                                         <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA İHTİYACI (RENK)</th>
                                     </tr>
                                 </thead>
@@ -705,6 +763,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editKusak" /> KUŞAK</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKusakAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKusakTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKusakTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -712,6 +771,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editYaka" /> YAKA</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editYakaAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editYakaTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editYakaTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -719,6 +779,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editManset" /> MANŞET</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editMansetAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editMansetTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editMansetTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -726,6 +787,7 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editKapak" /> KAPAK</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKapakAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKapakTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKapakTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                     <tr>
@@ -733,7 +795,16 @@
                                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editBoss" /> BOSS</label>
                                         </td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editBossAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editBossTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                         <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editBossTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editPat" /> PAT</label>
+                                        </td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editPatAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editPatTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
+                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editPatTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -900,6 +971,16 @@
                                 // Genel Bilgiler
                                 $("#detOrderCode").text(order.orderCode || "-");
                                 $("#detOrderDate").html(formatDetailDate(order.orderDate));
+                                $("#detPlannedPackagingEndDate").html(formatDetailDate(order.plannedPackagingEndDate));
+                                
+                                var revizeTerminDet = "";
+                                if (order.productionJson) {
+                                    try {
+                                        var prodJsonDet = JSON.parse(order.productionJson);
+                                        revizeTerminDet = prodJsonDet["prod_knn_revize_termin"] || "";
+                                    } catch(e) {}
+                                }
+                                $("#detKnnRevizeTermin").html(formatDetailDate(revizeTerminDet));
                                 $("#detModelName").text(order.modelName || "-");
                                 $("#detColor").text(order.color || "-");
                                 $("#detBrand").text(order.brand || "-");
@@ -1000,23 +1081,26 @@
                                  accHtml += '<div style="margin-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569;">Tela & Astar Detayları</h5>';
                                  accHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">';
                                  
-                                 var renderAstarTela = function(label, astar, tela) {
+                                 var renderAstarTela = function(label, astar, tipi, renk) {
                                      var a = astar || '-';
-                                     var t = tela || '-';
-                                     if(a === '-' && t === '-') return '';
+                                     var ti = tipi || '-';
+                                     var r = renk || '-';
+                                     if(a === '-' && ti === '-' && r === '-') return '';
                                      return '<div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0;">' +
                                             '<div style="font-weight:600; color:#334155; font-size:0.85rem; margin-bottom:4px;">' + label + '</div>' +
                                             '<div style="display:flex; justify-content:space-between; font-size:0.8rem;">' +
-                                            '<span style="color:#64748b;">Astar: <strong style="color:#0f172a;">' + a + '</strong></span>' +
-                                            '<span style="color:#64748b;">Tela: <strong style="color:#0f172a;">' + t + '</strong></span>' +
+                                            '<span style="color:#64748b;">Birim: <strong style="color:#0f172a;">' + a + '</strong></span>' +
+                                            '<span style="color:#64748b;">Tip: <strong style="color:#0f172a;">' + ti + '</strong></span>' +
+                                            '<span style="color:#64748b;">Renk: <strong style="color:#0f172a;">' + r + '</strong></span>' +
                                             '</div></div>';
                                  };
 
-                                 var astarTelaHtml = renderAstarTela('Kuşak', order.kusakAstarGram, order.kusakTelaRenk) +
-                                                     renderAstarTela('Yaka', order.yakaAstarGram, order.yakaTelaRenk) +
-                                                     renderAstarTela('Manşet', order.mansetAstarGram, order.mansetTelaRenk) +
-                                                     renderAstarTela('Kapak', order.kapakAstarGram, order.kapakTelaRenk) +
-                                                     renderAstarTela('Boss', order.bossAstarGram, order.bossTelaRenk);
+                                 var astarTelaHtml = renderAstarTela('Kuşak', order.kusakAstarGram, order.kusakTelaTipi, order.kusakTelaRenk) +
+                                                     renderAstarTela('Yaka', order.yakaAstarGram, order.yakaTelaTipi, order.yakaTelaRenk) +
+                                                     renderAstarTela('Manşet', order.mansetAstarGram, order.mansetTelaTipi, order.mansetTelaRenk) +
+                                                     renderAstarTela('Kapak', order.kapakAstarGram, order.kapakTelaTipi, order.kapakTelaRenk) +
+                                                     renderAstarTela('Boss', order.bossAstarGram, order.bossTelaTipi, order.bossTelaRenk) +
+                                                     renderAstarTela('Pat', order.patAstarGram, order.patTelaTipi, order.patTelaRenk);
                                  
                                  if (astarTelaHtml === '') {
                                      astarTelaHtml = '<div style="color:#94a3b8; font-size:0.8rem; font-style:italic;">Astar/Tela bilgisi yok</div>';
@@ -1385,6 +1469,17 @@
                                 } else {
                                     $("#editPlannedPackagingEndDate").val("");
                                 }
+                                
+                                $("#editProductionJson").val(order.productionJson || "");
+                                var revizeTermin = "";
+                                if (order.productionJson) {
+                                    try {
+                                        var prodJson = JSON.parse(order.productionJson);
+                                        revizeTermin = prodJson["prod_knn_revize_termin"] || "";
+                                    } catch(e) {}
+                                }
+                                $("#editKnnRevizeTermin").val(revizeTermin);
+
                                 $("#editOrderCode").val(order.orderCode || "");
                                 $("#editPaymentMethod").val(order.paymentMethod || "");
                                 $("#editManufacturerCompany").val(order.manufacturerCompany || "");
@@ -1437,15 +1532,23 @@
                                 $("#editLargeButtonCount").val(order.largeButtonCount || "");
                                 $("#editSmallButtonCount").val(order.smallButtonCount || "");
                                 $("#editKusakAstarGram").val(order.kusakAstarGram || "");
+                                $("#editKusakTelaTipi").val(order.kusakTelaTipi || "");
                                 $("#editKusakTelaRenk").val(order.kusakTelaRenk || "");
                                 $("#editYakaAstarGram").val(order.yakaAstarGram || "");
+                                $("#editYakaTelaTipi").val(order.yakaTelaTipi || "");
                                 $("#editYakaTelaRenk").val(order.yakaTelaRenk || "");
                                 $("#editMansetAstarGram").val(order.mansetAstarGram || "");
+                                $("#editMansetTelaTipi").val(order.mansetTelaTipi || "");
                                 $("#editMansetTelaRenk").val(order.mansetTelaRenk || "");
                                 $("#editKapakAstarGram").val(order.kapakAstarGram || "");
+                                $("#editKapakTelaTipi").val(order.kapakTelaTipi || "");
                                 $("#editKapakTelaRenk").val(order.kapakTelaRenk || "");
                                 $("#editBossAstarGram").val(order.bossAstarGram || "");
+                                $("#editBossTelaTipi").val(order.bossTelaTipi || "");
                                 $("#editBossTelaRenk").val(order.bossTelaRenk || "");
+                                $("#editPatAstarGram").val(order.patAstarGram || "");
+                                $("#editPatTelaTipi").val(order.patTelaTipi || "");
+                                $("#editPatTelaRenk").val(order.patTelaRenk || "");
 
                                 $("#editHasPriceCard").prop("checked", order.hasPriceCard || false);
                                 $("#editHasWashingInstruction").prop("checked", order.hasWashingInstruction || false);
@@ -1463,17 +1566,10 @@
                                 
                                 if (editFabrics && editFabrics.length > 0) {
                                     editFabrics.forEach(function(f) {
-                                        addEditFabricRow(f);
+                                        addEditFabricRow(f.Name, f.Meterage, f.Unit, f.WastageRate, f.Button1Size, f.Button1Qty, f.Button2Size, f.Button2Qty);
                                     });
                                 } else if (order.unitFabricMeterage > 0) {
-                                    addEditFabricRow({
-                                        Name: 'Ana Kumaş',
-                                        Meterage: order.unitFabricMeterage,
-                                        Unit: order.fabricUnit,
-                                        WastageRate: order.wastageRate,
-                                        LargeButtonCount: order.largeButtonCount,
-                                        SmallButtonCount: order.smallButtonCount
-                                    });
+                                    addEditFabricRow('Ana Kumaş', order.unitFabricMeterage, order.fabricUnit, order.wastageRate, '24/', order.largeButtonCount, '14/', order.smallButtonCount);
                                 } else {
                                     addEditFabricRow();
                                 }
@@ -1482,14 +1578,17 @@
                                 $('.chk-edit-tela').each(function() {
                                     var target = $(this).data('target');
                                     var astarInput = $('#' + target + 'AstarGram');
+                                    var telaTipiInput = $('#' + target + 'TelaTipi');
                                     var telaInput = $('#' + target + 'TelaRenk');
-                                    if (astarInput.val() || telaInput.val()) {
+                                    if (astarInput.val() || telaTipiInput.val() || telaInput.val()) {
                                         $(this).prop('checked', true);
                                         astarInput.prop('disabled', false).css('background', 'white');
+                                        telaTipiInput.prop('disabled', false).css('background', 'white');
                                         telaInput.prop('disabled', false).css('background', 'white');
                                     } else {
                                         $(this).prop('checked', false);
                                         astarInput.prop('disabled', true).css('background', '#f8fafc');
+                                        telaTipiInput.prop('disabled', true).css('background', '#f8fafc');
                                         telaInput.prop('disabled', true).css('background', '#f8fafc');
                                     }
                                 });
@@ -1528,25 +1627,17 @@
                 });
 
                 // Edit Fabrics Logic
-                function addEditFabricRow(fabricData) {
-                    fabricData = fabricData || {};
-                    var name = fabricData.Name || "";
-                    var meterage = fabricData.Meterage != null ? fabricData.Meterage : "";
-                    var unit = fabricData.Unit || "Metraj (m)";
-                    var wastage = fabricData.WastageRate != null ? fabricData.WastageRate : "";
-                    var largeBtn = fabricData.LargeButtonCount != null ? fabricData.LargeButtonCount : "";
-                    var smallBtn = fabricData.SmallButtonCount != null ? fabricData.SmallButtonCount : "";
-                    
+                function addEditFabricRow(name = '', meterage = '', unit = 'm', wastage = '', btn1Size = '24/', btn1Qty = '', btn2Size = '14/', btn2Qty = '') {
                     var rowHtml = `
                         <div class="edit-fabric-row" style="display:grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap:12px; align-items:end; background:white; padding:12px; border:1px solid #cbd5e1; border-radius:6px; position:relative;">
                             <div>
                                 <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block;">Kumaş Adı / Kodu</label>
-                                <input type="text" class="form-control edit-fabric-name" value="${name}" />
+                                <input type="text" class="form-control edit-fabric-name" value="${name}" placeholder="Örn: Ana Kumaş" />
                             </div>
                             <div>
                                 <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block;">Birim Metraj</label>
                                 <div style="display:flex; gap:4px;">
-                                    <input type="number" step="0.01" class="form-control edit-fabric-meterage no-spinner" value="${meterage}" style="flex:1; min-width:80px; text-align:center; padding: 0.375rem 0.5rem;" />
+                                    <input type="number" step="0.01" class="form-control edit-fabric-meterage no-spinner" value="${meterage}" style="flex:1; min-width:70px; text-align:center; padding: 0.375rem 0.5rem;" />
                                     <select class="form-control edit-fabric-unit" style="width:65px; padding:0 4px; flex-shrink:0;">
                                         <option value="m" ${unit === 'm' || unit === 'Metraj (m)' ? 'selected' : ''}>m</option>
                                         <option value="Kg" ${unit === 'Kg' ? 'selected' : ''}>Kg</option>
@@ -1558,12 +1649,30 @@
                                 <input type="number" step="0.01" class="form-control edit-fabric-wastage no-spinner" value="${wastage}" placeholder="5" style="text-align:center;" />
                             </div>
                             <div>
-                                <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">24/ Düğme</label>
-                                <input type="number" step="1" class="form-control edit-fabric-large-btn no-spinner" value="${largeBtn}" style="text-align:center;" />
+                                <select class="form-control edit-fabric-btn1-size" style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; border:none; background:transparent; padding:0; height:auto; cursor:pointer;">
+                                    <option value="">1. Düğme Boyu</option>
+                                    <option value="14/" ${btn1Size === '14/' ? 'selected' : ''}>14/ Düğme</option>
+                                    <option value="16/" ${btn1Size === '16/' ? 'selected' : ''}>16/ Düğme</option>
+                                    <option value="18/" ${btn1Size === '18/' ? 'selected' : ''}>18/ Düğme</option>
+                                    <option value="20/" ${btn1Size === '20/' ? 'selected' : ''}>20/ Düğme</option>
+                                    <option value="24/" ${btn1Size === '24/' ? 'selected' : ''}>24/ Düğme</option>
+                                    <option value="28/" ${btn1Size === '28/' ? 'selected' : ''}>28/ Düğme</option>
+                                    <option value="32/" ${btn1Size === '32/' ? 'selected' : ''}>32/ Düğme</option>
+                                </select>
+                                <input type="number" step="1" class="form-control edit-fabric-btn1-qty no-spinner" value="${btn1Qty}" style="text-align:center;" placeholder="Adet" />
                             </div>
                             <div>
-                                <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">14/ Düğme</label>
-                                <input type="number" step="1" class="form-control edit-fabric-small-btn no-spinner" value="${smallBtn}" style="text-align:center;" />
+                                <select class="form-control edit-fabric-btn2-size" style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; border:none; background:transparent; padding:0; height:auto; cursor:pointer;">
+                                    <option value="">2. Düğme Boyu</option>
+                                    <option value="14/" ${btn2Size === '14/' ? 'selected' : ''}>14/ Düğme</option>
+                                    <option value="16/" ${btn2Size === '16/' ? 'selected' : ''}>16/ Düğme</option>
+                                    <option value="18/" ${btn2Size === '18/' ? 'selected' : ''}>18/ Düğme</option>
+                                    <option value="20/" ${btn2Size === '20/' ? 'selected' : ''}>20/ Düğme</option>
+                                    <option value="24/" ${btn2Size === '24/' ? 'selected' : ''}>24/ Düğme</option>
+                                    <option value="28/" ${btn2Size === '28/' ? 'selected' : ''}>28/ Düğme</option>
+                                    <option value="32/" ${btn2Size === '32/' ? 'selected' : ''}>32/ Düğme</option>
+                                </select>
+                                <input type="number" step="1" class="form-control edit-fabric-btn2-qty no-spinner" value="${btn2Qty}" style="text-align:center;" placeholder="Adet" />
                             </div>
                             <div style="padding-bottom: 6px;">
                                 <button type="button" class="btnRemoveEditFabric" style="background:transparent; border:none; color:#dc2626; cursor:pointer; padding:4px;" title="Sil"><i class="fa-solid fa-trash"></i></button>
@@ -1593,24 +1702,30 @@
                         var meterage = parseFloat($(this).find('.edit-fabric-meterage').val()) || null;
                         var unit = $(this).find('.edit-fabric-unit').val();
                         var wastage = parseFloat($(this).find('.edit-fabric-wastage').val()) || null;
-                        var largeBtn = parseInt($(this).find('.edit-fabric-large-btn').val()) || null;
-                        var smallBtn = parseInt($(this).find('.edit-fabric-small-btn').val()) || null;
+                        var btn1Size = $(this).find('.edit-fabric-btn1-size').val();
+                        var btn1Qty = parseInt($(this).find('.edit-fabric-btn1-qty').val()) || null;
+                        var btn2Size = $(this).find('.edit-fabric-btn2-size').val();
+                        var btn2Qty = parseInt($(this).find('.edit-fabric-btn2-qty').val()) || null;
 
                         fabrics.push({
                             Name: $(this).find('.edit-fabric-name').val() || ("Kumaş " + (index + 1)),
                             Meterage: meterage,
                             Unit: unit === 'm' ? 'Metraj (m)' : 'Kg',
                             WastageRate: wastage,
-                            LargeButtonCount: largeBtn,
-                            SmallButtonCount: smallBtn
+                            Button1Size: btn1Size,
+                            Button1Qty: btn1Qty,
+                            Button2Size: btn2Size,
+                            Button2Qty: btn2Qty,
+                            LargeButtonCount: btn1Qty,
+                            SmallButtonCount: btn2Qty
                         });
                         
                         if (index === 0) {
                             $('#editUnitFabricMeterage').val(meterage || '');
                             $('#editFabricUnit').val(unit === 'm' ? 'Metraj (m)' : 'Kg');
                             $('#editWastageRate').val(wastage || '');
-                            $('#editLargeButtonCount').val(largeBtn || '');
-                            $('#editSmallButtonCount').val(smallBtn || '');
+                            $('#editLargeButtonCount').val(btn1Qty || '');
+                            $('#editSmallButtonCount').val(btn2Qty || '');
                         }
                     });
 
@@ -1630,13 +1745,16 @@
                     var isChecked = $(this).is(':checked');
                     
                     var astarInput = $('#' + targetPrefix + 'AstarGram');
+                    var telaTipiInput = $('#' + targetPrefix + 'TelaTipi');
                     var telaInput = $('#' + targetPrefix + 'TelaRenk');
                     
                     if (isChecked) {
                         astarInput.prop('disabled', false).css('background', 'white');
+                        telaTipiInput.prop('disabled', false).css('background', 'white');
                         telaInput.prop('disabled', false).css('background', 'white');
                     } else {
                         astarInput.prop('disabled', true).css('background', '#f8fafc').val('');
+                        telaTipiInput.prop('disabled', true).css('background', '#f8fafc').val('');
                         telaInput.prop('disabled', true).css('background', '#f8fafc').val('');
                     }
                 });
@@ -1705,6 +1823,21 @@
                         VatAmount: finalVat,
                         TotalAmountWithVat: finalGrand,
 
+                        ProductionJson: (function() {
+                            var prodJson = {};
+                            var existingStr = $("#editProductionJson").val();
+                            if (existingStr) {
+                                try { prodJson = JSON.parse(existingStr); } catch(e){}
+                            }
+                            var rTermin = $("#editKnnRevizeTermin").val();
+                            if (rTermin) {
+                                prodJson["prod_knn_revize_termin"] = rTermin;
+                            } else {
+                                delete prodJson["prod_knn_revize_termin"];
+                            }
+                            return JSON.stringify(prodJson);
+                        })(),
+
                         SizeDistributionJson: JSON.stringify(editOpenSizes),
                         AsortiDistributionJson: JSON.stringify(editAsortiSizes),
 
@@ -1714,15 +1847,23 @@
                         LargeButtonCount: parseInt($("#editLargeButtonCount").val()) || null,
                         SmallButtonCount: parseInt($("#editSmallButtonCount").val()) || null,
                         KusakAstarGram: $("#editKusakAstarGram").val() || null,
+                        KusakTelaTipi: $("#editKusakTelaTipi").val() || null,
                         KusakTelaRenk: $("#editKusakTelaRenk").val() || null,
                         YakaAstarGram: $("#editYakaAstarGram").val() || null,
+                        YakaTelaTipi: $("#editYakaTelaTipi").val() || null,
                         YakaTelaRenk: $("#editYakaTelaRenk").val() || null,
                         MansetAstarGram: $("#editMansetAstarGram").val() || null,
+                        MansetTelaTipi: $("#editMansetTelaTipi").val() || null,
                         MansetTelaRenk: $("#editMansetTelaRenk").val() || null,
                         KapakAstarGram: $("#editKapakAstarGram").val() || null,
+                        KapakTelaTipi: $("#editKapakTelaTipi").val() || null,
                         KapakTelaRenk: $("#editKapakTelaRenk").val() || null,
                         BossAstarGram: $("#editBossAstarGram").val() || null,
+                        BossTelaTipi: $("#editBossTelaTipi").val() || null,
                         BossTelaRenk: $("#editBossTelaRenk").val() || null,
+                        PatAstarGram: $("#editPatAstarGram").val() || null,
+                        PatTelaTipi: $("#editPatTelaTipi").val() || null,
+                        PatTelaRenk: $("#editPatTelaRenk").val() || null,
 
                         HasPriceCard: $("#editHasPriceCard").is(":checked"),
                         HasWashingInstruction: $("#editHasWashingInstruction").is(":checked"),
@@ -1748,12 +1889,21 @@
                         AsortiSize2XL: editAsortiSizes["2XL"] || 0,
                         AsortiSize3XL: editAsortiSizes["3XL"] || 0
                     };
+                    var isNewColor = $(document.activeElement).attr("id") === "btnSaveAsNewColor";
+                    var targetUrl = '/Order/Edit';
+                    var targetData = orderObj;
+
+                    if (isNewColor) {
+                        orderObj.Id = 0;
+                        targetUrl = '/Order/CreateMultiple';
+                        targetData = [orderObj];
+                    }
 
                     $.ajax({
-                        url: '/Order/Edit',
+                        url: targetUrl,
                         type: 'POST',
                         contentType: 'application/json',
-                        data: JSON.stringify(orderObj),
+                        data: JSON.stringify(targetData),
                         success: function(res) {
                             if (res.success) {
                                 window.location.reload();
@@ -1762,7 +1912,7 @@
                             }
                         },
                         error: function() {
-                            showToast("Güncelleme sırasında sunucu hatası oluştu.", "danger");
+                            showToast("Kayıt sırasında sunucu hatası oluştu.", "danger");
                         }
                     });
                 });

@@ -30,6 +30,43 @@ namespace UretimPlanlama.Controllers
             return View(workshops);
         }
 
+        public IActionResult Details(int id)
+        {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            var workshop = _context.Workshops.Find(id);
+            if (workshop == null)
+            {
+                return NotFound();
+            }
+
+            var allOrders = _context.Orders.ToList();
+            
+            // Get active orders assigned to this workshop
+            var activeOrders = allOrders
+                .Where(o => o.Status != "Tamamlandı" && o.Status != "İptal Edildi" &&
+                            (o.SewingWorkshop == workshop.Name || 
+                             o.ProductionPlace == workshop.Name || 
+                             (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_dikim_atolyesi\":\"{workshop.Name}\"")) ||
+                             (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_kesim_atolyesi\":\"{workshop.Name}\"")) ||
+                             (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_paketleme_atolyesi\":\"{workshop.Name}\""))))
+                .OrderByDescending(o => o.OrderDate)
+                .ToList();
+
+            var viewModel = new WorkshopDetailsViewModel
+            {
+                Workshop = workshop,
+                ActiveOrders = activeOrders,
+                TotalActiveOrderCount = activeOrders.Count,
+                TotalActivePieces = activeOrders.Sum(o => o.Quantity)
+            };
+
+            return View(viewModel);
+        }
+
         [HttpGet]
         public IActionResult ExportToExcel()
         {
@@ -186,7 +223,7 @@ namespace UretimPlanlama.Controllers
                         .Where(o => o.CuttingEndDate.HasValue && 
                                     (o.CuttingEndDate.Value.Date == targetDate || 
                                      (d == 4 && (o.CuttingEndDate.Value.Date == targetDate.AddDays(1) || o.CuttingEndDate.Value.Date == targetDate.AddDays(2)))) &&
-                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName))
+                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_kesim_atolyesi\":\"{workshopName}\""))))
                         .Sum(o => o.Quantity);
                 }
                 else if (workshopType.Contains("Paket", StringComparison.OrdinalIgnoreCase) || 
@@ -196,7 +233,7 @@ namespace UretimPlanlama.Controllers
                         .Where(o => o.PackagingEndDate.HasValue && 
                                     (o.PackagingEndDate.Value.Date == targetDate || 
                                      (d == 4 && (o.PackagingEndDate.Value.Date == targetDate.AddDays(1) || o.PackagingEndDate.Value.Date == targetDate.AddDays(2)))) &&
-                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName))
+                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_paketleme_atolyesi\":\"{workshopName}\""))))
                         .Sum(o => o.Quantity);
                 }
                 else // Dikim veya Diğer
@@ -205,7 +242,7 @@ namespace UretimPlanlama.Controllers
                         .Where(o => o.SewingEndDate.HasValue && 
                                     (o.SewingEndDate.Value.Date == targetDate || 
                                      (d == 4 && (o.SewingEndDate.Value.Date == targetDate.AddDays(1) || o.SewingEndDate.Value.Date == targetDate.AddDays(2)))) &&
-                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName))
+                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_dikim_atolyesi\":\"{workshopName}\""))))
                         .Sum(o => o.Quantity);
                 }
 
@@ -249,5 +286,13 @@ namespace UretimPlanlama.Controllers
         public int ActualProduction { get; set; }
         public double CapacityUsage { get; set; }
         public string Status { get; set; } = string.Empty;
+    }
+
+    public class WorkshopDetailsViewModel
+    {
+        public Workshop Workshop { get; set; } = null!;
+        public List<Order> ActiveOrders { get; set; } = new List<Order>();
+        public int TotalActiveOrderCount { get; set; }
+        public int TotalActivePieces { get; set; }
     }
 }

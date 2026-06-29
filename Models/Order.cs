@@ -101,6 +101,25 @@ namespace UretimPlanlama.Models
         public DateTime? PlannedPackagingEndDate { get; set; } // Paket Bitiş Planlanan
         public DateTime? PlannedLastInspectionDate { get; set; } // Son Inspection Planlanan
 
+        [NotMapped]
+        public DateTime? EffectiveTerminDate {
+            get {
+                if (!string.IsNullOrEmpty(ProductionJson)) {
+                    try {
+                        var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(ProductionJson);
+                        if (dict != null && dict.ContainsKey("prod_knn_revize_termin") && !string.IsNullOrEmpty(dict["prod_knn_revize_termin"])) {
+                            if (DateTime.TryParse(dict["prod_knn_revize_termin"], out DateTime revizeDate) || 
+                                DateTime.TryParseExact(dict["prod_knn_revize_termin"], "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out revizeDate)) 
+                            {
+                                return revizeDate;
+                            }
+                        }
+                    } catch {}
+                }
+                return PlannedPackagingEndDate;
+            }
+        }
+
         // Paket ve Kalite - Gerçekleşen
         public DateTime? PackagingStartDate { get; set; } // Paket Başlangıç Gerçekleşen
         public DateTime? PackagingEndDate { get; set; } // Paket Bitiş Gerçekleşen
@@ -158,18 +177,27 @@ namespace UretimPlanlama.Models
         // --- ASTAR VE TELA BİLGİLERİ (CİNSİ / GRAM / RENK) ---
         public string? KusakAstarGram { get; set; }
         public string? KusakTelaRenk { get; set; }
+        public string? KusakTelaTipi { get; set; }
 
         public string? YakaAstarGram { get; set; }
         public string? YakaTelaRenk { get; set; }
+        public string? YakaTelaTipi { get; set; }
 
         public string? MansetAstarGram { get; set; }
         public string? MansetTelaRenk { get; set; }
+        public string? MansetTelaTipi { get; set; }
 
         public string? KapakAstarGram { get; set; }
         public string? KapakTelaRenk { get; set; }
+        public string? KapakTelaTipi { get; set; }
 
         public string? BossAstarGram { get; set; }
         public string? BossTelaRenk { get; set; }
+        public string? BossTelaTipi { get; set; }
+
+        public string? PatAstarGram { get; set; }
+        public string? PatTelaRenk { get; set; }
+        public string? PatTelaTipi { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal? TargetFabricQty { get; set; }

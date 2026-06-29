@@ -489,12 +489,9 @@
                     <div style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Son Güncelleme: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</div>
                 </div>
                 <div style="display: flex; gap: 12px;">
-                    <button type="button" class="btn-secondary btnOpenTrackingModal" data-id="@selectedOrder.Id" data-order='@Json.Serialize(selectedOrder)' style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px;">
-                        <i class="fa-solid fa-pen-to-square"></i> Veri Girişi / Güncelle
+                    <button type="button" class="btn-primary btnOpenTrackingModal" data-id="@selectedOrder.Id" data-order='@Json.Serialize(selectedOrder)' style="display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; background-color: var(--primary-color); color: white; font-weight: 600; border: none; cursor: pointer; transition: background-color 0.2s;">
+                        <i class="fa-solid fa-file-pen"></i> Gerçekleşen Veri Girişi
                     </button>
-                    <a href="/Planning/ExportToExcel" class="btn-planner" style="background: #16a34a; border-color: #16a34a; display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; text-decoration: none; color: white;">
-                        <i class="fa-solid fa-file-excel"></i> Excel Raporu
-                    </a>
                 </div>
             </div>
 
@@ -530,10 +527,22 @@
                 
                 <!-- Kesim -->
                 @{
+                    var dictTrack = new Dictionary<string, string>();
+                    if (selectedOrder != null && !string.IsNullOrEmpty(selectedOrder.ProductionJson)) {
+                        try {
+                            dictTrack = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(selectedOrder.ProductionJson) ?? new Dictionary<string, string>();
+                        } catch {}
+                    }
                     var kesimStatus = selectedOrder.CuttingEndDate.HasValue ? "TAMAMLANDI" : (selectedOrder.CuttingStartDate.HasValue ? "DEVAM EDİYOR" : "BEKLİYOR");
                     var kesimColor = kesimStatus == "TAMAMLANDI" ? "#16a34a" : (kesimStatus == "DEVAM EDİYOR" ? "#0284c7" : "#d97706");
                     var kesimBg = kesimStatus == "TAMAMLANDI" ? "#dcfce7" : (kesimStatus == "DEVAM EDİYOR" ? "#e0f2fe" : "#fef3c7");
-                    var kesimGerceklesen = kesimStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (kesimStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.6) : 0);
+                    
+                    int kesimGerceklesen = 0;
+                    if(dictTrack.ContainsKey("actual_cutting") && int.TryParse(dictTrack["actual_cutting"], out int ac)) {
+                        kesimGerceklesen = ac;
+                    } else {
+                        kesimGerceklesen = kesimStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (kesimStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.6) : 0);
+                    }
                     var kesimVerim = CalcEfficiency(selectedOrder.CuttingStartDate, selectedOrder.CuttingEndDate, selectedOrder.PlannedCuttingEndDate);
                 }
                 <div class="dept-card kesim" style="background: white;">
@@ -565,13 +574,33 @@
                     var dikimStatus = selectedOrder.SewingEndDate.HasValue ? "TAMAMLANDI" : (selectedOrder.SewingStartDate.HasValue ? "DEVAM EDİYOR" : "BEKLİYOR");
                     var dikimColor = dikimStatus == "TAMAMLANDI" ? "#16a34a" : (dikimStatus == "DEVAM EDİYOR" ? "#0284c7" : "#d97706");
                     var dikimBg = dikimStatus == "TAMAMLANDI" ? "#dcfce7" : (dikimStatus == "DEVAM EDİYOR" ? "#e0f2fe" : "#fef3c7");
-                    var dikimGerceklesen = dikimStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (dikimStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.45) : 0);
+                    
+                    int dikimGerceklesen = 0;
+                    if(dictTrack.ContainsKey("actual_sewing") && int.TryParse(dictTrack["actual_sewing"], out int aSew)) {
+                        dikimGerceklesen = aSew;
+                    } else {
+                        dikimGerceklesen = dikimStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (dikimStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.45) : 0);
+                    }
                     var dikimVerim = CalcEfficiency(selectedOrder.SewingStartDate, selectedOrder.SewingEndDate, selectedOrder.PlannedSewingEndDate);
                 }
                 <div class="dept-card dikim" style="background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <h3 style="margin: 0; font-size: 1.1rem; color: #0d9488; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-shirt"></i> Dikim Hattı</h3>
                         <span style="background: @dikimBg; color: @dikimColor; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 12px;">@dikimStatus</span>
+                    </div>
+                    @{
+                        string atolyeTrack = "-";
+                        if(selectedOrder != null && !string.IsNullOrEmpty(selectedOrder.ProductionJson)) {
+                            try {
+                                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(selectedOrder.ProductionJson);
+                                if(dict != null && dict.ContainsKey("prod_dikim_atolyesi") && !string.IsNullOrEmpty(dict["prod_dikim_atolyesi"])) {
+                                    atolyeTrack = dict["prod_dikim_atolyesi"];
+                                }
+                            } catch {}
+                        }
+                    }
+                    <div style="font-size: 0.8rem; color: #475569; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-industry" style="color: #0d9488;"></i> Atölye: <span style="color: #0f172a;">@atolyeTrack</span>
                     </div>
                     <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                         <div style="flex: 1; background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">
@@ -597,7 +626,13 @@
                     var paketStatus = selectedOrder.PackagingEndDate.HasValue ? "TAMAMLANDI" : (selectedOrder.PackagingStartDate.HasValue ? "DEVAM EDİYOR" : "BEKLİYOR");
                     var paketColor = paketStatus == "TAMAMLANDI" ? "#16a34a" : (paketStatus == "DEVAM EDİYOR" ? "#0284c7" : "#d97706");
                     var paketBg = paketStatus == "TAMAMLANDI" ? "#dcfce7" : (paketStatus == "DEVAM EDİYOR" ? "#e0f2fe" : "#fef3c7");
-                    var paketGerceklesen = paketStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (paketStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.2) : 0);
+                    
+                    int paketGerceklesen = 0;
+                    if(dictTrack.ContainsKey("actual_packaging") && int.TryParse(dictTrack["actual_packaging"], out int aPack)) {
+                        paketGerceklesen = aPack;
+                    } else {
+                        paketGerceklesen = paketStatus == "TAMAMLANDI" ? selectedOrder.Quantity : (paketStatus == "DEVAM EDİYOR" ? (int)(selectedOrder.Quantity * 0.2) : 0);
+                    }
                     var paketVerim = CalcEfficiency(selectedOrder.PackagingStartDate, selectedOrder.PackagingEndDate, selectedOrder.PlannedPackagingEndDate);
                 }
                 <div class="dept-card paket" style="background: white;">
@@ -759,141 +794,318 @@
         <form id="trackingForm" method="post" action="/Planning/UpdateTracking">
             <input type="hidden" name="Id" id="trackOrderId" />
             
-            <div class="modal-body">
-                
-                <!-- 1. Kumaş Gerçekleşen -->
-                <div class="modal-card" style="border-left: 4px solid #4f46e5;">
-                    <h4 style="color: #4f46e5; border-color: rgba(79, 70, 229, 0.15);"><i class="fa-solid fa-truck"></i> 1. Kumaş & Tedarik (Gerçekleşen)</h4>
-                    
-                    <div class="form-group">
-                        <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-days"></i> Gerçekleşen Geliş Tarihi</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="date" name="FabricArrivalActualDate" id="trackFabricActual" class="form-control" style="flex: 1;" />
-                            <div class="plan-badge-pill fabric-theme">
-                                <i class="fa-regular fa-calendar"></i>
-                                <span id="trackFabricPlannedText">Plan: -</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label><i class="fa-solid fa-ruler"></i> Metraj (m)</label>
-                            <input type="number" step="0.1" name="FabricMeterage" id="trackFabricMeterage" class="form-control" placeholder="Metraj girin" />
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label><i class="fa-solid fa-weight-hanging"></i> Kumaş Ağırlık (kg)</label>
-                            <input type="number" step="0.1" name="ActualFabricQty" id="trackActualFabricQty" class="form-control" placeholder="Ağırlık girin" />
-                        </div>
-                    </div>
+            <style>
+                .track-tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; border-bottom: 1px solid var(--border-color); }
+                .track-tab { padding: 10px 20px; background: #f1f5f9; border: 1px solid var(--border-color); border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; color: #475569; transition: all 0.2s; white-space: nowrap; margin-bottom: -1px; }
+                .track-tab:hover { background: #e2e8f0; }
+                .track-tab.active { background: white; color: var(--primary-color); border-color: var(--border-color); border-bottom-color: white; }
+                .track-pane { display: none; }
+                .track-pane.active { display: block; }
+            </style>
+
+            <div class="modal-body" style="padding-top: 20px; max-height: 70vh; overflow-y: auto; display: block;">
+                <div class="track-tabs" id="trackTabsContainer">
+                    <div class="track-tab active" data-tab="numune"><i class="fa-solid fa-clipboard-check"></i> Numune ve Test Takip</div>
+                    <div class="track-tab" data-tab="satinalma"><i class="fa-solid fa-cart-shopping"></i> Satın Alma Takip</div>
+                    <div class="track-tab" data-tab="uretim"><i class="fa-solid fa-industry"></i> Üretim Takip</div>
                 </div>
 
-                <!-- 2. Kesim Gerçekleşen -->
-                <div class="modal-card" style="border-left: 4px solid #d97706;">
-                    <h4 style="color: #d97706; border-color: rgba(217, 119, 6, 0.15);"><i class="fa-solid fa-scissors"></i> 2. Kesim (Gerçekleşen)</h4>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-check"></i> Kesim Başlangıç</label>
+                <!-- Satın Alma Takip Paneli -->
+                <div class="track-pane" id="track-pane-satinalma">
+                    <!-- Kumaş & Tedarik (Gerçekleşen) -->
+                    <div class="modal-card" style="border-left: 4px solid #4f46e5; margin-bottom: 16px;">
+                        <h4 style="color: #4f46e5; border-color: rgba(79, 70, 229, 0.15);"><i class="fa-solid fa-truck"></i> Kumaş Tedarik (Gerçekleşen)</h4>
+                        
+                        <div class="form-group">
+                            <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-days"></i> Gerçekleşen Geliş Tarihi</label>
                             <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="date" name="CuttingStartDate" id="trackCuttingStart" class="form-control" style="flex: 1;" />
-                                <div class="plan-badge-pill cutting-theme">
+                                <input type="date" name="FabricArrivalActualDate" id="trackFabricActual" class="form-control" style="flex: 1;" />
+                                <div class="plan-badge-pill fabric-theme">
                                     <i class="fa-regular fa-calendar"></i>
-                                    <span id="trackCuttingStartPlannedText">Plan: -</span>
+                                    <span id="trackFabricPlannedText">Plan: -</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-xmark"></i> Kesim Bitiş</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="date" name="CuttingEndDate" id="trackCuttingEnd" class="form-control" style="flex: 1;" />
-                                <div class="plan-badge-pill cutting-theme">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    <span id="trackCuttingEndPlannedText">Plan: -</span>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label><i class="fa-solid fa-ruler"></i> Metraj (m)</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="number" step="0.1" name="FabricMeterage" id="trackFabricMeterage" class="form-control" placeholder="Metraj girin" style="flex: 1;" />
+                                    <div class="plan-badge-pill fabric-theme">
+                                        <span id="trackPlanFabricMeterage">Plan: -</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Dikim Gerçekleşen -->
-                <div class="modal-card" style="border-left: 4px solid #0d9488;">
-                    <h4 style="color: #0d9488; border-color: rgba(13, 148, 136, 0.15);"><i class="fa-solid fa-shirt"></i> 3. Dikim (Gerçekleşen)</h4>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-check"></i> Dikim Başlangıç</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="date" name="SewingStartDate" id="trackSewingStart" class="form-control" style="flex: 1;" />
-                                <div class="plan-badge-pill sewing-theme">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    <span id="trackSewingStartPlannedText">Plan: -</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-xmark"></i> Dikim Bitiş</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="date" name="SewingEndDate" id="trackSewingEnd" class="form-control" style="flex: 1;" />
-                                <div class="plan-badge-pill sewing-theme">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    <span id="trackSewingEndPlannedText">Plan: -</span>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label><i class="fa-solid fa-weight-hanging"></i> Kumaş Ağırlık (kg)</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="number" step="0.1" name="ActualFabricQty" id="trackActualFabricQty" class="form-control" placeholder="Ağırlık girin" style="flex: 1;" />
+                                    <div class="plan-badge-pill fabric-theme">
+                                        <span id="trackPlanFabricQty">Plan: -</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 4. Paket & Muayene Gerçekleşen -->
-                <div class="modal-card" style="border-left: 4px solid #db2777;">
-                    <h4 style="color: #db2777; border-color: rgba(219, 39, 119, 0.15);"><i class="fa-solid fa-box-open"></i> 4. Paket & Muayene (Gerçekleşen)</h4>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-check"></i> Paket Başlangıç</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="date" name="PackagingStartDate" id="trackPackStart" class="form-control" style="flex: 1;" />
-                                <div class="plan-badge-pill pack-theme">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    <span id="trackPackStartPlannedText">Plan: -</span>
+                    <!-- Aksesuar Geliş (Gerçekleşen) -->
+                    <div class="modal-card" style="border-left: 4px solid #8b5cf6;">
+                        <h4 style="color: #8b5cf6; border-color: rgba(139, 92, 246, 0.15);"><i class="fa-solid fa-gem"></i> Aksesuar Geliş (Gerçekleşen)</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Düğme Gelişi</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_pur_dugme_gelisi" id="trackActualDugmeGelisi" class="form-control" style="flex: 1;" />
+                                    <input type="number" name="actual_pur_dugme_miktar" id="trackActualDugmeMiktar" class="form-control" placeholder="Miktar" style="flex: 0.5;" />
+                                    <div class="plan-badge-pill pack-theme" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                        <span id="trackPlanDugmeGelisi"><i class="fa-regular fa-calendar"></i> Plan: -</span>
+                                        <span id="trackNeedDugme" style="font-weight: 700; color: #b45309;"><i class="fa-solid fa-box"></i> İhtiyaç: -</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-xmark"></i> Paket Bitiş</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="date" name="PackagingEndDate" id="trackPackEnd" class="form-control" style="flex: 1;" />
-                                <div class="plan-badge-pill pack-theme">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    <span id="trackPackEndPlannedText">Plan: -</span>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Düğme Dikiş İpi</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_pur_dugme_dikis_ipi" id="trackActualDugmeDikisIpi" class="form-control" style="flex: 1;" />
+                                    <input type="number" name="actual_pur_dugme_dikis_ipi_miktar" id="trackActualDugmeDikisIpiMiktar" class="form-control" placeholder="Miktar" style="flex: 0.5;" />
+                                    <div class="plan-badge-pill pack-theme" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                        <span id="trackPlanDugmeDikisIpi"><i class="fa-regular fa-calendar"></i> Plan: -</span>
+                                        <span id="trackNeedDugmeDikisIpi" style="font-weight: 700; color: #b45309;"><i class="fa-solid fa-box"></i> İhtiyaç: -</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-solid fa-magnifying-glass-chart"></i> Son Inspection</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="date" name="LastInspectionDate" id="trackInspc" class="form-control" style="flex: 1;" />
-                                <div class="plan-badge-pill pack-theme">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    <span id="trackInspcPlannedText">Plan: -</span>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Etiket Gelişi</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_pur_etiket_gelisi" id="trackActualEtiketGelisi" class="form-control" style="flex: 1;" />
+                                    <input type="number" name="actual_pur_etiket_miktar" id="trackActualEtiketMiktar" class="form-control" placeholder="Miktar" style="flex: 0.5;" />
+                                    <div class="plan-badge-pill pack-theme" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                        <span id="trackPlanEtiketGelisi"><i class="fa-regular fa-calendar"></i> Plan: -</span>
+                                        <span id="trackNeedEtiket" style="font-weight: 700; color: #b45309;"><i class="fa-solid fa-box"></i> İhtiyaç: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Fiyat Kart Gelişi</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_pur_fiyat_kart_gelisi" id="trackActualFiyatKartGelisi" class="form-control" style="flex: 1;" />
+                                    <input type="number" name="actual_pur_fiyat_kart_miktar" id="trackActualFiyatKartMiktar" class="form-control" placeholder="Miktar" style="flex: 0.5;" />
+                                    <div class="plan-badge-pill pack-theme" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                        <span id="trackPlanFiyatKartGelisi"><i class="fa-regular fa-calendar"></i> Plan: -</span>
+                                        <span id="trackNeedFiyatKart" style="font-weight: 700; color: #b45309;"><i class="fa-solid fa-box"></i> İhtiyaç: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Yıkama İç Geliş</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_pur_yikama_ic_gelis" id="trackActualYikamaIcGelis" class="form-control" style="flex: 1;" />
+                                    <input type="number" name="actual_pur_yikama_ic_miktar" id="trackActualYikamaIcMiktar" class="form-control" placeholder="Miktar" style="flex: 0.5;" />
+                                    <div class="plan-badge-pill pack-theme" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                        <span id="trackPlanYikamaIcGelis"><i class="fa-regular fa-calendar"></i> Plan: -</span>
+                                        <span id="trackNeedYikamaIc" style="font-weight: 700; color: #b45309;"><i class="fa-solid fa-box"></i> İhtiyaç: -</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 5. Sevkiyat Gerçekleşen -->
-                <div class="modal-card" style="border-left: 4px solid #2563eb; grid-column: span 2;">
-                    <h4 style="color: #2563eb; border-color: rgba(37, 99, 235, 0.15);"><i class="fa-solid fa-circle-check"></i> 5. Sevkiyat & Depo (Gerçekleşen)</h4>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-solid fa-truck-moving"></i> Yola Çıkış</label>
-                            <input type="date" name="DepartureDate" id="trackDepart" class="form-control" />
+                <!-- Üretim Takip Paneli -->
+                <div class="track-pane" id="track-pane-uretim">
+                    <!-- Kesim Gerçekleşen -->
+                    <div class="modal-card" style="border-left: 4px solid #d97706; margin-bottom: 16px;">
+                        <h4 style="color: #d97706; border-color: rgba(217, 119, 6, 0.15);"><i class="fa-solid fa-scissors"></i> Kesim (Gerçekleşen)</h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-solid fa-list-ol"></i> Gerçekleşen Adet</label>
+                                <input type="number" name="actual_cutting" id="trackActualCutting" class="form-control" placeholder="Örn: 5000" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-check"></i> Kesim Başlangıç</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="CuttingStartDate" id="trackCuttingStart" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill cutting-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackCuttingStartPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-xmark"></i> Kesim Bitiş</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="CuttingEndDate" id="trackCuttingEnd" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill cutting-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackCuttingEndPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="margin-bottom: 6px;"><i class="fa-solid fa-warehouse"></i> Depo Varış</label>
-                            <input type="date" name="WarehouseArrivalDate" id="trackArrive" class="form-control" />
+                    </div>
+
+                    <!-- Dikim Gerçekleşen -->
+                    <div class="modal-card" style="border-left: 4px solid #0d9488; margin-bottom: 16px;">
+                        <h4 style="color: #0d9488; border-color: rgba(13, 148, 136, 0.15);"><i class="fa-solid fa-shirt"></i> Dikim (Gerçekleşen)</h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-solid fa-list-ol"></i> Gerçekleşen Adet</label>
+                                <input type="number" name="actual_sewing" id="trackActualSewing" class="form-control" placeholder="Örn: 5000" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-check"></i> Dikim Başlangıç</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="SewingStartDate" id="trackSewingStart" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill sewing-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackSewingStartPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-xmark"></i> Dikim Bitiş</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="SewingEndDate" id="trackSewingEnd" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill sewing-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackSewingEndPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paket & Muayene Gerçekleşen -->
+                    <div class="modal-card" style="border-left: 4px solid #db2777; margin-bottom: 16px;">
+                        <h4 style="color: #db2777; border-color: rgba(219, 39, 119, 0.15);"><i class="fa-solid fa-box-open"></i> Paket & Muayene (Gerçekleşen)</h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-solid fa-list-ol"></i> Gerçekleşen Adet</label>
+                                <input type="number" name="actual_packaging" id="trackActualPackaging" class="form-control" placeholder="Örn: 5000" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-check"></i> Paket Başlangıç</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="PackagingStartDate" id="trackPackStart" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackPackStartPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-regular fa-calendar-xmark"></i> Paket Bitiş</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="PackagingEndDate" id="trackPackEnd" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackPackEndPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-solid fa-magnifying-glass-chart"></i> Son Inspection</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="LastInspectionDate" id="trackInspc" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackInspcPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sevkiyat Gerçekleşen -->
+                    <div class="modal-card" style="border-left: 4px solid #2563eb;">
+                        <h4 style="color: #2563eb; border-color: rgba(37, 99, 235, 0.15);"><i class="fa-solid fa-circle-check"></i> Sevkiyat & Depo (Gerçekleşen)</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-solid fa-truck-moving"></i> Yola Çıkış</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="DepartureDate" id="trackDepart" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackDepartPlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;"><i class="fa-solid fa-warehouse"></i> Depo Varış</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="WarehouseArrivalDate" id="trackArrive" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackArrivePlannedText">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Numune ve Test Takip Paneli -->
+                <div class="track-pane active" id="track-pane-numune">
+                    <div class="modal-card" style="border-left: 4px solid #0891b2;">
+                        <h4 style="color: #0891b2; border-color: rgba(8, 145, 178, 0.15);"><i class="fa-solid fa-vial"></i> Numune Onayları (Gerçekleşen)</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Kumaş Y-Testi Onayı</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_sample_kumas_ytesti" id="trackActualSampleKumasYtesti" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackPlanSampleKumasYtesti">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Tuşe Renk Onayı</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_sample_tuse_renk" id="trackActualSampleTuseRenk" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackPlanSampleTuseRenk">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Düğme Renk Kalite</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_sample_dugme_renk" id="trackActualSampleDugmeRenk" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackPlanSampleDugmeRenk">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 6px;">Düğme Testi</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_sample_dugme_test" id="trackActualSampleDugmeTest" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackPlanSampleDugmeTest">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0; grid-column: span 2;">
+                                <label style="margin-bottom: 6px;">PP ONAY (Üretim Öncesi)</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="date" name="actual_sample_pp_onay" id="trackActualSamplePpOnay" class="form-control" style="flex: 1;" />
+                                    <div class="plan-badge-pill pack-theme">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span id="trackPlanSamplePpOnay">Plan: -</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1272,6 +1484,16 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Modal Tab Switching
+            $('#trackTabsContainer').on('click', '.track-tab', function() {
+                var tab = $(this).data('tab');
+                $('#trackTabsContainer .track-tab').removeClass('active');
+                $(this).addClass('active');
+                
+                $('.track-pane').removeClass('active');
+                $('#track-pane-' + tab).addClass('active');
+            });
+
             function formatDateForInput(dateString) {
                 if (!dateString) return "";
                 var d = new Date(dateString);
@@ -1299,30 +1521,148 @@
                 $('#trackOrderId').val(order.id);
                 $('#modalOrderCodeTitle').text(" - " + order.orderCode);
                 
-                $('#trackFabricPlannedText').text("Plan: " + formatPlannedDate(order.fabricArrivalAgreedDate));
+                var prodObj = {};
+                if(order.productionJson) {
+                    try { prodObj = JSON.parse(order.productionJson); } catch(e){}
+                }
+                var purObj = {};
+                if(order.purchasingMaterialsJson) {
+                    try { purObj = JSON.parse(order.purchasingMaterialsJson); } catch(e){}
+                }
+
+                var sampleObj = {};
+                if(order.sampleTestJson) {
+                    try { sampleObj = JSON.parse(order.sampleTestJson); } catch(e){}
+                }
+
+                // Satın Alma Tab: Gerçekleşenler
+                var fabricPlan = purObj.pur_color_GENEL_kumas_sevk || order.fabricArrivalAgreedDate;
+                $('#trackFabricPlannedText').text("Plan: " + formatPlannedDate(fabricPlan));
                 $('#trackFabricActual').val(formatDateForInput(order.fabricArrivalActualDate));
                 $('#trackFabricMeterage').val(order.fabricMeterage || "");
                 $('#trackActualFabricQty').val(order.actualFabricQty || "");
+
+                // Kumaş Metraj / Ağırlık Planları
+                var kumasBirimMetraj = purObj.pur_color_GENEL_beden_metraj || purObj.pur_color_GENEL_istenen_metraj || "-";
+                $('#trackPlanFabricMeterage').text("Plan: " + kumasBirimMetraj);
+                var kumasMiktar = purObj.pur_color_GENEL_beden_miktar || purObj.pur_color_GENEL_istenen_kumas_miktar || "-";
+                $('#trackPlanFabricQty').text("Plan: " + kumasMiktar);
+
+                $('#trackPlanDugmeGelisi').html('<i class="fa-regular fa-calendar"></i> Plan: ' + formatPlannedDate(purObj.pur_color_GENEL_dugme_gelisi));
+                $('#trackActualDugmeGelisi').val(formatDateForInput(purObj.actual_pur_dugme_gelisi));
+                $('#trackActualDugmeMiktar').val(purObj.actual_pur_dugme_miktar || "");
+
+                $('#trackPlanDugmeDikisIpi').html('<i class="fa-regular fa-calendar"></i> Plan: ' + formatPlannedDate(purObj.pur_color_GENEL_dugme_dikis_ipi));
+                $('#trackActualDugmeDikisIpi').val(formatDateForInput(purObj.actual_pur_dugme_dikis_ipi));
+                $('#trackActualDugmeDikisIpiMiktar').val(purObj.actual_pur_dugme_dikis_ipi_miktar || "");
+
+                $('#trackPlanEtiketGelisi').html('<i class="fa-regular fa-calendar"></i> Plan: ' + formatPlannedDate(purObj.pur_color_GENEL_etiket_gelisi));
+                $('#trackActualEtiketGelisi').val(formatDateForInput(purObj.actual_pur_etiket_gelisi));
+                $('#trackActualEtiketMiktar').val(purObj.actual_pur_etiket_miktar || "");
+
+                $('#trackPlanFiyatKartGelisi').html('<i class="fa-regular fa-calendar"></i> Plan: ' + formatPlannedDate(purObj.pur_color_GENEL_fiyat_kart_gelisi));
+                $('#trackActualFiyatKartGelisi').val(formatDateForInput(purObj.actual_pur_fiyat_kart_gelisi));
+                $('#trackActualFiyatKartMiktar').val(purObj.actual_pur_fiyat_kart_miktar || "");
+
+                $('#trackPlanYikamaIcGelis').html('<i class="fa-regular fa-calendar"></i> Plan: ' + formatPlannedDate(purObj.pur_color_GENEL_yikama_ic_gelis));
+                $('#trackActualYikamaIcGelis').val(formatDateForInput(purObj.actual_pur_yikama_ic_gelis));
+                $('#trackActualYikamaIcMiktar').val(purObj.actual_pur_yikama_ic_miktar || "");
+
+                // Aksesuar İhtiyaç (Miktar Hesaplama)
+                function calcIhtiyac(birimKey) {
+                    if (!order.quantity) return null;
+                    var birim = parseFloat(purObj["pur_color_GENEL_birim_" + birimKey]);
+                    if (isNaN(birim)) return null;
+                    return Math.round(order.quantity * birim);
+                }
                 
-                $('#trackCuttingStartPlannedText').text("Plan: " + formatPlannedDate(order.plannedCuttingStartDate));
+                function compareNeed(inputId, needValue, spanId) {
+                    var actualEl = $('#' + inputId);
+                    var spanEl = $('#' + spanId);
+                    if (needValue === null) {
+                        actualEl.css("border-color", "");
+                        spanEl.html('<i class="fa-solid fa-box"></i> İhtiyaç: -');
+                        return;
+                    }
+                    
+                    function check() {
+                        var val = parseFloat(actualEl.val());
+                        if (isNaN(val)) {
+                            actualEl.css("border-color", "");
+                            spanEl.css("color", "#b45309");
+                            spanEl.html('<i class="fa-solid fa-box"></i> İhtiyaç: ' + needValue.toLocaleString('tr-TR'));
+                        } else if (val >= needValue) {
+                            actualEl.css("border-color", "#10b981");
+                            spanEl.css("color", "#10b981");
+                            spanEl.html('<i class="fa-solid fa-check-circle"></i> Tamam: ' + needValue.toLocaleString('tr-TR'));
+                        } else {
+                            actualEl.css("border-color", "#ef4444");
+                            spanEl.css("color", "#ef4444");
+                            spanEl.html('<i class="fa-solid fa-triangle-exclamation"></i> Eksik: ' + needValue.toLocaleString('tr-TR'));
+                        }
+                    }
+                    
+                    actualEl.off('input.needCompare').on('input.needCompare', check);
+                    check();
+                }
+
+                var btn1Ihtiyac = 0;
+                if (purObj["pur_color_GENEL_birim_btn1"]) { btn1Ihtiyac += order.quantity * parseFloat(purObj["pur_color_GENEL_birim_btn1"]); }
+                var btn2Ihtiyac = 0;
+                if (purObj["pur_color_GENEL_birim_btn2"]) { btn2Ihtiyac += order.quantity * parseFloat(purObj["pur_color_GENEL_birim_btn2"]); }
+                var totalDugmeIhtiyac = (btn1Ihtiyac + btn2Ihtiyac > 0) ? Math.round(btn1Ihtiyac + btn2Ihtiyac) : null;
+                compareNeed('trackActualDugmeMiktar', totalDugmeIhtiyac, 'trackNeedDugme');
+                compareNeed('trackActualDugmeDikisIpiMiktar', null, 'trackNeedDugmeDikisIpi');
+                
+                var robaIhtiyacBirim = parseFloat(purObj["pur_color_GENEL_birim_roba_etiket"]) || 0;
+                var robaIhtiyac = (robaIhtiyacBirim > 0) ? Math.round(order.quantity * robaIhtiyacBirim) : null;
+                compareNeed('trackActualEtiketMiktar', robaIhtiyac, 'trackNeedEtiket');
+                
+                compareNeed('trackActualFiyatKartMiktar', calcIhtiyac("fiyat_karti"), 'trackNeedFiyatKart');
+                compareNeed('trackActualYikamaIcMiktar', calcIhtiyac("yikama_talimat"), 'trackNeedYikamaIc');
+
+                // Üretim Tab: Gerçekleşenler
+                $('#trackActualCutting').val(prodObj.actual_cutting || "");
+                $('#trackCuttingStartPlannedText').text("Plan: " + formatPlannedDate(prodObj.prod_kesim_baslangic || order.plannedCuttingStartDate));
                 $('#trackCuttingStart').val(formatDateForInput(order.cuttingStartDate));
-                $('#trackCuttingEndPlannedText').text("Plan: " + formatPlannedDate(order.plannedCuttingEndDate));
+                $('#trackCuttingEndPlannedText').text("Plan: " + formatPlannedDate(prodObj.prod_kesim_bitis || order.plannedCuttingEndDate));
                 $('#trackCuttingEnd').val(formatDateForInput(order.cuttingEndDate));
                 
-                $('#trackSewingStartPlannedText').text("Plan: " + formatPlannedDate(order.plannedSewingStartDate));
+                $('#trackActualSewing').val(prodObj.actual_sewing || "");
+                $('#trackSewingStartPlannedText').text("Plan: " + formatPlannedDate(prodObj.prod_dikim_baslangic || order.plannedSewingStartDate));
                 $('#trackSewingStart').val(formatDateForInput(order.sewingStartDate));
-                $('#trackSewingEndPlannedText').text("Plan: " + formatPlannedDate(order.plannedSewingEndDate));
+                $('#trackSewingEndPlannedText').text("Plan: " + formatPlannedDate(prodObj.prod_dikim_bitis || order.plannedSewingEndDate));
                 $('#trackSewingEnd').val(formatDateForInput(order.sewingEndDate));
                 
-                $('#trackPackStartPlannedText').text("Plan: " + formatPlannedDate(order.plannedPackagingStartDate));
+                $('#trackActualPackaging').val(prodObj.actual_packaging || "");
+                $('#trackPackStartPlannedText').text("Plan: " + formatPlannedDate(prodObj.prod_paket_baslangic || order.plannedPackagingStartDate));
                 $('#trackPackStart').val(formatDateForInput(order.packagingStartDate));
-                $('#trackPackEndPlannedText').text("Plan: " + formatPlannedDate(order.plannedPackagingEndDate));
+                $('#trackPackEndPlannedText').text("Plan: " + formatPlannedDate(prodObj.prod_paket_bitis || order.plannedPackagingEndDate));
                 $('#trackPackEnd').val(formatDateForInput(order.packagingEndDate));
+                
                 $('#trackInspcPlannedText').text("Plan: " + formatPlannedDate(order.plannedLastInspectionDate));
                 $('#trackInspc').val(formatDateForInput(order.lastInspectionDate));
                 
+                $('#trackDepartPlannedText').text("Plan: -");
                 $('#trackDepart').val(formatDateForInput(order.departureDate));
+                $('#trackArrivePlannedText').text("Plan: -");
                 $('#trackArrive').val(formatDateForInput(order.warehouseArrivalDate));
+
+                // Numune Tab: Gerçekleşenler
+                $('#trackPlanSampleKumasYtesti').text("Plan: " + formatPlannedDate(sampleObj.sample_kumas_ytesti));
+                $('#trackActualSampleKumasYtesti').val(formatDateForInput(sampleObj.actual_sample_kumas_ytesti));
+
+                $('#trackPlanSampleTuseRenk').text("Plan: " + formatPlannedDate(sampleObj.sample_tuse_renk));
+                $('#trackActualSampleTuseRenk').val(formatDateForInput(sampleObj.actual_sample_tuse_renk));
+
+                $('#trackPlanSampleDugmeRenk').text("Plan: " + formatPlannedDate(sampleObj.sample_dugme_renk));
+                $('#trackActualSampleDugmeRenk').val(formatDateForInput(sampleObj.actual_sample_dugme_renk));
+
+                $('#trackPlanSampleDugmeTest').text("Plan: " + formatPlannedDate(sampleObj.sample_dugme_test));
+                $('#trackActualSampleDugmeTest').val(formatDateForInput(sampleObj.actual_sample_dugme_test));
+
+                $('#trackPlanSamplePpOnay').text("Plan: " + formatPlannedDate(sampleObj.sample_pp_onay));
+                $('#trackActualSamplePpOnay').val(formatDateForInput(sampleObj.actual_sample_pp_onay));
                 
                 $('#trackingModalOverlay').addClass('active');
             });

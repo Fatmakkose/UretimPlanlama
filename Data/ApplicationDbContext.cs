@@ -20,5 +20,53 @@ namespace UretimPlanlama.Data
         public DbSet<Company> Companies { get; set; }
         public DbSet<Accessory> Accessories { get; set; }
         public DbSet<Brand> Brands { get; set; }
+
+        // Cari Yönetimi
+        public DbSet<CariHesap> CariHesaplar { get; set; }
+        public DbSet<CariHareket> CariHareketler { get; set; }
+
+        // Stok Yönetimi
+        public DbSet<StokKarti> StokKartlari { get; set; }
+        public DbSet<StokHareket> StokHareketler { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // CariHesap → CariHareket (1:N)
+            modelBuilder.Entity<CariHareket>()
+                .HasOne(h => h.CariHesap)
+                .WithMany(c => c.Hareketler)
+                .HasForeignKey(h => h.CariHesapId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CariHareket>()
+                .HasOne(h => h.Order)
+                .WithMany()
+                .HasForeignKey(h => h.OrderId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // StokKarti → StokHareket (1:N)
+            modelBuilder.Entity<StokHareket>()
+                .HasOne(h => h.StokKarti)
+                .WithMany(s => s.Hareketler)
+                .HasForeignKey(h => h.StokKartiId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StokHareket>()
+                .HasOne(h => h.Order)
+                .WithMany()
+                .HasForeignKey(h => h.OrderId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // İndeksler
+            modelBuilder.Entity<CariHesap>()
+                .HasIndex(c => c.HesapKodu)
+                .IsUnique();
+
+            modelBuilder.Entity<StokKarti>()
+                .HasIndex(s => s.StokKodu)
+                .IsUnique();
+        }
     }
 }

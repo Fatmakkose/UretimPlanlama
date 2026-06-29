@@ -1,0 +1,935 @@
+@model List<UretimPlanlama.Models.StokKarti>
+@{
+    ViewData["Title"] = "Stok Yönetimi";
+    var orders = ViewBag.Orders as List<UretimPlanlama.Models.Order>;
+    var kritikSayisi = (int)(ViewBag.KritikStokSayisi ?? 0);
+}
+
+<style>
+    /* ===== ÖZET KARTLARI ===== */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .summary-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .summary-card.kritik-card {
+        border-color: #fca5a5;
+        background: #fff5f5;
+    }
+    .summary-card.kritik-card:hover {
+        border-color: #f87171;
+    }
+    .summary-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .summary-icon.teal { background: #ccfbf1; color: #0d9488; }
+    .summary-icon.orange { background: #ffedd5; color: #ea580c; }
+    .summary-icon.blue { background: #dbeafe; color: #2563eb; }
+    .summary-icon.red { background: #fee2e2; color: #dc2626; }
+    .summary-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .summary-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-top: 2px;
+    }
+
+    /* ===== SAYFA BAŞLIĞI ===== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .page-header h1 {
+        font-size: 1.6rem;
+        margin: 0;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .page-header p {
+        color: #64748b;
+        margin: 4px 0 0 0;
+        font-size: 0.9rem;
+    }
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* ===== BUTONLAR ===== */
+    .btn-primary {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-success {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .btn-success:hover { background: #15803d; }
+    .btn-danger-sm {
+        background: transparent;
+        color: #dc2626;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background 0.15s;
+    }
+    .btn-danger-sm:hover { background: #fee2e2; }
+
+    /* ===== ANA TABLO ===== */
+    .table-container {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+    .table-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        background: #fafbfc;
+        gap: 12px;
+    }
+    .search-input {
+        padding: 8px 12px 8px 36px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        width: 280px;
+        transition: border-color 0.2s;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary-color); }
+    .search-wrapper {
+        position: relative;
+    }
+    .search-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #475569;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .excel-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+    .excel-table th {
+        background: #f8fafc;
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .excel-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        vertical-align: middle;
+    }
+    .excel-table tbody tr { transition: background 0.15s; cursor: pointer; }
+    .excel-table tbody tr:hover { background: #f8fafc; }
+    .excel-table tbody tr.kritik-row { background: #fff5f5; }
+    .excel-table tbody tr.kritik-row:hover { background: #fee2e2; }
+
+    .stok-kodu { font-weight: 700; color: var(--primary-color); }
+
+    .kategori-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 700;
+    }
+    .kat-kumas { background: #e0f2fe; color: #0369a1; }
+    .kat-aksesuar { background: #fef3c7; color: #b45309; }
+    .kat-iplik { background: #f3e8ff; color: #7c3aed; }
+    .kat-tela { background: #fce7f3; color: #be185d; }
+    .kat-dugme { background: #d1fae5; color: #047857; }
+    .kat-etiket { background: #e0e7ff; color: #4338ca; }
+    .kat-diger { background: #f1f5f9; color: #475569; }
+
+    .stok-bar {
+        width: 100%;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 4px;
+    }
+    .stok-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s;
+    }
+    .stok-bar-fill.safe { background: #22c55e; }
+    .stok-bar-fill.warning { background: #eab308; }
+    .stok-bar-fill.danger { background: #ef4444; }
+
+    .stok-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.73rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    .stok-status.kritik { background: #fee2e2; color: #dc2626; }
+    .stok-status.normal { background: #dcfce7; color: #16a34a; }
+    .stok-status.sifir { background: #f1f5f9; color: #64748b; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .modal-overlay.active { display: flex !important; opacity: 1 !important; }
+    .modal-content {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        transform: scale(0.95);
+        transition: transform 0.2s;
+    }
+    .modal-overlay.active .modal-content { transform: scale(1) !important; }
+    .modal-content.wide { width: 850px; }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.15s, background 0.15s;
+    }
+    .modal-close:hover { color: #ef4444; background: #fee2e2; }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    /* ===== FORM ===== */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .form-group { margin-bottom: 0; }
+    .form-group.full { grid-column: span 2; }
+    .form-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.88rem;
+        color: #0f172a;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,71,187,0.1); }
+
+    /* ===== DETAY ===== */
+    .detail-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .detail-info-item {
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .detail-info-item .info-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .detail-info-item .info-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    .hareket-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-top: 12px;
+    }
+    .hareket-table th {
+        background: #f8fafc;
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 0.72rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .hareket-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .hareket-type-giris {
+        background: #dcfce7;
+        color: #16a34a;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.73rem;
+    }
+    .hareket-type-cikis {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.73rem;
+    }
+    .hareket-type-fire {
+        background: #fef3c7;
+        color: #b45309;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.73rem;
+    }
+    .hareket-type-duzeltme {
+        background: #e0e7ff;
+        color: #4338ca;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.73rem;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+    .empty-state p {
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    /* ===== KRİTİK STOK UYARI BANNER ===== */
+    .kritik-banner {
+        background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%);
+        border: 1px solid #fca5a5;
+        border-radius: 10px;
+        padding: 14px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: pulseAlert 2s infinite;
+    }
+    .kritik-banner i {
+        color: #dc2626;
+        font-size: 1.3rem;
+    }
+    .kritik-banner p {
+        margin: 0;
+        color: #991b1b;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    @@keyframes pulseAlert {
+        0%, 100% { border-color: #fca5a5; }
+        50% { border-color: #f87171; }
+    }
+
+    @@media (max-width: 1200px) {
+        .summary-cards { grid-template-columns: repeat(2, 1fr); }
+    }
+    @@media (max-width: 768px) {
+        .summary-cards { grid-template-columns: 1fr; }
+        .form-grid { grid-template-columns: 1fr; }
+        .form-group.full { grid-column: span 1; }
+        .detail-info-grid { grid-template-columns: 1fr 1fr; }
+        .modal-content { width: 95%; }
+    }
+</style>
+
+<!-- SAYFA BAŞLIĞI -->
+<div class="page-header">
+    <div>
+        <h1><i class="fa-solid fa-boxes-stacked" style="color: #0d9488;"></i> Stok Yönetimi</h1>
+       
+    </div>
+    <div class="header-actions">
+        <a href="/Stock/ExportToExcel" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Excel'e Aktar</a>
+        <button class="btn-primary" onclick="openNewStokModal()"><i class="fa-solid fa-plus"></i> Yeni Stok Kartı</button>
+    </div>
+</div>
+
+<!-- KRİTİK STOK UYARISI -->
+@if(kritikSayisi > 0)
+{
+    <div class="kritik-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <p><strong>@kritikSayisi</strong> stok kalemi kritik seviyenin altında! Acil tedarik planlaması yapılmalıdır.</p>
+    </div>
+}
+
+<!-- ÖZET KARTLARI -->
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="summary-icon teal"><i class="fa-solid fa-cubes"></i></div>
+        <div>
+            <div class="summary-label">Toplam Stok Kalemi</div>
+            <div class="summary-value">@Model.Count(s => s.Aktif)</div>
+        </div>
+    </div>
+    <div class="summary-card @(kritikSayisi > 0 ? "kritik-card" : "")">
+        <div class="summary-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div>
+            <div class="summary-label">Kritik Stoklar</div>
+            <div class="summary-value" style="color: #dc2626;">@kritikSayisi</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon blue"><i class="fa-solid fa-turkish-lira-sign"></i></div>
+        <div>
+            <div class="summary-label">Toplam Stok Değeri</div>
+            <div class="summary-value">₺@(Model.Where(s => s.Aktif && s.BirimFiyat.HasValue).Sum(s => s.MevcutMiktar * s.BirimFiyat!.Value).ToString("N2"))</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon orange"><i class="fa-solid fa-tags"></i></div>
+        <div>
+            <div class="summary-label">Kategori Sayısı</div>
+            <div class="summary-value">@Model.Where(s => s.Aktif).Select(s => s.Kategori).Distinct().Count()</div>
+        </div>
+    </div>
+</div>
+
+<!-- ANA TABLO -->
+<div class="table-container">
+    <div class="table-toolbar">
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="search-wrapper">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" class="search-input" id="stokSearch" placeholder="Stok kodu, ad veya tedarikçi ara..." />
+            </div>
+            <select class="filter-select" id="kategoriFilter" onchange="filterTable()">
+                <option value="">Tüm Kategoriler</option>
+                <option value="Kumaş">Kumaş</option>
+                <option value="Aksesuar">Aksesuar</option>
+                <option value="İplik">İplik</option>
+                <option value="Tela">Tela</option>
+                <option value="Düğme">Düğme</option>
+                <option value="Etiket">Etiket</option>
+                <option value="Diğer">Diğer</option>
+            </select>
+            <select class="filter-select" id="durumFilter" onchange="filterTable()">
+                <option value="">Tüm Durumlar</option>
+                <option value="kritik">Kritik Stok</option>
+                <option value="normal">Normal</option>
+                <option value="sifir">Stok Yok</option>
+            </select>
+        </div>
+        <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;" id="recordCount">@Model.Count kayıt</span>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="excel-table" id="stokTable">
+            <thead>
+                <tr>
+                    <th>Stok Kodu</th>
+                    <th>Stok Adı</th>
+                    <th>Kategori</th>
+                    <th>Birim</th>
+                    <th style="text-align: right;">Mevcut</th>
+                    <th style="text-align: right;">Minimum</th>
+                    <th>Stok Durumu</th>
+                    <th>Tedarikçi</th>
+                    <th style="text-align: center;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(Model.Count == 0)
+                {
+                    <tr id="emptyRow">
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                                <p>Henüz stok kartı bulunmuyor. <strong>"Yeni Stok Kartı"</strong> butonuna tıklayarak ilk stok kartınızı oluşturun.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach(var s in Model)
+                {
+                    var katClass = s.Kategori switch {
+                        "Kumaş" => "kat-kumas",
+                        "Aksesuar" => "kat-aksesuar",
+                        "İplik" => "kat-iplik",
+                        "Tela" => "kat-tela",
+                        "Düğme" => "kat-dugme",
+                        "Etiket" => "kat-etiket",
+                        _ => "kat-diger"
+                    };
+                    var isKritik = s.MinimumMiktar > 0 && s.MevcutMiktar <= s.MinimumMiktar;
+                    var isSifir = s.MevcutMiktar == 0;
+                    var barPercent = s.MinimumMiktar > 0 ? Math.Min(100, (int)(s.MevcutMiktar / s.MinimumMiktar * 100)) : (s.MevcutMiktar > 0 ? 100 : 0);
+                    var barClass = isKritik ? "danger" : barPercent < 50 ? "warning" : "safe";
+                    var statusClass = isKritik ? "kritik" : isSifir ? "sifir" : "normal";
+                    var statusText = isKritik ? "⚠ Kritik" : isSifir ? "Stok Yok" : "Normal";
+                    <tr class="stok-row @(isKritik ? "kritik-row" : "")" data-id="@s.Id" data-kategori="@s.Kategori" 
+                        data-mevcut="@s.MevcutMiktar" data-min="@s.MinimumMiktar"
+                        onclick="showDetail(@s.Id)">
+                        <td><span class="stok-kodu">@s.StokKodu</span></td>
+                        <td><strong>@s.StokAdi</strong></td>
+                        <td><span class="kategori-badge @katClass">@s.Kategori</span></td>
+                        <td>@s.Birim</td>
+                        <td style="text-align: right;">
+                            <strong>@s.MevcutMiktar.ToString("N2")</strong>
+                            <div class="stok-bar"><div class="stok-bar-fill @barClass" style="width: @(barPercent)%"></div></div>
+                        </td>
+                        <td style="text-align: right; color: #64748b;">@s.MinimumMiktar.ToString("N2")</td>
+                        <td><span class="stok-status @statusClass">@statusText</span></td>
+                        <td style="font-size: 0.82rem;">@(s.Tedarikci ?? "—")</td>
+                        <td style="text-align: center;">
+                            <button class="btn-danger-sm" title="Sil" onclick="event.stopPropagation(); deleteStok(@s.Id, '@s.StokAdi')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- YENİ STOK KARTI MODALI -->
+<div class="modal-overlay" id="newStokModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-box-open" style="color: #0d9488;"></i> Yeni Stok Kartı</h3>
+            <button class="modal-close" onclick="closeModal('newStokModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editStokId" value="" />
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Stok Adı *</label>
+                    <input type="text" class="form-control" id="newStokAdi" placeholder="Kumaş veya malzeme adı" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kategori *</label>
+                    <select class="form-control" id="newKategori">
+                        <option value="Kumaş">Kumaş</option>
+                        <option value="Aksesuar">Aksesuar</option>
+                        <option value="İplik">İplik</option>
+                        <option value="Tela">Tela</option>
+                        <option value="Düğme">Düğme</option>
+                        <option value="Etiket">Etiket</option>
+                        <option value="Diğer">Diğer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Birim *</label>
+                    <select class="form-control" id="newBirim">
+                        <option value="Metre">Metre</option>
+                        <option value="Kg">Kg</option>
+                        <option value="Adet">Adet</option>
+                        <option value="Top">Top</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Birim Fiyat (₺)</label>
+                    <input type="number" step="0.01" class="form-control" id="newBirimFiyat" placeholder="0,00" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Depo</label>
+                    <input type="text" class="form-control" id="newDepo" placeholder="Depo lokasyonu" />
+                </div>
+
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('newStokModal')">İptal</button>
+            <button class="btn-primary" onclick="saveStokKarti()"><i class="fa-solid fa-check"></i> Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<!-- STOK DETAY MODALI -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-content wide">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-boxes-stacked" style="color: #0d9488;"></i> <span id="detailTitle">Stok Kartı Detayı</span></h3>
+            <div>
+                <button class="btn-primary" onclick="openEditStokModal()" style="margin-right: 8px; padding: 4px 10px; font-size: 0.8rem; background: #e2e8f0; color: #1e293b; border: none; cursor: pointer; border-radius: 6px;"><i class="fa-solid fa-pen"></i> Düzenle</button>
+                <button class="modal-close" onclick="closeModal('detailModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="detail-info-grid" id="detailInfoGrid"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 12px;">
+                <h4 style="margin: 0; font-size: 0.95rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-arrow-right-arrow-left" style="color: #64748b;"></i> Stok Hareketleri
+                </h4>
+                <span style="font-size: 0.8rem; color: #64748b; font-style: italic;">Stok hareketleri Cari Yönetimi'nden girilen faturalarla otomatik oluşur.</span>
+            </div>
+
+            <!-- Hareketler Tablosu -->
+            <div id="hareketListContainer" style="max-height: 250px; overflow-y: auto;">
+                <p style="color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 20px;">Yükleniyor...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let currentStokId = null;
+
+    $(document).ready(function () {
+        $('#stokSearch').on('input', function () {
+            filterTable();
+        });
+        var today = new Date().toISOString().split('T')[0];
+        $('#hareketTarih').val(today);
+    });
+
+    function filterTable() {
+        var search = $('#stokSearch').val().toLowerCase();
+        var kategori = $('#kategoriFilter').val();
+        var durum = $('#durumFilter').val();
+        var count = 0;
+
+        $('.stok-row').each(function () {
+            var text = $(this).text().toLowerCase();
+            var rowKat = $(this).data('kategori');
+            var mevcut = parseFloat($(this).data('mevcut'));
+            var min = parseFloat($(this).data('min'));
+            var show = true;
+
+            if (search && text.indexOf(search) === -1) show = false;
+            if (kategori && rowKat !== kategori) show = false;
+            if (durum === 'kritik' && !(min > 0 && mevcut <= min)) show = false;
+            if (durum === 'normal' && (mevcut === 0 || (min > 0 && mevcut <= min))) show = false;
+            if (durum === 'sifir' && mevcut !== 0) show = false;
+
+            $(this).toggle(show);
+            if (show) count++;
+        });
+        $('#recordCount').text(count + ' kayıt');
+    }
+
+    function openModal(id) { $('#' + id).addClass('active'); }
+    function closeModal(id) { $('#' + id).removeClass('active'); }
+
+    function openNewStokModal() {
+        $('#editStokId').val('');
+        $('#newStokAdi').val('');
+        $('#newKategori').val('Kumaş');
+        $('#newBirim').val('Metre');
+        $('#newBirimFiyat').val('');
+        $('#newDepo').val('');
+        $('#newStokModal h3').html('<i class="fa-solid fa-box-open" style="color: #0d9488;"></i> Yeni Stok Kartı');
+        openModal('newStokModal');
+    }
+
+    function openEditStokModal() {
+        if (!currentStokId) return;
+        $.get('/Stock/GetStokDetail?id=' + currentStokId, function(res) {
+            if (res.success) {
+                var s = res.stok;
+                $('#newStokAdi').val(s.stokAdi);
+                $('#newKategori').val(s.kategori);
+                $('#newBirim').val(s.birim);
+                $('#newBirimFiyat').val(s.birimFiyat);
+                $('#newDepo').val(s.depo);
+                
+                $('#newStokModal h3').html('<i class="fa-solid fa-pen" style="color: #0d9488;"></i> Stok Kartı Düzenle');
+                $('#editStokId').val(s.id);
+                
+                closeModal('detailModal');
+                openModal('newStokModal');
+            }
+        });
+    }
+
+    function saveStokKarti() {
+        var data = {
+            id: parseInt($('#editStokId').val()) || 0,
+            stokAdi: $('#newStokAdi').val(),
+            kategori: $('#newKategori').val(),
+            birim: $('#newBirim').val(),
+            minimumMiktar: 0,
+            birimFiyat: parseFloat($('#newBirimFiyat').val()) || null,
+            depo: $('#newDepo').val() || null,
+            tedarikci: null,
+            aktif: true
+        };
+
+        if (!data.stokAdi) {
+            alert('Stok adı zorunludur!');
+            return;
+        }
+
+        var url = data.id > 0 ? '/Stock/EditStokKarti' : '/Stock/CreateStokKarti';
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (res) {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            }
+        });
+    }
+
+    function showDetail(id) {
+        currentStokId = id;
+        $.get('/Stock/GetStokDetail?id=' + id, function (res) {
+            if (!res.success) { alert(res.message); return; }
+
+            var s = res.stok;
+            $('#detailTitle').text(s.stokKodu + ' — ' + s.stokAdi);
+
+            var isKritik = s.minimumMiktar > 0 && s.mevcutMiktar <= s.minimumMiktar;
+            var katClass = getKatClass(s.kategori);
+
+            $('#detailInfoGrid').html(`
+                <div class="detail-info-item">
+                    <div class="info-label">Kategori</div>
+                    <div class="info-value"><span class="kategori-badge ${katClass}">${s.kategori}</span></div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">Birim</div>
+                    <div class="info-value">${s.birim}</div>
+                </div>
+                <div class="detail-info-item" style="background: ${isKritik ? '#fef2f2' : '#f0fdf4'}; border-color: ${isKritik ? '#fecaca' : '#bbf7d0'};">
+                    <div class="info-label">Mevcut Stok</div>
+                    <div class="info-value" style="color: ${isKritik ? '#dc2626' : '#16a34a'}; font-size: 1.1rem;">${parseFloat(s.mevcutMiktar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${s.birim}</div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">Minimum Seviye</div>
+                    <div class="info-value">${parseFloat(s.minimumMiktar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${s.birim}</div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">Birim Fiyat</div>
+                    <div class="info-value">${s.birimFiyat ? '₺' + parseFloat(s.birimFiyat).toLocaleString('tr-TR', {minimumFractionDigits: 2}) : '—'}</div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">Tedarikçi</div>
+                    <div class="info-value">${s.tedarikci || '—'}</div>
+                </div>
+            `);
+
+            renderHareketler(res.hareketler, s.birim);
+            $('#hareketFormContainer').hide();
+            openModal('detailModal');
+        });
+    }
+
+    function getKatClass(kat) {
+        switch(kat) {
+            case 'Kumaş': return 'kat-kumas';
+            case 'Aksesuar': return 'kat-aksesuar';
+            case 'İplik': return 'kat-iplik';
+            case 'Tela': return 'kat-tela';
+            case 'Düğme': return 'kat-dugme';
+            case 'Etiket': return 'kat-etiket';
+            default: return 'kat-diger';
+        }
+    }
+
+    function renderHareketler(hareketler, birim) {
+        if (!hareketler || hareketler.length === 0) {
+            $('#hareketListContainer').html(`
+                <div class="empty-state">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    <p>Henüz stok hareketi bulunmuyor.</p>
+                </div>
+            `);
+            return;
+        }
+
+        var html = '<table class="hareket-table"><thead><tr>' +
+            '<th>Tarih</th><th>Tip</th><th>Belge No</th><th>Açıklama</th>' +
+            '<th style="text-align:right;">Miktar</th><th style="text-align:right;">Kalan</th>' +
+            '</tr></thead><tbody>';
+
+        hareketler.forEach(function (h) {
+            var typeClass = h.hareketTipi === 'Giriş' ? 'hareket-type-giris' : 
+                           h.hareketTipi === 'Fire' ? 'hareket-type-fire' :
+                           h.hareketTipi === 'Sayım Düzeltme' ? 'hareket-type-duzeltme' : 'hareket-type-cikis';
+            html += `<tr>
+                <td>${h.islemTarihi}</td>
+                <td><span class="${typeClass}">${h.hareketTipi}</span></td>
+                <td>${h.belgeNo || '—'}</td>
+                <td>${h.aciklama || '—'}</td>
+                <td style="text-align:right; font-weight: 700;">${parseFloat(h.miktar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${birim}</td>
+                <td style="text-align:right; font-weight: 600;">${parseFloat(h.kalanMiktar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${birim}</td>
+            </tr>`;
+        });
+
+        html += '</tbody></table>';
+        $('#hareketListContainer').html(html);
+    }
+
+    // Hareket ekleme ve silme özellikleri Stok Modülü üzerinden kapatılmıştır. 
+    // Tüm hareketler Cari Yönetimi - Alış Faturası üzerinden otomatik işlenir.
+
+    function deleteStok(id, name) {
+        if (!confirm('"' + name + '" stok kartını ve tüm hareketlerini silmek istediğinize emin misiniz?')) return;
+        $.post('/Stock/DeleteStokKarti', { id: id }, function (res) {
+            if (res.success) {
+                location.reload();
+            } else {
+                alert(res.message);
+            }
+        });
+    }
+</script>
+}

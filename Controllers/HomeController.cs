@@ -48,11 +48,11 @@ public class HomeController : Controller
         ViewBag.ReadyToShipQty = orders.Where(o => o.Status == "Paket" || o.Status == "Sevkiyata Hazır" || (o.PackagingStartDate != null)).Sum(o => o.Quantity);
 
         // Kritik Siparişler (Gecikenler)
-        var criticalOrders = orders.Where(o => o.PlannedPackagingEndDate < DateTime.Today && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.PlannedPackagingEndDate).ToList();
+        var criticalOrders = orders.Where(o => o.EffectiveTerminDate < DateTime.Today && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.EffectiveTerminDate).ToList();
         ViewBag.CriticalOrders = criticalOrders;
 
         // Yaklaşan Terminler (Önümüzdeki 15 gün)
-        var upcomingDeadlines = orders.Where(o => o.PlannedPackagingEndDate >= DateTime.Today && o.PlannedPackagingEndDate <= DateTime.Today.AddDays(15) && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.PlannedPackagingEndDate).ToList();
+        var upcomingDeadlines = orders.Where(o => o.EffectiveTerminDate >= DateTime.Today && o.EffectiveTerminDate <= DateTime.Today.AddDays(15) && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.EffectiveTerminDate).ToList();
         ViewBag.UpcomingDeadlines = upcomingDeadlines;
 
         // Aşama Dağılımı (Pasta Grafik İçin)

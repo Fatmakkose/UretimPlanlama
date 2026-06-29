@@ -1,13 +1,1051 @@
+@model List<UretimPlanlama.Models.CariHesap>
 @{
-    ViewData["Title"] = "Fatura ve Cari Takip";
+    ViewData["Title"] = "Cari Yönetimi";
+    var orders = ViewBag.Orders as List<UretimPlanlama.Models.Order>;
 }
 
-<div class="
--header" style="margin-bottom: 25px;">
-    <h1 style="font-size: 1.8rem; margin: 0; color: #111827;">Fatura ve Cari Takip</h1>
-    <p style="color: #6b7280; margin-top: 5px;">Müşteri cari hesapları, fason atölye ödemeleri ve fatura takibi.</p>
+<style>
+    /* ===== ÖZET KARTLARI ===== */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .summary-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .summary-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .summary-icon.green { background: #dcfce7; color: #16a34a; }
+    .summary-icon.red { background: #fee2e2; color: #dc2626; }
+    .summary-icon.blue { background: #dbeafe; color: #2563eb; }
+    .summary-icon.purple { background: #f3e8ff; color: #7c3aed; }
+    .summary-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .summary-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-top: 2px;
+    }
+    .summary-value.green-text { color: #16a34a; }
+    .summary-value.red-text { color: #dc2626; }
+
+    /* ===== SAYFA BAŞLIĞI ===== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .page-header h1 {
+        font-size: 1.6rem;
+        margin: 0;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .page-header p {
+        color: #64748b;
+        margin: 4px 0 0 0;
+        font-size: 0.9rem;
+    }
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* ===== BUTONLAR ===== */
+    .btn-primary {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-success {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .btn-success:hover { background: #15803d; }
+    .btn-danger-sm {
+        background: transparent;
+        color: #dc2626;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background 0.15s;
+    }
+    .btn-danger-sm:hover { background: #fee2e2; }
+
+    /* ===== ANA TABLO ===== */
+    .table-container {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+    .table-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        background: #fafbfc;
+        gap: 12px;
+    }
+    .search-input {
+        padding: 8px 12px 8px 36px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        width: 280px;
+        transition: border-color 0.2s;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary-color); }
+    .search-wrapper {
+        position: relative;
+    }
+    .search-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #475569;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .excel-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+    .excel-table th {
+        background: #f8fafc;
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .excel-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        vertical-align: middle;
+    }
+    .excel-table tbody tr { transition: background 0.15s; cursor: pointer; }
+    .excel-table tbody tr:hover { background: #f8fafc; }
+    .excel-table tbody tr.selected { background: #eff6ff; border-left: 3px solid var(--primary-color); }
+
+    .hesap-kodu { font-weight: 700; color: var(--primary-color); }
+    .tip-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 700;
+    }
+    .tip-musteri { background: #dbeafe; color: #1d4ed8; }
+    .tip-tedarikci { background: #fef3c7; color: #b45309; }
+    .tip-fason { background: #f3e8ff; color: #7c3aed; }
+    .bakiye-positive { color: #16a34a; font-weight: 700; }
+    .bakiye-negative { color: #dc2626; font-weight: 700; }
+    .bakiye-zero { color: #64748b; font-weight: 600; }
+    .aktif-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .aktif-badge.aktif { color: #16a34a; }
+    .aktif-badge.pasif { color: #94a3b8; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .modal-overlay.active { display: flex !important; opacity: 1 !important; }
+    .modal-content {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        transform: scale(0.95);
+        transition: transform 0.2s;
+    }
+    .modal-overlay.active .modal-content { transform: scale(1) !important; }
+    .modal-content.wide { width: 850px; }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.15s, background 0.15s;
+    }
+    .modal-close:hover { color: #ef4444; background: #fee2e2; }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    /* ===== FORM ALANLARI ===== */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .form-group { margin-bottom: 0; }
+    .form-group.full { grid-column: span 2; }
+    .form-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.88rem;
+        color: #0f172a;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,71,187,0.1); }
+    select.form-control { cursor: pointer; }
+    textarea.form-control { resize: vertical; min-height: 60px; }
+
+    /* ===== DETAY PANELİ ===== */
+    .detail-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .detail-info-item {
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .detail-info-item .info-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .detail-info-item .info-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    .hareket-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-top: 12px;
+    }
+    .hareket-table th {
+        background: #f8fafc;
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 0.72rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .hareket-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .hareket-type-borc {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.73rem;
+    }
+    .hareket-type-alacak {
+        background: #dcfce7;
+        color: #16a34a;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.73rem;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+    .empty-state p {
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    @@media (max-width: 1200px) {
+        .summary-cards { grid-template-columns: repeat(2, 1fr); }
+    }
+    @@media (max-width: 768px) {
+        .summary-cards { grid-template-columns: 1fr; }
+        .form-grid { grid-template-columns: 1fr; }
+        .form-group.full { grid-column: span 1; }
+        .detail-info-grid { grid-template-columns: 1fr 1fr; }
+        .modal-content { width: 95%; }
+    }
+</style>
+
+<!-- SAYFA BAŞLIĞI -->
+<div class="page-header">
+    <div>
+        <h1><i class="fa-solid fa-building-columns" style="color: var(--primary-color);"></i> Cari Yönetimi</h1>
+       
+    </div>
+    <div class="header-actions">
+        <button class="btn-secondary" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Excel'e Aktar</button>
+        <button class="btn-primary" onclick="openNewCariModal()"><i class="fa-solid fa-plus"></i> Yeni Cari Hesap</button>
+    </div>
 </div>
 
-<div class="glass-table-container">
-    <p>Bu modül yapım aşamasındadır...</p>
+<!-- ÖZET KARTLARI -->
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="summary-icon green"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div>
+            <div class="summary-label">Toplam Alacak</div>
+            <div class="summary-value green-text" id="toplamAlacak">₺0,00</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon red"><i class="fa-solid fa-arrow-trend-down"></i></div>
+        <div>
+            <div class="summary-label">Toplam Borç</div>
+            <div class="summary-value red-text" id="toplamBorc">₺0,00</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon blue"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div>
+            <div class="summary-label">Net Bakiye</div>
+            <div class="summary-value" id="netBakiye">₺0,00</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon purple"><i class="fa-solid fa-users"></i></div>
+        <div>
+            <div class="summary-label">Aktif Hesaplar</div>
+            <div class="summary-value" id="aktifHesap">0</div>
+        </div>
+    </div>
 </div>
+
+<!-- ANA TABLO -->
+<div class="table-container">
+    <div class="table-toolbar">
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="search-wrapper">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" class="search-input" id="cariSearch" placeholder="Hesap kodu, ad veya vergi no ara..." />
+            </div>
+            <select class="filter-select" id="tipFilter" onchange="filterTable()">
+                <option value="">Tüm Tipler</option>
+                <option value="Müşteri">Müşteri</option>
+                <option value="Tedarikçi">Tedarikçi</option>
+                <option value="Fason Atölye">Fason Atölye</option>
+            </select>
+            <select class="filter-select" id="bakiyeFilter" onchange="filterTable()">
+                <option value="">Tüm Bakiyeler</option>
+                <option value="positive">Alacaklı</option>
+                <option value="negative">Borçlu</option>
+                <option value="zero">Sıfır</option>
+            </select>
+        </div>
+        <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;" id="recordCount">@Model.Count kayıt</span>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="excel-table" id="cariTable">
+            <thead>
+                <tr>
+                    <th>Hesap Kodu</th>
+                    <th>Hesap Adı</th>
+                    <th>Tip</th>
+                    <th>Telefon</th>
+                    <th>Vergi No</th>
+                    <th style="text-align: right;">Bakiye (₺)</th>
+                    <th>Durum</th>
+                    <th style="text-align: center;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(Model.Count == 0)
+                {
+                    <tr id="emptyRow">
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-building-columns"></i>
+                                <p>Henüz cari hesap bulunmuyor. <strong>"Yeni Cari Hesap"</strong> butonuna tıklayarak ilk hesabınızı oluşturun.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach(var h in Model)
+                {
+                    var tipClass = h.HesapTipi == "Müşteri" ? "tip-musteri" : h.HesapTipi == "Tedarikçi" ? "tip-tedarikci" : "tip-fason";
+                    var bakiyeClass = h.Bakiye > 0 ? "bakiye-positive" : h.Bakiye < 0 ? "bakiye-negative" : "bakiye-zero";
+                    <tr class="cari-row" data-id="@h.Id" data-tip="@h.HesapTipi" data-bakiye="@h.Bakiye"
+                        onclick="showDetail(@h.Id)">
+                        <td><span class="hesap-kodu">@h.HesapKodu</span></td>
+                        <td><strong>@h.HesapAdi</strong></td>
+                        <td><span class="tip-badge @tipClass">@h.HesapTipi</span></td>
+                        <td>@(h.Telefon ?? "—")</td>
+                        <td>@(h.VergiNumarasi ?? "—")</td>
+                        <td style="text-align: right;"><span class="@bakiyeClass">@h.Bakiye.ToString("N2")</span></td>
+                        <td>
+                            @if(h.Aktif)
+                            {
+                                <span class="aktif-badge aktif"><i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="aktif-badge pasif"><i class="fa-regular fa-circle" style="font-size: 0.5rem;"></i> Pasif</span>
+                            }
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn-danger-sm" title="Sil" onclick="event.stopPropagation(); deleteCari(@h.Id, '@h.HesapAdi')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- YENİ CARİ HESAP MODALI -->
+<div class="modal-overlay" id="newHesapModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-user-plus" style="color: var(--primary-color);"></i> Yeni Cari Hesap</h3>
+            <button class="modal-close" onclick="closeModal('newHesapModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editCariId" value="" />
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Hesap Adı *</label>
+                    <input type="text" class="form-control" id="newHesapAdi" placeholder="Firma veya kişi adı" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hesap Tipi *</label>
+                    <select class="form-control" id="newHesapTipi">
+                        <option value="Müşteri">Müşteri</option>
+                        <option value="Tedarikçi">Tedarikçi</option>
+                        <option value="Fason Atölye">Fason Atölye</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefon</label>
+                    <input type="text" class="form-control" id="newTelefon" placeholder="05XX XXX XX XX" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">E-posta</label>
+                    <input type="email" class="form-control" id="newEmail" placeholder="ornek@firma.com" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vergi Dairesi</label>
+                    <input type="text" class="form-control" id="newVergiDairesi" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vergi Numarası</label>
+                    <input type="text" class="form-control" id="newVergiNumarasi" />
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">Adres</label>
+                    <textarea class="form-control" id="newAdres" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('newHesapModal')">İptal</button>
+            <button class="btn-primary" onclick="saveCariHesap()"><i class="fa-solid fa-check"></i> Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<!-- CARİ DETAY MODALI -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-content wide">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-building-columns" style="color: var(--primary-color);"></i> <span id="detailTitle">Cari Hesap Detayı</span></h3>
+            <div>
+                <button class="btn-primary" onclick="openEditCariModal()" style="margin-right: 8px; padding: 4px 10px; font-size: 0.8rem; background: #e2e8f0; color: #1e293b; border: none; cursor: pointer; border-radius: 6px;"><i class="fa-solid fa-pen"></i> Düzenle</button>
+                <button class="modal-close" onclick="closeModal('detailModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <!-- Hesap Bilgileri -->
+            <div class="detail-info-grid" id="detailInfoGrid"></div>
+            
+            <!-- Yeni Hareket Ekleme -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 12px;">
+                <h4 style="margin: 0; font-size: 0.95rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i> Hesap Hareketleri
+                </h4>
+                <button class="btn-success" onclick="toggleHareketForm()"><i class="fa-solid fa-plus"></i> Hareket Ekle</button>
+            </div>
+
+            <!-- Hareket Ekleme Formu -->
+            <div id="hareketFormContainer" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Sipariş Bağlantısı</label>
+                        <select class="form-control" id="hareketOrderId" onchange="onOrderSelected()">
+                            <option value="">— Seçiniz —</option>
+                            @if(orders != null)
+                            {
+                                @foreach(var o in orders)
+                                {
+                                    <option value="@o.Id" data-price="@(o.UnitPrice ?? o.FabricPrice ?? o.ComponentUnitPrice ?? 0)">@o.OrderCode — @o.ModelName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">İşlem Tipi *</label>
+                        <select class="form-control" id="hareketTipi" onchange="toggleAlisFaturasiFields()">
+                            <option value="Alış">Alış (Gider)</option>
+                            <option value="Satış">Satış (Gelir)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tutar (₺) *</label>
+                        <input type="number" step="0.01" class="form-control" id="hareketTutar" placeholder="0,00" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Belge / Fatura No</label>
+                        <input type="text" class="form-control" id="hareketBelgeNo" placeholder="FTR-001" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">İşlem Tarihi</label>
+                        <input type="date" class="form-control" id="hareketTarih" />
+                    </div>
+                    
+                    <div class="form-group alis-faturasi-field full" style="display:none; padding-top:10px;">
+                        <label class="form-label">Siparişe Ait Malzemeler (Stok Girişi İçin Eşleştiriniz)</label>
+                        <div id="orderMaterialsContainer" style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:12px;">
+                            <p style="font-size:0.85rem; color:#64748b; margin:0;">Bir sipariş seçtiğinizde gerekli olan kumaş, düğme, tela vb. malzemeler burada listelenecektir.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full">
+                        <label class="form-label">Açıklama</label>
+                        <input type="text" class="form-control" id="hareketAciklama" placeholder="Açıklama yazın..." />
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+                    <button class="btn-secondary" onclick="toggleHareketForm()">İptal</button>
+                    <button class="btn-primary" onclick="saveHareket()"><i class="fa-solid fa-check"></i> Kaydet</button>
+                </div>
+            </div>
+
+            <!-- Hareket Listesi -->
+            <div id="hareketListContainer">
+                <div class="empty-state">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <p>Henüz hareket kaydı bulunmuyor.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let currentCariId = null;
+
+    // Sayfa yüklendiğinde
+    $(document).ready(function () {
+        loadSummary();
+
+        // Arama
+        $('#cariSearch').on('input', function () {
+            filterTable();
+        });
+
+        // Tarih varsayılan
+        var today = new Date().toISOString().split('T')[0];
+        $('#hareketTarih').val(today);
+    });
+
+    // Özet bilgilerini yükle
+    function loadSummary() {
+        $.get('/Finance/GetBakiyeOzet', function (data) {
+            $('#toplamAlacak').text('₺' + formatNumber(data.toplamAlacak));
+            $('#toplamBorc').text('₺' + formatNumber(data.toplamBorc));
+            var net = data.netBakiye;
+            var $netEl = $('#netBakiye');
+            $netEl.text((net >= 0 ? '₺' : '-₺') + formatNumber(Math.abs(net)));
+            $netEl.removeClass('green-text red-text').addClass(net >= 0 ? 'green-text' : 'red-text');
+            $('#aktifHesap').text(data.aktifHesapSayisi);
+        });
+    }
+
+    function formatNumber(val) {
+        return parseFloat(val).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Tablo filtreleme
+    function filterTable() {
+        var search = $('#cariSearch').val().toLowerCase();
+        var tip = $('#tipFilter').val();
+        var bakiye = $('#bakiyeFilter').val();
+        var count = 0;
+
+        $('.cari-row').each(function () {
+            var text = $(this).text().toLowerCase();
+            var rowTip = $(this).data('tip');
+            var rowBakiye = parseFloat($(this).data('bakiye'));
+            var show = true;
+
+            if (search && text.indexOf(search) === -1) show = false;
+            if (tip && rowTip !== tip) show = false;
+            if (bakiye === 'positive' && rowBakiye <= 0) show = false;
+            if (bakiye === 'negative' && rowBakiye >= 0) show = false;
+            if (bakiye === 'zero' && rowBakiye !== 0) show = false;
+
+            $(this).toggle(show);
+            if (show) count++;
+        });
+        $('#recordCount').text(count + ' kayıt');
+    }
+
+    // Modal
+    function openModal(id) {
+        $('#' + id).addClass('active');
+    }
+    function closeModal(id) {
+        $('#' + id).removeClass('active');
+    }
+
+    function openNewCariModal() {
+        $('#editCariId').val('');
+        $('#newHesapAdi').val('');
+        $('#newHesapTipi').val('Müşteri');
+        $('#newTelefon').val('');
+        $('#newEmail').val('');
+        $('#newVergiDairesi').val('');
+        $('#newVergiNumarasi').val('');
+        $('#newAdres').val('');
+        $('#newHesapModal h3').html('<i class="fa-solid fa-user-plus" style="color: var(--primary-color);"></i> Yeni Cari Hesap');
+        openModal('newHesapModal');
+    }
+
+    function openEditCariModal() {
+        if (!currentCariId) return;
+        $.get('/Finance/GetCariDetail?id=' + currentCariId, function(res) {
+            if (res.success) {
+                var h = res.hesap;
+                $('#newHesapAdi').val(h.hesapAdi);
+                $('#newHesapTipi').val(h.hesapTipi);
+                $('#newTelefon').val(h.telefon);
+                $('#newEmail').val(h.email);
+                $('#newVergiDairesi').val(h.vergiDairesi);
+                $('#newVergiNumarasi').val(h.vergiNumarasi);
+                $('#newAdres').val(h.adres);
+                
+                $('#newHesapModal h3').html('<i class="fa-solid fa-pen" style="color: var(--primary-color);"></i> Cari Hesap Düzenle');
+                $('#editCariId').val(h.id);
+                
+                closeModal('detailModal');
+                openModal('newHesapModal');
+            }
+        });
+    }
+
+    // Cari hesap kaydet
+    function saveCariHesap() {
+        var data = {
+            id: parseInt($('#editCariId').val()) || 0,
+            hesapAdi: $('#newHesapAdi').val(),
+            hesapTipi: $('#newHesapTipi').val(),
+            telefon: $('#newTelefon').val() || null,
+            email: $('#newEmail').val() || null,
+            vergiDairesi: $('#newVergiDairesi').val() || null,
+            vergiNumarasi: $('#newVergiNumarasi').val() || null,
+            adres: $('#newAdres').val() || null,
+            aktif: true
+        };
+
+        if (!data.hesapAdi) {
+            alert('Hesap adı zorunludur!');
+            return;
+        }
+
+        var url = data.id > 0 ? '/Finance/EditCariHesap' : '/Finance/CreateCariHesap';
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (res) {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            }
+        });
+    }
+
+    // Cari hesap detay göster
+    function showDetail(id) {
+        currentCariId = id;
+        $.get('/Finance/GetCariDetail?id=' + id, function (res) {
+            if (!res.success) { alert(res.message); return; }
+
+            var h = res.hesap;
+            $('#detailTitle').text(h.hesapKodu + ' — ' + h.hesapAdi);
+
+            var bakiyeClass = h.bakiye > 0 ? 'bakiye-positive' : h.bakiye < 0 ? 'bakiye-negative' : 'bakiye-zero';
+            var tipClass = h.hesapTipi === 'Müşteri' ? 'tip-musteri' : h.hesapTipi === 'Tedarikçi' ? 'tip-tedarikci' : 'tip-fason';
+
+            $('#detailInfoGrid').html(`
+                <div class="detail-info-item">
+                    <div class="info-label">Hesap Tipi</div>
+                    <div class="info-value"><span class="tip-badge ${tipClass}">${h.hesapTipi}</span></div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">Telefon</div>
+                    <div class="info-value">${h.telefon || '—'}</div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">E-posta</div>
+                    <div class="info-value">${h.email || '—'}</div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">Vergi Dairesi</div>
+                    <div class="info-value">${h.vergiDairesi || '—'}</div>
+                </div>
+                <div class="detail-info-item">
+                    <div class="info-label">Vergi No</div>
+                    <div class="info-value">${h.vergiNumarasi || '—'}</div>
+                </div>
+                <div class="detail-info-item" style="background: ${h.bakiye >= 0 ? '#f0fdf4' : '#fef2f2'}; border-color: ${h.bakiye >= 0 ? '#bbf7d0' : '#fecaca'};">
+                    <div class="info-label">Güncel Bakiye</div>
+                    <div class="info-value ${bakiyeClass}">₺${formatNumber(h.bakiye)}</div>
+                </div>
+            `);
+
+            renderHareketler(res.hareketler);
+            $('#hareketFormContainer').hide();
+            openModal('detailModal');
+        });
+    }
+
+    function renderHareketler(hareketler) {
+        if (!hareketler || hareketler.length === 0) {
+            $('#hareketListContainer').html(`
+                <div class="empty-state">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <p>Henüz hareket kaydı bulunmuyor.</p>
+                </div>
+            `);
+            return;
+        }
+
+        var html = '<table class="hareket-table"><thead><tr>' +
+            '<th>Tarih</th><th>Tip</th><th>Belge No</th><th>Açıklama</th>' +
+            '<th style="text-align:right;">Tutar (₺)</th><th style="text-align:right;">Bakiye (₺)</th><th></th>' +
+            '</tr></thead><tbody>';
+
+        hareketler.forEach(function (h) {
+            var typeClass = h.islemTipi === 'Satış' ? 'hareket-type-alacak' : 'hareket-type-borc';
+            var typeBg = h.islemTipi === 'Alış' ? 'background:#fef08a; color:#854d0e;' : '';
+            html += `<tr>
+                <td>${h.islemTarihi}</td>
+                <td><span class="${typeClass}" style="${typeBg}">${h.islemTipi}</span></td>
+                <td>${h.belgeNo || '—'}</td>
+                <td>${h.aciklama || '—'}</td>
+                <td style="text-align:right; font-weight: 700;">${formatNumber(h.tutar)}</td>
+                <td style="text-align:right; font-weight: 600;">${formatNumber(h.kalanBakiye)}</td>
+                <td><button class="btn-danger-sm" onclick="deleteHareket(${h.id})" title="Sil"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>`;
+        });
+
+        html += '</tbody></table>';
+        $('#hareketListContainer').html(html);
+    }
+
+    function toggleHareketForm() {
+        $('#hareketFormContainer').slideToggle(200);
+        toggleAlisFaturasiFields(); // form açıldığında alanı kontrol et
+    }
+
+    function toggleAlisFaturasiFields() {
+        if ($('#hareketTipi').val() === 'Alış') {
+            $('.alis-faturasi-field').slideDown(200);
+        } else {
+            $('.alis-faturasi-field').slideUp(200);
+        }
+    }
+
+    function onOrderSelected() {
+        var selectedOption = $('#hareketOrderId').find('option:selected');
+        var orderId = selectedOption.val();
+        if(orderId) {
+            var price = parseFloat(selectedOption.data('price')) || 0;
+            if (price > 0) {
+                $('#hareketTutar').val(price);
+            }
+            
+            $.get('/Order/GetOrderMaterials?id=' + orderId, function(res) {
+                if(res.success && res.materials.length > 0) {
+                    var html = '<table class="hareket-table"><thead><tr><th style="width:25%;">Beklenen Malzeme</th><th style="width:40%;">Stok Kartı Eşleştir</th><th style="width:15%;">Miktar</th><th style="width:20%;">B.Fiyat (₺)</th></tr></thead><tbody>';
+                    
+                    var stokKartlariOptions = '<option value="">— Eşleştirme (İşlem Yapma) —</option>';
+                    @if(ViewBag.StokKartlari != null) {
+                        foreach(var s in ViewBag.StokKartlari) {
+                            @:stokKartlariOptions += '<option value="@s.Id">@s.StokKodu — @s.StokAdi.Replace("'", "\\'")</option>';
+                        }
+                    }
+
+                    res.materials.forEach(function(m, i) {
+                        html += `<tr>
+                            <td><strong>${m.ad}</strong><br><small style="color:#64748b;">${formatNumber(m.miktar)} ${m.birim}</small></td>
+                            <td><select class="form-control stok-select" data-index="${i}">${stokKartlariOptions}</select></td>
+                            <td><input type="number" step="0.01" class="form-control stok-miktar" data-index="${i}" value="${m.miktar}" /></td>
+                            <td><input type="number" step="0.01" class="form-control stok-fiyat" data-index="${i}" placeholder="0,00" /></td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    $('#orderMaterialsContainer').html(html);
+                } else {
+                    $('#orderMaterialsContainer').html('<p style="font-size:0.85rem; color:#64748b; margin:0;">Bu siparişte malzeme detayı (kumaş, düğme vb.) bulunamadı.</p>');
+                }
+            });
+        } else {
+            $('#hareketTutar').val('');
+            $('#orderMaterialsContainer').html('<p style="font-size:0.85rem; color:#64748b; margin:0;">Bir sipariş seçtiğinizde malzemeler burada listelenecektir.</p>');
+        }
+    }
+
+    function saveHareket() {
+        var tutar = parseFloat($('#hareketTutar').val()) || 0;
+        if (tutar <= 0) {
+            alert('Tutar sıfırdan büyük olmalıdır!');
+            return;
+        }
+
+        var islemTipi = $('#hareketTipi').val();
+        var formData = new FormData();
+        formData.append('CariHesapId', currentCariId);
+        formData.append('IslemTipi', islemTipi);
+        formData.append('Tutar', tutar);
+        
+        var islemTarihi = $('#hareketTarih').val();
+        if (islemTarihi) formData.append("IslemTarihi", islemTarihi);
+        
+        var orderId = $('#hareketOrderId').val();
+        if (orderId) formData.append("OrderId", parseInt(orderId));
+
+        if (islemTipi === 'Alış') {
+            var stokKalemleri = [];
+            $('#orderMaterialsContainer tbody tr').each(function() {
+                var stokKartiId = parseInt($(this).find('.stok-select').val());
+                if(stokKartiId > 0) {
+                    stokKalemleri.push({
+                        StokKartiId: stokKartiId,
+                        Miktar: parseFloat($(this).find('.stok-miktar').val()) || 0,
+                        BirimFiyat: parseFloat($(this).find('.stok-fiyat').val()) || null
+                    });
+                }
+            });
+            if (stokKalemleri.length > 0) {
+                formData.append('stokKalemleriJson', JSON.stringify(stokKalemleri));
+            } else {
+                // Eğer sipariş seçili değilse ve klasik form doluysa fallback olarak orayı al.
+                var singleStok = $('#hareketStokKartiId').val();
+                if(singleStok) {
+                    formData.append('StokKartiId', parseInt(singleStok));
+                    formData.append('Miktar', parseFloat($('#hareketMiktar').val()) || 0);
+                }
+            }
+        }
+
+        $.ajax({
+            url: '/Finance/CreateHareket',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success) {
+                    showDetail(currentCariId);
+                    loadSummary();
+                    // Formu temizle
+                    $('#hareketTutar, #hareketBelgeNo, #hareketAciklama, #hareketFaturaDosyasi').val('');
+                    $('#hareketFormContainer').slideUp(200);
+                    
+                    setTimeout(function() {
+                        var $row = $('tr.cari-row[data-id="' + currentCariId + '"]');
+                        if ($row.length) {
+                            location.reload();
+                        }
+                    }, 500);
+                } else {
+                    alert(res.message);
+                }
+            }
+        });
+    }
+
+    function deleteHareket(id) {
+        if (!confirm('Bu hareketi silmek istediğinize emin misiniz?')) return;
+        $.post('/Finance/DeleteHareket', { id: id }, function (res) {
+            if (res.success) {
+                showDetail(currentCariId);
+                loadSummary();
+            } else {
+                alert(res.message);
+            }
+        });
+    }
+
+    function deleteCari(id, name) {
+        if (!confirm('"' + name + '" cari hesabını ve tüm hareketlerini silmek istediğinize emin misiniz?')) return;
+        $.post('/Finance/DeleteCariHesap', { id: id }, function (res) {
+            if (res.success) {
+                location.reload();
+            } else {
+                alert(res.message);
+            }
+        });
+    }
+</script>
+}

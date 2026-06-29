@@ -210,9 +210,8 @@ namespace UretimPlanlama.Controllers
 
                 _context.SaveChanges();
 
-                TempData["SuccessMessage"] = "Üretim planı güncellendi.";
-                TempData["ActiveTab"] = "uretim";
-                return RedirectToAction("Plan", new { id = order.Id });
+                TempData["SuccessMessage"] = "Üretim planı başarıyla kaydedildi. Gerçekleşen (Takip) sayfasına yönlendirildiniz.";
+                return RedirectToAction("Tracking", new { selectedId = order.Id });
             }
             return NotFound();
         }
@@ -241,7 +240,7 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateTracking(Order orderData)
+        public IActionResult UpdateTracking(Order orderData, Microsoft.AspNetCore.Http.IFormCollection form)
         {
             if (!User.HasPermission("Write"))
             {
@@ -251,6 +250,49 @@ namespace UretimPlanlama.Controllers
             var order = _context.Orders.Find(orderData.Id);
             if (order != null)
             {
+                var dictProd = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(order.ProductionJson))
+                {
+                    try { dictProd = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.ProductionJson) ?? new Dictionary<string, string>(); } catch {}
+                }
+                if (form.ContainsKey("actual_cutting")) dictProd["actual_cutting"] = form["actual_cutting"].ToString();
+                if (form.ContainsKey("actual_sewing")) dictProd["actual_sewing"] = form["actual_sewing"].ToString();
+                if (form.ContainsKey("actual_packaging")) dictProd["actual_packaging"] = form["actual_packaging"].ToString();
+                order.ProductionJson = System.Text.Json.JsonSerializer.Serialize(dictProd);
+
+                var dictPur = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(order.PurchasingMaterialsJson))
+                {
+                    try { dictPur = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.PurchasingMaterialsJson) ?? new Dictionary<string, string>(); } catch {}
+                }
+                if (form.ContainsKey("actual_pur_dugme_gelisi")) dictPur["actual_pur_dugme_gelisi"] = form["actual_pur_dugme_gelisi"].ToString();
+                if (form.ContainsKey("actual_pur_dugme_miktar")) dictPur["actual_pur_dugme_miktar"] = form["actual_pur_dugme_miktar"].ToString();
+                
+                if (form.ContainsKey("actual_pur_dugme_dikis_ipi")) dictPur["actual_pur_dugme_dikis_ipi"] = form["actual_pur_dugme_dikis_ipi"].ToString();
+                if (form.ContainsKey("actual_pur_dugme_dikis_ipi_miktar")) dictPur["actual_pur_dugme_dikis_ipi_miktar"] = form["actual_pur_dugme_dikis_ipi_miktar"].ToString();
+                
+                if (form.ContainsKey("actual_pur_etiket_gelisi")) dictPur["actual_pur_etiket_gelisi"] = form["actual_pur_etiket_gelisi"].ToString();
+                if (form.ContainsKey("actual_pur_etiket_miktar")) dictPur["actual_pur_etiket_miktar"] = form["actual_pur_etiket_miktar"].ToString();
+                
+                if (form.ContainsKey("actual_pur_fiyat_kart_gelisi")) dictPur["actual_pur_fiyat_kart_gelisi"] = form["actual_pur_fiyat_kart_gelisi"].ToString();
+                if (form.ContainsKey("actual_pur_fiyat_kart_miktar")) dictPur["actual_pur_fiyat_kart_miktar"] = form["actual_pur_fiyat_kart_miktar"].ToString();
+                
+                if (form.ContainsKey("actual_pur_yikama_ic_gelis")) dictPur["actual_pur_yikama_ic_gelis"] = form["actual_pur_yikama_ic_gelis"].ToString();
+                if (form.ContainsKey("actual_pur_yikama_ic_miktar")) dictPur["actual_pur_yikama_ic_miktar"] = form["actual_pur_yikama_ic_miktar"].ToString();
+                
+                order.PurchasingMaterialsJson = System.Text.Json.JsonSerializer.Serialize(dictPur);
+
+                var dictSample = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(order.SampleTestJson))
+                {
+                    try { dictSample = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.SampleTestJson) ?? new Dictionary<string, string>(); } catch {}
+                }
+                if (form.ContainsKey("actual_sample_kumas_ytesti")) dictSample["actual_sample_kumas_ytesti"] = form["actual_sample_kumas_ytesti"].ToString();
+                if (form.ContainsKey("actual_sample_tuse_renk")) dictSample["actual_sample_tuse_renk"] = form["actual_sample_tuse_renk"].ToString();
+                if (form.ContainsKey("actual_sample_dugme_renk")) dictSample["actual_sample_dugme_renk"] = form["actual_sample_dugme_renk"].ToString();
+                if (form.ContainsKey("actual_sample_dugme_test")) dictSample["actual_sample_dugme_test"] = form["actual_sample_dugme_test"].ToString();
+                if (form.ContainsKey("actual_sample_pp_onay")) dictSample["actual_sample_pp_onay"] = form["actual_sample_pp_onay"].ToString();
+                order.SampleTestJson = System.Text.Json.JsonSerializer.Serialize(dictSample);
                 order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
                 order.FabricMeterage = orderData.FabricMeterage;
                 order.ActualFabricQty = orderData.ActualFabricQty;

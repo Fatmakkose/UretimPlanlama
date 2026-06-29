@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UretimPlanlama.Data;
 
@@ -11,9 +12,11 @@ using UretimPlanlama.Data;
 namespace UretimPlanlama.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260624142301_AddCariAndStokModules")]
+    partial class AddCariAndStokModules
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -298,10 +301,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<int>("CariHesapId")
                         .HasColumnType("int");
 
-                    b.Property<string>("EFaturaYolu")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<DateTime>("IslemTarihi")
                         .HasColumnType("datetime2");
 
@@ -313,13 +312,7 @@ namespace UretimPlanlama.Migrations
                     b.Property<decimal>("KalanBakiye")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("Miktar")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StokKartiId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Tutar")
@@ -330,8 +323,6 @@ namespace UretimPlanlama.Migrations
                     b.HasIndex("CariHesapId");
 
                     b.HasIndex("OrderId");
-
-                    b.HasIndex("StokKartiId");
 
                     b.ToTable("CariHareketler");
                 });
@@ -586,9 +577,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<string>("BossTelaRenk")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BossTelaTipi")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Brand")
                         .HasColumnType("nvarchar(max)");
 
@@ -686,16 +674,10 @@ namespace UretimPlanlama.Migrations
                     b.Property<string>("KapakTelaRenk")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("KapakTelaTipi")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("KusakAstarGram")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("KusakTelaRenk")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("KusakTelaTipi")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("LargeButtonCount")
@@ -711,9 +693,6 @@ namespace UretimPlanlama.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MansetTelaRenk")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MansetTelaTipi")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ManufacturerCode")
@@ -744,15 +723,6 @@ namespace UretimPlanlama.Migrations
 
                     b.Property<DateTime?>("PackagingStartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("PatAstarGram")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PatTelaRenk")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PatTelaTipi")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
@@ -872,9 +842,6 @@ namespace UretimPlanlama.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("YakaTelaRenk")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("YakaTelaTipi")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -1091,15 +1058,9 @@ namespace UretimPlanlama.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("UretimPlanlama.Models.StokKarti", "StokKarti")
-                        .WithMany()
-                        .HasForeignKey("StokKartiId");
-
                     b.Navigation("CariHesap");
 
                     b.Navigation("Order");
-
-                    b.Navigation("StokKarti");
                 });
 
             modelBuilder.Entity("UretimPlanlama.Models.StokHareket", b =>

@@ -27,9 +27,22 @@
             <ul class="navbar-menu">
                 <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">Siparişler</a></li>
                 <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && (ViewContext.RouteData.Values["Action"]?.ToString() == "Index" || ViewContext.RouteData.Values["Action"]?.ToString() == "Plan") ? "active" : "")">Planlama</a></li>
+                <li>
+                    <a href="#" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Finance" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Stock" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")">Gerçekleşen <i class="fa-solid fa-chevron-down"></i></a>
+                    <ul class="submenu" style="width: 250px;">
+                        <li style="padding: 8px 15px; font-weight: 600; color: #475569; background: #f1f5f9; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e2e8f0;"><i class="fa-solid fa-wallet" style="color: var(--primary-color);"></i> Cari Yönetimi</li>
+                        <li><a href="/Finance/Definitions" style="padding-left: 32px;"><i class="fa-solid fa-address-book"></i> Cari Tanımı</a></li>
+                        <li><a href="/Finance/Purchase" style="padding-left: 32px;"><i class="fa-solid fa-cart-arrow-down"></i> Alış İşlemleri</a></li>
+                        <li><a href="/Finance/Sales" style="padding-left: 32px;"><i class="fa-solid fa-money-bill-trend-up"></i> Satış İşlemleri</a></li>
+                        <li><a href="/Finance/Reports" style="padding-left: 32px;"><i class="fa-solid fa-list-check"></i> Cari Hareketleri (Raporlar)</a></li>
+                        
+                        <li style="padding: 8px 15px; font-weight: 600; color: #475569; background: #f1f5f9; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0;"><i class="fa-solid fa-boxes-stacked" style="color: var(--primary-color);"></i> Stok Yönetimi</li>
+                        <li><a href="/Stock/Definitions" style="padding-left: 32px;"><i class="fa-solid fa-box-open"></i> Stok Tanımı</a></li>
+                        <li><a href="/Stock/Movements" style="padding-left: 32px;"><i class="fa-solid fa-arrow-right-arrow-left"></i> Stok Hareketleri</a></li>
+                    </ul>
+                </li>
                 <li><a href="/Planning/Tracking" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && ViewContext.RouteData.Values["Action"]?.ToString() == "Tracking" ? "active" : "")">Üretim Takip</a></li>
                 <li><a href="/WorkshopCapacity" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "WorkshopCapacity" ? "active" : "")">Atölye Takip</a></li>
-                <li><a href="/Reports" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reports" ? "active" : "")">Raporlar</a></li>
                 
                 @if (User.IsInRole("Admin"))
                 {

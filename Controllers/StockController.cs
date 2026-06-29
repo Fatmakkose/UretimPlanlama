@@ -1,0 +1,322 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using UretimPlanlama.Data;
+using UretimPlanlama.Models;
+using ClosedXML.Excel;
+
+namespace UretimPlanlama.Controllers
+{
+    [Authorize]
+    public class StockController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public StockController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public IActionResult Index()
+        {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            var stoklar = _context.StokKartlari.OrderByDescending(s => s.OlusturmaTarihi).ToList();
+            ViewBag.Orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
+            ViewBag.KritikStokSayisi = stoklar.Count(s => s.Aktif && s.MevcutMiktar <= s.MinimumMiktar && s.MinimumMiktar > 0);
+            return View(stoklar);
+        }
+
+        [HttpGet]
+        public IActionResult GetStokDetail(int id)
+        {
+            var stok = _context.StokKartlari.Find(id);
+            if (stok == null)
+                return Json(new { success = false, message = "Stok kartı bulunamadı." });
+
+            var hareketler = _context.StokHareketler
+                .Where(h => h.StokKartiId == id)
+                .OrderByDescending(h => h.IslemTarihi)
+                .Select(h => new
+                {
+                    h.Id,
+                    IslemTarihi = h.IslemTarihi.ToString("dd.MM.yyyy"),
+                    h.HareketTipi,
+                    h.Aciklama,
+                    h.Miktar,
+                    h.KalanMiktar,
+                    h.BelgeNo,
+                    h.OrderId
+                })
+                .ToList();
+
+            return Json(new { success = true, stok = stok, hareketler = hareketler });
+        }
+
+        [HttpPost]
+        public IActionResult CreateStokKarti([FromBody] StokKarti model)
+        {
+            if (!User.HasPermission("Write"))
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+
+            if (string.IsNullOrEmpty(model.StokAdi))
+                return Json(new { success = false, message = "Stok adı zorunludur." });
+
+            try
+            {
+                // Otomatik stok kodu oluştur
+                if (string.IsNullOrEmpty(model.StokKodu))
+                {
+                    var prefix = model.Kategori switch
+                    {
+                        "Kumaş" => "KMS",
+                        "Aksesuar" => "AKS",
+                        "İplik" => "IPL",
+                        "Tela" => "TLA",
+                        "Düğme" => "DGM",
+                        "Etiket" => "ETK",
+                        _ => "STK"
+                    };
+                    var lastCode = _context.StokKartlari
+                        .Where(s => s.StokKodu.StartsWith(prefix))
+                        .OrderByDescending(s => s.Id)
+                        .Select(s => s.StokKodu)
+                        .FirstOrDefault();
+
+                    int nextNum = 1;
+                    if (!string.IsNullOrEmpty(lastCode))
+                    {
+                        var numPart = lastCode.Replace(prefix + "-", "");
+                        int.TryParse(numPart, out nextNum);
+                        nextNum++;
+                    }
+                    model.StokKodu = $"{prefix}-{nextNum:D4}";
+                }
+
+                model.OlusturmaTarihi = DateTime.Now;
+                model.MevcutMiktar = 0;
+                _context.StokKartlari.Add(model);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Stok kartı başarıyla oluşturuldu.", stok = model });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult EditStokKarti([FromBody] StokKarti model)
+        {
+            if (!User.HasPermission("Write"))
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+
+            try
+            {
+                var existing = _context.StokKartlari.Find(model.Id);
+                if (existing == null)
+                    return Json(new { success = false, message = "Stok kartı bulunamadı." });
+
+                existing.StokAdi = model.StokAdi;
+                existing.Kategori = model.Kategori;
+                existing.Birim = model.Birim;
+                existing.MinimumMiktar = model.MinimumMiktar;
+                existing.BirimFiyat = model.BirimFiyat;
+                existing.Depo = model.Depo;
+                existing.Tedarikci = model.Tedarikci;
+                existing.Aktif = model.Aktif;
+
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Stok kartı güncellendi." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult CreateHareket([FromBody] StokHareket model)
+        {
+            if (!User.HasPermission("Write"))
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+
+            try
+            {
+                var stok = _context.StokKartlari.Find(model.StokKartiId);
+                if (stok == null)
+                    return Json(new { success = false, message = "Stok kartı bulunamadı." });
+
+                if (model.Miktar <= 0)
+                    return Json(new { success = false, message = "Miktar sıfırdan büyük olmalıdır." });
+
+                model.IslemTarihi = model.IslemTarihi == default ? DateTime.Now : model.IslemTarihi;
+
+                // Stok miktarını güncelle
+                switch (model.HareketTipi)
+                {
+                    case "Giriş":
+                        stok.MevcutMiktar += model.Miktar;
+                        break;
+                    case "Çıkış":
+                    case "Fire":
+                        if (stok.MevcutMiktar < model.Miktar)
+                            return Json(new { success = false, message = "Yetersiz stok! Mevcut: " + stok.MevcutMiktar + " " + stok.Birim });
+                        stok.MevcutMiktar -= model.Miktar;
+                        break;
+                    case "Sayım Düzeltme":
+                        stok.MevcutMiktar = model.Miktar;
+                        break;
+                }
+
+                model.KalanMiktar = stok.MevcutMiktar;
+
+                _context.StokHareketler.Add(model);
+                _context.SaveChanges();
+
+                // Kritik stok uyarısı kontrolü
+                bool kritikStok = stok.MinimumMiktar > 0 && stok.MevcutMiktar <= stok.MinimumMiktar;
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Stok hareketi kaydedildi.",
+                    yeniMiktar = stok.MevcutMiktar,
+                    kritikStok = kritikStok,
+                    kritikMesaj = kritikStok ? $"⚠ {stok.StokAdi} stoku kritik seviyenin altında! Mevcut: {stok.MevcutMiktar} {stok.Birim}" : null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteHareket(int id)
+        {
+            if (!User.HasPermission("Write"))
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+
+            try
+            {
+                var hareket = _context.StokHareketler.Find(id);
+                if (hareket == null)
+                    return Json(new { success = false, message = "Hareket bulunamadı." });
+
+                var stok = _context.StokKartlari.Find(hareket.StokKartiId);
+                if (stok != null)
+                {
+                    // Hareketi geri al
+                    switch (hareket.HareketTipi)
+                    {
+                        case "Giriş":
+                            stok.MevcutMiktar -= hareket.Miktar;
+                            break;
+                        case "Çıkış":
+                        case "Fire":
+                            stok.MevcutMiktar += hareket.Miktar;
+                            break;
+                    }
+                }
+
+                _context.StokHareketler.Remove(hareket);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Hareket silindi." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteStokKarti(int id)
+        {
+            if (!User.HasPermission("Write"))
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+
+            try
+            {
+                var stok = _context.StokKartlari.Include(s => s.Hareketler).FirstOrDefault(s => s.Id == id);
+                if (stok == null)
+                    return Json(new { success = false, message = "Stok kartı bulunamadı." });
+
+                _context.StokKartlari.Remove(stok);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Stok kartı silindi." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetKritikStoklar()
+        {
+            var kritikler = _context.StokKartlari
+                .Where(s => s.Aktif && s.MinimumMiktar > 0 && s.MevcutMiktar <= s.MinimumMiktar)
+                .OrderBy(s => s.MevcutMiktar)
+                .ToList();
+
+            return Json(new { success = true, kritikler = kritikler });
+        }
+
+        [HttpGet]
+        public IActionResult ExportToExcel()
+        {
+            if (!User.HasPermission("View"))
+                return RedirectToAction("AccessDenied", "Account");
+
+            var stoklar = _context.StokKartlari.OrderBy(s => s.Kategori).ThenBy(s => s.StokAdi).ToList();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Stok Listesi");
+                var currentRow = 1;
+
+                worksheet.Cell(currentRow, 1).Value = "Stok Kodu";
+                worksheet.Cell(currentRow, 2).Value = "Stok Adı";
+                worksheet.Cell(currentRow, 3).Value = "Kategori";
+                worksheet.Cell(currentRow, 4).Value = "Birim";
+                worksheet.Cell(currentRow, 5).Value = "Mevcut Miktar";
+                worksheet.Cell(currentRow, 6).Value = "Minimum Miktar";
+                worksheet.Cell(currentRow, 7).Value = "Birim Fiyat (₺)";
+                worksheet.Cell(currentRow, 8).Value = "Depo";
+                worksheet.Cell(currentRow, 9).Value = "Tedarikçi";
+                worksheet.Cell(currentRow, 10).Value = "Durum";
+
+                var headerRange = worksheet.Range(1, 1, 1, 10);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                foreach (var s in stoklar)
+                {
+                    currentRow++;
+                    worksheet.Cell(currentRow, 1).Value = s.StokKodu;
+                    worksheet.Cell(currentRow, 2).Value = s.StokAdi;
+                    worksheet.Cell(currentRow, 3).Value = s.Kategori;
+                    worksheet.Cell(currentRow, 4).Value = s.Birim;
+                    worksheet.Cell(currentRow, 5).Value = (double)s.MevcutMiktar;
+                    worksheet.Cell(currentRow, 6).Value = (double)s.MinimumMiktar;
+                    worksheet.Cell(currentRow, 7).Value = s.BirimFiyat.HasValue ? (double)s.BirimFiyat.Value : 0;
+                    worksheet.Cell(currentRow, 8).Value = s.Depo ?? "";
+                    worksheet.Cell(currentRow, 9).Value = s.Tedarikci ?? "";
+                    worksheet.Cell(currentRow, 10).Value = s.MevcutMiktar <= s.MinimumMiktar && s.MinimumMiktar > 0 ? "KRİTİK" : "Normal";
+                }
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StokListesi.xlsx");
+                }
+            }
+        }
+    }
+}
