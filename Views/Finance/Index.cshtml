@@ -419,6 +419,7 @@
     }
 </style>
 
+
 <!-- SAYFA BAŞLIĞI -->
 <div class="page-header">
     <div>
@@ -616,61 +617,6 @@
                 <h4 style="margin: 0; font-size: 0.95rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i> Hesap Hareketleri
                 </h4>
-                <button class="btn-success" onclick="toggleHareketForm()"><i class="fa-solid fa-plus"></i> Hareket Ekle</button>
-            </div>
-
-            <!-- Hareket Ekleme Formu -->
-            <div id="hareketFormContainer" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label class="form-label">Sipariş Bağlantısı</label>
-                        <select class="form-control" id="hareketOrderId" onchange="onOrderSelected()">
-                            <option value="">— Seçiniz —</option>
-                            @if(orders != null)
-                            {
-                                @foreach(var o in orders)
-                                {
-                                    <option value="@o.Id" data-price="@(o.UnitPrice ?? o.FabricPrice ?? o.ComponentUnitPrice ?? 0)">@o.OrderCode — @o.ModelName</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">İşlem Tipi *</label>
-                        <select class="form-control" id="hareketTipi" onchange="toggleAlisFaturasiFields()">
-                            <option value="Alış">Alış (Gider)</option>
-                            <option value="Satış">Satış (Gelir)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tutar (₺) *</label>
-                        <input type="number" step="0.01" class="form-control" id="hareketTutar" placeholder="0,00" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Belge / Fatura No</label>
-                        <input type="text" class="form-control" id="hareketBelgeNo" placeholder="FTR-001" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">İşlem Tarihi</label>
-                        <input type="date" class="form-control" id="hareketTarih" />
-                    </div>
-                    
-                    <div class="form-group alis-faturasi-field full" style="display:none; padding-top:10px;">
-                        <label class="form-label">Siparişe Ait Malzemeler (Stok Girişi İçin Eşleştiriniz)</label>
-                        <div id="orderMaterialsContainer" style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:12px;">
-                            <p style="font-size:0.85rem; color:#64748b; margin:0;">Bir sipariş seçtiğinizde gerekli olan kumaş, düğme, tela vb. malzemeler burada listelenecektir.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group full">
-                        <label class="form-label">Açıklama</label>
-                        <input type="text" class="form-control" id="hareketAciklama" placeholder="Açıklama yazın..." />
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
-                    <button class="btn-secondary" onclick="toggleHareketForm()">İptal</button>
-                    <button class="btn-primary" onclick="saveHareket()"><i class="fa-solid fa-check"></i> Kaydet</button>
-                </div>
             </div>
 
             <!-- Hareket Listesi -->

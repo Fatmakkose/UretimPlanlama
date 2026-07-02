@@ -1,0 +1,219 @@
+@model List<UretimPlanlama.Models.CariHareket>
+@{
+    ViewData["Title"] = "Cari Hareketleri (Raporlar)";
+    
+    decimal totalAlis = Model.Where(h => h.IslemTipi == "Alış").Sum(h => h.Tutar);
+    decimal totalSatis = Model.Where(h => h.IslemTipi == "Satış").Sum(h => h.Tutar);
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .page-header h1 {
+        font-size: 1.6rem;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .summary-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .summary-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .summary-icon.alis { background: #fee2e2; color: #ef4444; }
+    .summary-icon.satis { background: #dcfce7; color: #22c55e; }
+    .summary-icon.total { background: #e0e7ff; color: #4f46e5; }
+    
+    .summary-info h3 {
+        margin: 0 0 4px;
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .summary-info p {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .data-table th {
+        background: #f8fafc;
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 0.85rem;
+        color: #475569;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .data-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+        font-size: 0.95rem;
+        color: #1e293b;
+    }
+    .data-table tbody tr:hover {
+        background: #f8fafc;
+    }
+    .type-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+    .type-badge.Alış { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+    .type-badge.Satış { background: #f0fdf4; color: #22c55e; border: 1px solid #bbf7d0; }
+    
+    .filter-section {
+        background: #fff;
+        padding: 16px 20px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+    .form-control {
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="fa-solid fa-list-check" style="color: var(--primary-color);"></i> Cari Hareketleri</h1>
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="summary-icon alis"><i class="fa-solid fa-cart-arrow-down"></i></div>
+        <div class="summary-info">
+            <h3>Toplam Alış (Gider)</h3>
+            <p>₺@totalAlis.ToString("N2")</p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon satis"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+        <div class="summary-info">
+            <h3>Toplam Satış (Gelir)</h3>
+            <p>₺@totalSatis.ToString("N2")</p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon total"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div class="summary-info">
+            <h3>Net Durum (Satış - Alış)</h3>
+            <p>₺@((totalSatis - totalAlis).ToString("N2"))</p>
+        </div>
+    </div>
+</div>
+
+<div class="filter-section">
+    <input type="text" id="searchCari" class="form-control" placeholder="Cari Hesap Ara..." style="flex: 1;" onkeyup="filterTable()" />
+    <select id="typeFilter" class="form-control" style="width: 200px;" onchange="filterTable()">
+        <option value="">Tüm İşlemler</option>
+        <option value="Alış">Sadece Alış</option>
+        <option value="Satış">Sadece Satış</option>
+    </select>
+    <input type="month" id="monthFilter" class="form-control" style="width: 180px;" onchange="filterTable()" />
+</div>
+
+<div style="overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0;">
+    <table class="data-table" id="reportsTable">
+        <thead>
+            <tr>
+                <th style="width: 120px;">İşlem Tarihi</th>
+                <th>Cari Hesap</th>
+                <th style="width: 120px;">Belge No</th>
+                <th style="width: 100px;">İşlem Tipi</th>
+                <th>Açıklama</th>
+                <th style="width: 150px; text-align: right;">Tutar (₺)</th>
+                <th style="width: 150px; text-align: right;">Cari Bakiye (₺)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if(Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #64748b; padding: 30px;">Henüz bir cari hareket bulunmuyor.</td>
+                </tr>
+            }
+            @foreach(var item in Model)
+            {
+                <tr class="report-row" data-type="@item.IslemTipi" data-cari="@item.CariHesap?.HesapAdi.ToLower()" data-date="@item.IslemTarihi.ToString("yyyy-MM")">
+                    <td>@item.IslemTarihi.ToString("dd.MM.yyyy")</td>
+                    <td><strong>@item.CariHesap?.HesapAdi</strong></td>
+                    <td>@(item.BelgeNo ?? "—")</td>
+                    <td><span class="type-badge @item.IslemTipi">@item.IslemTipi</span></td>
+                    <td style="color: #64748b; font-size: 0.9rem;">@(item.Aciklama ?? "—")</td>
+                    <td style="text-align: right; font-weight: 600;">@item.Tutar.ToString("N2")</td>
+                    <td style="text-align: right;">@item.KalanBakiye.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            var search = $('#searchCari').val().toLowerCase();
+            var type = $('#typeFilter').val();
+            var month = $('#monthFilter').val(); // YYYY-MM
+
+            $('.report-row').each(function() {
+                var rowType = $(this).data('type');
+                var rowCari = $(this).data('cari');
+                var rowDate = $(this).data('date');
+                
+                var matchSearch = rowCari.includes(search);
+                var matchType = type === "" || rowType === type;
+                var matchMonth = month === "" || rowDate === month;
+                
+                if (matchSearch && matchType && matchMonth) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    </script>
+}

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UretimPlanlama.Data;
 
@@ -11,9 +12,11 @@ using UretimPlanlama.Data;
 namespace UretimPlanlama.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260702055958_MoveTedarikciToHareket")]
+    partial class MoveTedarikciToHareket
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -608,9 +611,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<DateTime?>("CuttingEndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CuttingProcessJson")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("CuttingStartDate")
                         .HasColumnType("datetime2");
 
@@ -677,9 +677,6 @@ namespace UretimPlanlama.Migrations
                     b.Property<bool>("IsProductionCompleted")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsPurchasingApproved")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsPurchasingCompleted")
                         .HasColumnType("bit");
 
@@ -726,9 +723,6 @@ namespace UretimPlanlama.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ManufacturerCompany")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MaterialDispatchJson")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ModelName")
@@ -905,14 +899,8 @@ namespace UretimPlanlama.Migrations
                     b.Property<string>("Aciklama")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("ActualQuantity")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal?>("BirimFiyat")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("bit");
 
                     b.Property<decimal>("Miktar")
                         .HasColumnType("decimal(18,2)");

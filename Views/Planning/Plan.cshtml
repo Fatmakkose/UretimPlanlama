@@ -308,26 +308,31 @@
                     <div style="font-size: 0.65rem; color: #db2777; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">REVİZE TERMİN</div>
                     <div style="font-weight: 600; color: #9d174d; font-size: 0.8rem;">
                         @{
-                            var revizeTerminStr = GetProdVal("prod_knn_revize_termin");
-                            if (!string.IsNullOrEmpty(revizeTerminStr))
+                            var revizeTermin = Model.RevisedInspectionDate.HasValue 
+                                ? Model.RevisedInspectionDate.Value.ToString("dd.MM.yyyy") 
+                                : "";
+                            
+                            if (string.IsNullOrEmpty(revizeTermin))
                             {
-                                if (DateTime.TryParse(revizeTerminStr, out DateTime revizeTermin))
+                                var revizeTerminStr = GetProdVal("prod_knn_revize_termin");
+                                if (!string.IsNullOrEmpty(revizeTerminStr))
                                 {
-                                    <text>@revizeTermin.ToString("dd.MM.yyyy")</text>
-                                }
-                                else if (DateTime.TryParseExact(revizeTerminStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime revizeTerminExact))
-                                {
-                                    <text>@revizeTerminExact.ToString("dd.MM.yyyy")</text>
-                                }
-                                else
-                                {
-                                    <text>@revizeTerminStr</text>
+                                    if (DateTime.TryParse(revizeTerminStr, out DateTime dtRevize))
+                                    {
+                                        revizeTermin = dtRevize.ToString("dd.MM.yyyy");
+                                    }
+                                    else if (DateTime.TryParseExact(revizeTerminStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime revizeTerminExact))
+                                    {
+                                        revizeTermin = revizeTerminExact.ToString("dd.MM.yyyy");
+                                    }
+                                    else
+                                    {
+                                        revizeTermin = revizeTerminStr;
+                                    }
                                 }
                             }
-                            else
-                            {
-                                <text>-</text>
-                            }
+                            
+                            <text>@(string.IsNullOrEmpty(revizeTermin) ? "-" : revizeTermin)</text>
                         }
                     </div>
                 </div>
@@ -465,6 +470,30 @@
                     } catch {}
                 }
                 string GetPurVal(string key, string def = "") => purData.ContainsKey(key) ? purData[key] : def;
+
+                string ExtractFromOzellikler(string json, string keyContains) {
+                    if (string.IsNullOrEmpty(json)) return null;
+                    try {
+                        using var doc = System.Text.Json.JsonDocument.Parse(json);
+                        if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                            foreach(var prop in doc.RootElement.EnumerateArray()) {
+                                if (prop.TryGetProperty("Key", out var k) && prop.TryGetProperty("Value", out var v)) {
+                                    var keyStr = k.GetString();
+                                    if (keyStr != null && keyStr.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) {
+                                        return v.GetString();
+                                    }
+                                }
+                            }
+                        } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                            foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                if (prop.Name.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) {
+                                    return prop.Value.GetString();
+                                }
+                            }
+                        }
+                    } catch {}
+                    return null;
+                }
                 
                 // Renkleri bul (pur_color_RENKADI_... patterninden)
                 var colors = purData.Keys
@@ -474,76 +503,42 @@
                     .ToList();
                     
                 if (!colors.Any()) {
-                    colors.Add("GENEL");
+                    if (!string.IsNullOrEmpty(Model.Color)) {
+                        colors.Add(Model.Color);
+                    } else {
+                        colors.Add("GENEL");
+                    }
                 }
                 
+                var stokKartlari = (List<UretimPlanlama.Models.StokKarti>)ViewBag.StokKartlari ?? new List<UretimPlanlama.Models.StokKarti>();
+                var kumasMaterials = new List<dynamic>();
                 var basicMaterials = new List<dynamic>();
                 var labelMaterials = new List<dynamic>();
                 var interlinings = new List<dynamic>();
-
-                string firstFabricMeterageStr = "1";
-                if (!string.IsNullOrEmpty(Model.FabricsJson)) {
-                    try {
-                        using var doc = System.Text.Json.JsonDocument.Parse(Model.FabricsJson);
-                        var root = doc.RootElement;
-                        if (root.ValueKind == System.Text.Json.JsonValueKind.Array && root.GetArrayLength() > 0) {
-                            var first = root[0];
-                            if (first.TryGetProperty("Meterage", out var mProp) && mProp.ValueKind == System.Text.Json.JsonValueKind.Number) {
-                                firstFabricMeterageStr = mProp.GetDecimal().ToString(System.Globalization.CultureInfo.InvariantCulture);
-                            }
-                            // Collect buttons from the first fabric, or all fabrics (here we collect from first for simplicity as old logic did)
-                            if (first.TryGetProperty("Button1Qty", out var b1QtyProp) && b1QtyProp.ValueKind == System.Text.Json.JsonValueKind.Number && b1QtyProp.GetInt32() > 0) {
-                                var size = first.TryGetProperty("Button1Size", out var b1SizeProp) ? b1SizeProp.GetString() : "24/";
-                                if(string.IsNullOrEmpty(size)) size = "Düğme"; else size = size + " Düğme";
-                                basicMaterials.Add(new { Name = size, DefaultUnit = b1QtyProp.GetInt32().ToString(), Key = "btn1" });
-                            } else if (Model.LargeButtonCount.HasValue && Model.LargeButtonCount > 0) {
-                                basicMaterials.Add(new { Name = "24/ Düğme", DefaultUnit = Model.LargeButtonCount.Value.ToString(), Key = "btn1" });
-                            }
-
-                            if (first.TryGetProperty("Button2Qty", out var b2QtyProp) && b2QtyProp.ValueKind == System.Text.Json.JsonValueKind.Number && b2QtyProp.GetInt32() > 0) {
-                                var size = first.TryGetProperty("Button2Size", out var b2SizeProp) ? b2SizeProp.GetString() : "14/";
-                                if(string.IsNullOrEmpty(size)) size = "Düğme"; else size = size + " Düğme";
-                                basicMaterials.Add(new { Name = size, DefaultUnit = b2QtyProp.GetInt32().ToString(), Key = "btn2" });
-                            } else if (Model.SmallButtonCount.HasValue && Model.SmallButtonCount > 0) {
-                                basicMaterials.Add(new { Name = "14/ Düğme", DefaultUnit = Model.SmallButtonCount.Value.ToString(), Key = "btn2" });
-                            }
+                
+                if (Model.OrderMaterials != null && Model.OrderMaterials.Any()) {
+                    foreach (var mat in Model.OrderMaterials) {
+                        var stok = stokKartlari.FirstOrDefault(x => x.Id == mat.StokKartiId);
+                        if (stok != null) {
+                            var miktar = mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            var key = "stk_" + stok.Id.ToString();
+                            var m = new { Name = stok.StokAdi, DefaultUnit = miktar, Key = key, Stok = stok, OrderOzelliklerJson = mat.OzelliklerJson, Aciklama = mat.Aciklama };
+                            
+                            var cat = (stok.Kategori ?? "").Trim().ToUpperInvariant();
+                            if (cat == "KUMAŞ" || cat == "KUMAS") kumasMaterials.Add(m);
+                            else if (cat == "ETİKET" || cat == "ETIKET") labelMaterials.Add(m);
+                            else if (cat == "TELA") interlinings.Add(m);
+                            else basicMaterials.Add(m); // "Malzeme" ve diğer her şey
                         }
-                    } catch {}
-                } else {
-                    if (Model.UnitFabricMeterage.HasValue) {
-                        firstFabricMeterageStr = Model.UnitFabricMeterage.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
                     }
-                    if (Model.LargeButtonCount.HasValue && Model.LargeButtonCount > 0)
-                        basicMaterials.Add(new { Name = "24/ Düğme", DefaultUnit = Model.LargeButtonCount.Value.ToString(), Key = "btn1" });
-                    if (Model.SmallButtonCount.HasValue && Model.SmallButtonCount > 0)
-                        basicMaterials.Add(new { Name = "14/ Düğme", DefaultUnit = Model.SmallButtonCount.Value.ToString(), Key = "btn2" });
                 }
-
-                if (!string.IsNullOrEmpty(Model.KusakAstarGram) || !string.IsNullOrEmpty(Model.KusakTelaRenk) || !string.IsNullOrEmpty(Model.KusakTelaTipi))
-                    interlinings.Add(new { Name = "Kuşak", DefaultUnit = !string.IsNullOrEmpty(Model.KusakAstarGram) ? Model.KusakAstarGram : "0", Type = Model.KusakTelaTipi ?? "", Color = Model.KusakTelaRenk ?? "", Key = "kusak" });
-                if (!string.IsNullOrEmpty(Model.YakaAstarGram) || !string.IsNullOrEmpty(Model.YakaTelaRenk) || !string.IsNullOrEmpty(Model.YakaTelaTipi))
-                    interlinings.Add(new { Name = "Yaka", DefaultUnit = !string.IsNullOrEmpty(Model.YakaAstarGram) ? Model.YakaAstarGram : "0", Type = Model.YakaTelaTipi ?? "", Color = Model.YakaTelaRenk ?? "", Key = "yaka" });
-                if (!string.IsNullOrEmpty(Model.MansetAstarGram) || !string.IsNullOrEmpty(Model.MansetTelaRenk) || !string.IsNullOrEmpty(Model.MansetTelaTipi))
-                    interlinings.Add(new { Name = "Manşet", DefaultUnit = !string.IsNullOrEmpty(Model.MansetAstarGram) ? Model.MansetAstarGram : "0", Type = Model.MansetTelaTipi ?? "", Color = Model.MansetTelaRenk ?? "", Key = "manset" });
-                if (!string.IsNullOrEmpty(Model.KapakAstarGram) || !string.IsNullOrEmpty(Model.KapakTelaRenk) || !string.IsNullOrEmpty(Model.KapakTelaTipi))
-                    interlinings.Add(new { Name = "Kapak", DefaultUnit = !string.IsNullOrEmpty(Model.KapakAstarGram) ? Model.KapakAstarGram : "0", Type = Model.KapakTelaTipi ?? "", Color = Model.KapakTelaRenk ?? "", Key = "kapak" });
-                if (!string.IsNullOrEmpty(Model.BossAstarGram) || !string.IsNullOrEmpty(Model.BossTelaRenk) || !string.IsNullOrEmpty(Model.BossTelaTipi))
-                    interlinings.Add(new { Name = "Boss", DefaultUnit = !string.IsNullOrEmpty(Model.BossAstarGram) ? Model.BossAstarGram : "0", Type = Model.BossTelaTipi ?? "", Color = Model.BossTelaRenk ?? "", Key = "boss" });
-                if (!string.IsNullOrEmpty(Model.PatAstarGram) || !string.IsNullOrEmpty(Model.PatTelaRenk) || !string.IsNullOrEmpty(Model.PatTelaTipi))
-                    interlinings.Add(new { Name = "Pat", DefaultUnit = !string.IsNullOrEmpty(Model.PatAstarGram) ? Model.PatAstarGram : "0", Type = Model.PatTelaTipi ?? "", Color = Model.PatTelaRenk ?? "", Key = "pat" });
-                if (Model.HasWashingInstruction)
-                    basicMaterials.Add(new { Name = "Yıkama Talimatı", DefaultUnit = "1", Key = "yikama_talimat" });
-
-                if (Model.HasPriceCard)
-                    labelMaterials.Add(new { Name = "Fiyat Kartı", DefaultUnit = "1", Key = "fiyat_karti" });
-                if (Model.HasInnerBarcode)
-                    labelMaterials.Add(new { Name = "İç Barkod", DefaultUnit = "1", Key = "ic_barkod" });
-                if (Model.HasYokeLabel)
-                    labelMaterials.Add(new { Name = "Roba Etiketi", DefaultUnit = "1", Key = "roba_etiket" });
-                if (Model.HasFifLabel)
-                    labelMaterials.Add(new { Name = "Fif Etiketi", DefaultUnit = "1", Key = "fif_etiket" });
-                if (Model.HasOtherCard)
-                    labelMaterials.Add(new { Name = "Diğer Kart", DefaultUnit = "1", Key = "diger_kart" });
+                
+                string firstFabricMeterageStr = "1";
+                if (kumasMaterials.Any()) {
+                    var kMat = kumasMaterials.First();
+                    string dynKumasMetraj = ExtractFromOzellikler(kMat.OrderOzelliklerJson, "METRAJ");
+                    firstFabricMeterageStr = !string.IsNullOrEmpty(dynKumasMetraj) ? dynKumasMetraj : kMat.DefaultUnit;
+                }
 
                 var openSizes = new Dictionary<string, int>();
                 if (!string.IsNullOrEmpty(Model.SizeDistributionJson)) {
@@ -606,8 +601,12 @@
                                         <select name="pur_color_@(c)_kumasci" class="input-field" style="width: 100%;">
                                             <option value="">-- Seçiniz --</option>
                                             @if(ViewBag.Fabricators != null) {
+                                                var defaultFab = GetPurVal($"pur_color_{c}_kumasci");
+                                                if (string.IsNullOrEmpty(defaultFab) && (c == Model.Color || c == "GENEL")) {
+                                                    defaultFab = Model.FabricSupplier;
+                                                }
                                                 foreach(var f in (IEnumerable<UretimPlanlama.Models.Fabricator>)ViewBag.Fabricators) {
-                                                    if(GetPurVal($"pur_color_{c}_kumasci") == f.Name) {
+                                                    if(defaultFab == f.Name) {
                                                         <option value="@f.Name" selected>@f.Name</option>
                                                     } else {
                                                         <option value="@f.Name">@f.Name</option>
@@ -615,6 +614,9 @@
                                                 }
                                             } else {
                                                 var val = GetPurVal($"pur_color_{c}_kumasci");
+                                                if (string.IsNullOrEmpty(val) && (c == Model.Color || c == "GENEL")) {
+                                                    val = Model.FabricSupplier;
+                                                }
                                                 if(!string.IsNullOrEmpty(val)) {
                                                     <option value="@val" selected>@val</option>
                                                 }
@@ -653,7 +655,7 @@
                                                     <th>CİNSİ</th>
                                                     <th style="text-align: center;">SİPARİŞ / ÇIKACAK ADET</th>
                                                     <th style="text-align: center;">BİRİM METRAJ (M)</th>
-                                                    <th style="text-align: center;">İHTİYAÇ / ELDEKİ MİKTAR (M)</th>
+                                                    <th style="text-align: center;">İHTİYAÇ</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -699,20 +701,21 @@
                                         <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş malzeme yok.</td></tr>
                                     } else {
                                         foreach (var item in basicMaterials) {
-                                            bool isFixed = item.Key == "buyuk_dugme" || item.Key == "kucuk_dugme" || item.Key == "yikama_talimat";
-                                            string defaultFire = Model.WastageRate.HasValue ? Model.WastageRate.Value.ToString("0.##") : "0";
-                                            
-                                            string unitVal = isFixed ? item.DefaultUnit : GetPurVal($"pur_color_{c}_birim_{item.Key}", item.DefaultUnit);
-                                            string fireVal = isFixed ? defaultFire : GetPurVal($"pur_color_{c}_fire_{item.Key}", defaultFire);
-                                            
-                                            string readonlyAttr = isFixed ? "readonly style=\"width: 100%; padding: 4px; background:#f1f5f9; cursor:not-allowed; border:1px solid #cbd5e1;\"" : "style=\"width: 100%; padding: 4px;\"";
+                                            string dynFire = ExtractFromOzellikler(item.OrderOzelliklerJson, "FİRE") ?? ExtractFromOzellikler(item.OrderOzelliklerJson, "FIRE");
+                                            string defaultFire = !string.IsNullOrEmpty(dynFire) ? dynFire : (Model.WastageRate.HasValue ? Model.WastageRate.Value.ToString("0.##") : "0");
+                                            string dynBirim = ExtractFromOzellikler(item.OrderOzelliklerJson, "BİRİM") ?? ExtractFromOzellikler(item.OrderOzelliklerJson, "BIRIM");
+                                            string unitVal = GetPurVal($"pur_color_{c}_birim_{item.Key}", !string.IsNullOrEmpty(dynBirim) ? dynBirim : item.DefaultUnit);
+                                            string fireVal = GetPurVal($"pur_color_{c}_fire_{item.Key}", defaultFire);
+                                            string dynBoyut = ExtractFromOzellikler(item.OrderOzelliklerJson, "BOYUT") ?? ExtractFromOzellikler(item.OrderOzelliklerJson, "EBAT") ?? ExtractFromOzellikler(item.OrderOzelliklerJson, "BÜYÜKLÜK") ?? ExtractFromOzellikler(item.OrderOzelliklerJson, "BOY");
+                                            string extraInfo = !string.IsNullOrEmpty(dynBoyut) ? dynBoyut : item.Aciklama;
+                                            string displayName = !string.IsNullOrEmpty(extraInfo) ? $"{item.Name} ({extraInfo})" : item.Name;
 
                                             <tr class="mrp-row">
-                                                <td style="font-weight: 600;">@item.Name</td>
+                                                <td style="font-weight: 600;">@displayName</td>
                                                 <td class="row-is-adeti" style="text-align: right; color: #64748b; font-weight: 600;">0</td>
-                                                <td><input type="text" name="pur_color_@(c)_birim_@item.Key" class="input-field mrp-input row-birim" value="@unitVal" @Html.Raw(readonlyAttr) /></td>
+                                                <td><input type="text" name="pur_color_@(c)_birim_@item.Key" class="input-field mrp-input row-birim" value="@unitVal" style="width: 100%; padding: 4px;" /></td>
                                                 <td class="row-toplam" style="text-align: right; font-weight: 600; color: #0f172a;">0</td>
-                                                <td><input type="text" name="pur_color_@(c)_fire_@item.Key" class="input-field mrp-input row-fire" value="@fireVal" @Html.Raw(readonlyAttr) /></td>
+                                                <td><input type="text" name="pur_color_@(c)_fire_@item.Key" class="input-field mrp-input row-fire" value="@fireVal" style="width: 100%; padding: 4px;" /></td>
                                                 <td class="row-fazla" style="text-align: right; background:#e2e8f0; color: #0f172a; font-weight: 600;">0</td>
                                                 <td class="row-istenen" style="text-align: right; font-weight: 700; color: #b45309; background:#fef08a;">0</td>
                                             </tr>
@@ -778,7 +781,8 @@
                                             <td class="label-genel-toplam" style="text-align:right; font-weight:bold; color:#b45309;">0</td>
                                         </tr>
                                         foreach (var item in labelMaterials) {
-                                            string fireVal = GetPurVal($"pur_color_{c}_label_fire_{item.Key}", "0");
+                                            string dynFire = ExtractFromOzellikler(item.OrderOzelliklerJson, "FİRE") ?? ExtractFromOzellikler(item.OrderOzelliklerJson, "FIRE");
+                                            string fireVal = GetPurVal($"pur_color_{c}_label_fire_{item.Key}", !string.IsNullOrEmpty(dynFire) ? dynFire : "0");
                                             <tr class="mrp-label-row">
                                                 <td style="font-weight: 600;">@item.Name</td>
                                                 @foreach(var sizeKvp in finalSizes) {
@@ -806,9 +810,9 @@
                                         <th>CİNSİ</th>
                                         <th style="width: 100px;">İŞ MİKTARI</th>
                                         <th style="width: 100px;">BİRİM</th>
-                                        <th style="width: 100px; background:#fef08a;">İHTİYAÇ</th>
                                         <th style="width: 150px;">GRAM</th>
                                         <th style="width: 150px; text-align: center;">TELA İHTİYACI (RENK)</th>
+                                        <th style="width: 100px; background:#fef08a;">İHTİYAÇ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -816,15 +820,20 @@
                                         <tr><td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">Model detayında seçilmiş tela yok.</td></tr>
                                     } else {
                                         foreach (var item in interlinings) {
-                                            string unitVal = item.DefaultUnit;
-                                            string tipiVal = item.Type;
+                                            string dynBirim = ExtractFromOzellikler(item.OrderOzelliklerJson, "BİRİM") ?? ExtractFromOzellikler(item.OrderOzelliklerJson, "BIRIM");
+                                            string dynGram = ExtractFromOzellikler(item.OrderOzelliklerJson, "GRAM");
+                                            string dynRenk = ExtractFromOzellikler(item.OrderOzelliklerJson, "RENK");
+
+                                            string unitVal = GetPurVal($"pur_color_{c}_tela_birim_{item.Key}", !string.IsNullOrEmpty(dynBirim) ? dynBirim : item.DefaultUnit);
+                                            string tipiVal = GetPurVal($"pur_color_{c}_tela_tipi_{item.Key}", !string.IsNullOrEmpty(dynGram) ? dynGram : "");
+                                            string renkVal = GetPurVal($"pur_color_{c}_tela_renk_{item.Key}", !string.IsNullOrEmpty(dynRenk) ? dynRenk : "");
                                             <tr class="interlining-row">
                                                 <td style="font-weight: 600;">@item.Name</td>
                                                 <td class="row-is-miktari" style="text-align: right; color: #64748b; font-weight: 600;">0</td>
-                                                <td><input type="text" name="pur_color_@(c)_tela_birim_@item.Key" class="input-field interlining-input row-tela-birim" value="@unitVal" style="width: 100%; padding: 4px; text-align: center; background-color: #f1f5f9; cursor: not-allowed; border: 1px solid #cbd5e1;" readonly /></td>
+                                                <td><input type="text" name="pur_color_@(c)_tela_birim_@item.Key" class="input-field interlining-input row-tela-birim" value="@unitVal" style="width: 100%; padding: 4px; text-align: center;" /></td>
+                                                <td><input type="text" name="pur_color_@(c)_tela_tipi_@item.Key" class="input-field" value="@tipiVal" placeholder="Örn: 1.75'lik" style="width: 100%; padding: 4px;" /></td>
+                                                <td><input type="text" name="pur_color_@(c)_tela_renk_@item.Key" class="input-field" value="@renkVal" placeholder="Renk" style="width: 100%; padding: 4px;" /></td>
                                                 <td class="row-ihtiyac" style="text-align: right; font-weight: 700; color: #b45309; background:#fef08a;">0</td>
-                                                <td><input type="text" name="pur_color_@(c)_tela_tipi_@item.Key" class="input-field" value="@tipiVal" placeholder="Örn: 1.75'lik" style="width: 100%; padding: 4px; background-color: #f1f5f9; cursor: not-allowed; border: 1px solid #cbd5e1;" readonly /></td>
-                                                <td style="text-align: center; font-weight: 600; color: #475569;">@item.Color</td>
                                             </tr>
                                         }
                                     }
@@ -958,7 +967,14 @@
                             </div>
                             <div>
                                 <div class="data-label">KNN REVİZE TERMİN</div>
-                                <input type="date" name="prod_knn_revize_termin" class="input-field" value="@GetProdVal("prod_knn_revize_termin")" />
+                                @{
+                                    var revizeTerminInput = GetProdVal("prod_knn_revize_termin");
+                                    if (string.IsNullOrEmpty(revizeTerminInput) && Model.RevisedInspectionDate.HasValue)
+                                    {
+                                        revizeTerminInput = Model.RevisedInspectionDate.Value.ToString("yyyy-MM-dd");
+                                    }
+                                }
+                                <input type="date" name="prod_knn_revize_termin" class="input-field" value="@revizeTerminInput" />
                             </div>
                         </div>
                     </div>
@@ -1145,12 +1161,12 @@ function calculateMRP() {
             if(labelTable.querySelector('.label-acik-adet-toplam')) labelTable.querySelector('.label-acik-adet-toplam').innerText = totalAcikAdet.toLocaleString('tr-TR');
             
             var birimAsorti = totalAsortiOran > 0 ? totalAsortiOran : 1;
-            var kalanAdet = Math.round(bedenCikacak - totalAcikAdet);
-            var asortiMultiplier = Math.round(kalanAdet / birimAsorti);
+            var kalanAdet = siparisAdeti - totalAcikAdet;
+            var asortiMultiplier = kalanAdet / birimAsorti;
             if (asortiMultiplier < 0) asortiMultiplier = 0;
             
             if(labelTable.querySelector('.label-kalan-adet-val')) labelTable.querySelector('.label-kalan-adet-val').innerText = kalanAdet.toLocaleString('tr-TR');
-            if(labelTable.querySelector('.label-yeni-lot-val')) labelTable.querySelector('.label-yeni-lot-val').innerText = asortiMultiplier.toLocaleString('tr-TR');
+            if(labelTable.querySelector('.label-yeni-lot-val')) labelTable.querySelector('.label-yeni-lot-val').innerText = asortiMultiplier.toLocaleString('tr-TR', {maximumFractionDigits: 3});
             
             var sizeBaseTotals = {};
             var genelToplam = 0;

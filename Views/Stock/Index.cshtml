@@ -289,7 +289,8 @@
         box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         width: 600px;
         max-height: 90vh;
-        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
         transform: scale(0.95);
         transition: transform 0.2s;
     }
@@ -321,7 +322,11 @@
         transition: color 0.15s, background 0.15s;
     }
     .modal-close:hover { color: #ef4444; background: #fee2e2; }
-    .modal-body { padding: 24px; }
+    .modal-body { 
+        padding: 24px; 
+        overflow-y: auto;
+        flex: 1;
+    }
     .modal-footer {
         padding: 16px 24px;
         border-top: 1px solid #e2e8f0;
@@ -448,8 +453,121 @@
     }
     .empty-state p {
         font-size: 0.9rem;
-        margin: 0;
     }
+
+    /* ===== GF STİLİ KARTLAR ===== */
+    .gf-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 24px;
+        position: relative;
+    }
+    .gf-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        border-top: 6px solid #1e1b4b; /* Google Forms stili üst çizgi */
+        padding: 24px;
+        position: relative;
+    }
+    .gf-card-secondary {
+        border-top: 6px solid #4f46e5;
+    }
+    
+    .gf-prop-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        padding: 16px 24px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: box-shadow 0.2s;
+    }
+    .gf-prop-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .gf-prop-card.focus-active {
+        border-left: 4px solid #4f46e5;
+    }
+
+    .gf-drag-handle {
+        text-align: center;
+        color: #cbd5e1;
+        cursor: grab;
+        margin-bottom: -10px;
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+    .gf-prop-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 16px;
+        align-items: center;
+    }
+    .gf-input-line {
+        border: none;
+        border-bottom: 1px solid #cbd5e1;
+        border-radius: 0;
+        padding: 8px 0;
+        background: transparent;
+        font-size: 1rem;
+        width: 100%;
+        transition: border-bottom-color 0.2s;
+    }
+    .gf-input-line:focus {
+        outline: none;
+        border-bottom-color: #4f46e5;
+        border-bottom-width: 2px;
+        padding-bottom: 7px;
+    }
+    .gf-select-type {
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        color: #334155;
+        background: #f8fafc;
+        width: 100%;
+        cursor: pointer;
+    }
+    .gf-input-sub {
+        font-size: 0.85rem;
+        color: #64748b;
+        border-bottom: 1px dashed #cbd5e1;
+    }
+    .gf-prop-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        margin-top: 8px;
+        padding-top: 12px;
+        gap: 12px;
+    }
+    
+    .gf-add-btn {
+        margin-top: 8px;
+        padding: 12px;
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #475569;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    .gf-add-btn:hover { background: #f8fafc; border-color: #4f46e5; color: #4f46e5; }
+
 
     /* ===== KRİTİK STOK UYARI BANNER ===== */
     .kritik-banner {
@@ -554,12 +672,9 @@
             <select class="filter-select" id="kategoriFilter" onchange="filterTable()">
                 <option value="">Tüm Kategoriler</option>
                 <option value="Kumaş">Kumaş</option>
-                <option value="Aksesuar">Aksesuar</option>
-                <option value="İplik">İplik</option>
-                <option value="Tela">Tela</option>
-                <option value="Düğme">Düğme</option>
+                <option value="Malzeme">Malzeme</option>
                 <option value="Etiket">Etiket</option>
-                <option value="Diğer">Diğer</option>
+                <option value="Tela">Tela</option>
             </select>
             <select class="filter-select" id="durumFilter" onchange="filterTable()">
                 <option value="">Tüm Durumlar</option>
@@ -581,7 +696,6 @@
                     <th style="text-align: right;">Mevcut</th>
                     <th style="text-align: right;">Minimum</th>
                     <th>Stok Durumu</th>
-                    <th>Tedarikçi</th>
                     <th style="text-align: center;">İşlem</th>
                 </tr>
             </thead>
@@ -601,10 +715,8 @@
                 {
                     var katClass = s.Kategori switch {
                         "Kumaş" => "kat-kumas",
-                        "Aksesuar" => "kat-aksesuar",
-                        "İplik" => "kat-iplik",
+                        "Malzeme" => "kat-aksesuar",
                         "Tela" => "kat-tela",
-                        "Düğme" => "kat-dugme",
                         "Etiket" => "kat-etiket",
                         _ => "kat-diger"
                     };
@@ -627,7 +739,6 @@
                         </td>
                         <td style="text-align: right; color: #64748b;">@s.MinimumMiktar.ToString("N2")</td>
                         <td><span class="stok-status @statusClass">@statusText</span></td>
-                        <td style="font-size: 0.82rem;">@(s.Tedarikci ?? "—")</td>
                         <td style="text-align: center;">
                             <button class="btn-danger-sm" title="Sil" onclick="event.stopPropagation(); deleteStok(@s.Id, '@s.StokAdi')">
                                 <i class="fa-solid fa-trash"></i>
@@ -647,44 +758,55 @@
             <h3><i class="fa-solid fa-box-open" style="color: #0d9488;"></i> Yeni Stok Kartı</h3>
             <button class="modal-close" onclick="closeModal('newStokModal')"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="background-color: #f3f4f6; padding: 24px; overflow-y: auto; overflow-x: hidden; flex: 1;">
             <input type="hidden" id="editStokId" value="" />
-            <div class="form-grid">
-                <div class="form-group">
-                    <label class="form-label">Stok Adı *</label>
-                    <input type="text" class="form-control" id="newStokAdi" placeholder="Kumaş veya malzeme adı" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Kategori *</label>
-                    <select class="form-control" id="newKategori">
-                        <option value="Kumaş">Kumaş</option>
-                        <option value="Aksesuar">Aksesuar</option>
-                        <option value="İplik">İplik</option>
-                        <option value="Tela">Tela</option>
-                        <option value="Düğme">Düğme</option>
-                        <option value="Etiket">Etiket</option>
-                        <option value="Diğer">Diğer</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Birim *</label>
-                    <select class="form-control" id="newBirim">
-                        <option value="Metre">Metre</option>
-                        <option value="Kg">Kg</option>
-                        <option value="Adet">Adet</option>
-                        <option value="Top">Top</option>
-                    </select>
+            <div class="gf-container">
+                <div class="gf-card">
+                    <h2 style="font-size: 1.5rem; margin-bottom: 8px; color: #0f172a;">Ana Malzeme</h2>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Temel stok bilgilerini giriniz.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Stok Adı *</label>
+                            <input type="text" class="form-control" id="newStokAdi" placeholder="Kumaş veya malzeme adı" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Kategori *</label>
+                            <select class="form-control" id="newKategori">
+                                <option value="Kumaş">Kumaş</option>
+                                <option value="Malzeme">Malzeme</option>
+                                <option value="Etiket">Etiket</option>
+                                <option value="Tela">Tela</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Birim *</label>
+                            <select class="form-control" id="newBirim">
+                                <option value="Metre">Metre</option>
+                                <option value="Kg">Kg</option>
+                                <option value="Adet">Adet</option>
+                                <option value="Top">Top</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Birim Fiyat (₺)</label>
+                            <input type="number" step="0.01" class="form-control" id="newBirimFiyat" placeholder="0,00" />
+                        </div>
+                        <div class="form-group full" style="grid-column: span 2;">
+                            <label class="form-label">Görsel Yükle</label>
+                            <input type="file" class="form-control" id="newGorselDosya" accept="image/*" />
+                            <input type="hidden" id="existingGorselUrl" />
+                            <small id="currentGorselInfo" style="color: #64748b; display: none;">Mevcut görsel kayıtlı. Değiştirmek isterseniz yeni dosya seçin.</small>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Birim Fiyat (₺)</label>
-                    <input type="number" step="0.01" class="form-control" id="newBirimFiyat" placeholder="0,00" />
+                <div id="dynamicPropertiesContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Dinamik özellik kartları buraya eklenecek -->
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Depo</label>
-                    <input type="text" class="form-control" id="newDepo" placeholder="Depo lokasyonu" />
-                </div>
-
+                
+                <button type="button" class="gf-add-btn" onclick="addDynamicProperty()">
+                    <i class="fa-solid fa-plus"></i> Yeni Özellik Ekle
+                </button>
             </div>
         </div>
         <div class="modal-footer">
@@ -705,6 +827,7 @@
             </div>
         </div>
         <div class="modal-body">
+            <div id="detailGorselContainer" style="text-align: center; margin-bottom: 20px; display: none;"></div>
             <div class="detail-info-grid" id="detailInfoGrid"></div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 12px;">
@@ -768,9 +891,79 @@
         $('#newKategori').val('Kumaş');
         $('#newBirim').val('Metre');
         $('#newBirimFiyat').val('');
-        $('#newDepo').val('');
+        $('#newGorselDosya').val('');
+        $('#existingGorselUrl').val('');
+        $('#currentGorselInfo').hide();
         $('#newStokModal h3').html('<i class="fa-solid fa-box-open" style="color: #0d9488;"></i> Yeni Stok Kartı');
+        
+        // Temizle ve default ekle
+        $('#dynamicPropertiesContainer').empty();
         openModal('newStokModal');
+    }
+
+    function addDynamicProperty(key = '', value = '', type = 'text') {
+        const id = 'prop_' + Date.now() + Math.floor(Math.random() * 1000);
+        const cardHtml = `
+            <div class="gf-prop-card" id="${id}">
+                <div class="gf-drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
+                <div class="gf-prop-row">
+                    <input type="text" class="gf-input-line prop-key" placeholder="Yeni Özellik (Örn: Renk, Beden)" value="${key}" />
+                    <select class="gf-select-type prop-type" onchange="changePropType('${id}', this.value)">
+                        <option value="text" ${type === 'text' ? 'selected' : ''}>Kısa yanıt</option>
+                        <option value="number" ${type === 'number' ? 'selected' : ''}>Sayısal</option>
+                        <option value="select" ${type === 'select' ? 'selected' : ''}>Çoktan seçmeli</option>
+                    </select>
+                </div>
+                <div class="prop-val-container" id="valContainer_${id}">
+                    <!-- value input -->
+                </div>
+                <div class="gf-prop-actions">
+                    <button type="button" onclick="$('#${id}').remove()" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 4px;" title="Sil">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        $('#dynamicPropertiesContainer').append(cardHtml);
+        changePropType(id, type, value);
+    }
+
+    function addOptionRow(containerId) {
+        var c = $('#' + containerId + ' .options-list');
+        var idx = c.children().length + 1;
+        c.append(`
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <i class="fa-regular fa-circle" style="color: #cbd5e1; font-size: 1.1rem;"></i>
+                <input type="text" class="gf-input-line prop-option-input" placeholder="Seçenek ${idx}" style="flex: 1; padding: 4px 0; font-size: 0.95rem; border: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; background: transparent; outline: none;" onfocus="this.style.borderBottom='1px solid #7c3aed'" onblur="this.style.borderBottom='1px solid transparent'" />
+                <i class="fa-solid fa-xmark" style="color: #94a3b8; cursor: pointer; font-size: 1.1rem; padding: 4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" onclick="$(this).parent().remove();"></i>
+            </div>
+        `);
+    }
+
+    function changePropType(id, type, value = '') {
+        const container = $('#valContainer_' + id);
+        if(type === 'select') {
+            var options = value ? value.split(',') : [''];
+            var html = `<div class="options-container" id="opts_${id}" style="padding-top: 8px;">
+                            <div class="options-list">`;
+            options.forEach((opt, idx) => {
+                var v = opt.trim();
+                html += `<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                            <i class="fa-regular fa-circle" style="color: #cbd5e1; font-size: 1.1rem;"></i>
+                            <input type="text" class="gf-input-line prop-option-input" value="${v}" placeholder="Seçenek ${idx+1}" style="flex: 1; padding: 4px 0; font-size: 0.95rem; border: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; background: transparent; outline: none;" onfocus="this.style.borderBottom='1px solid #7c3aed'" onblur="this.style.borderBottom='1px solid transparent'" />
+                            <i class="fa-solid fa-xmark" style="color: #94a3b8; cursor: pointer; font-size: 1.1rem; padding: 4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" onclick="$(this).parent().remove();"></i>
+                        </div>`;
+            });
+            html += `       </div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px; padding: 4px 0;">
+                                <i class="fa-regular fa-circle" style="color: #cbd5e1; font-size: 1.1rem;"></i>
+                                <span style="color: #7c3aed; cursor: pointer; font-size: 0.95rem; font-weight: 500;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" onclick="addOptionRow('opts_${id}')">Seçenek ekle</span>
+                            </div>
+                        </div>`;
+            container.html(html);
+        } else {
+            container.html(`<input type="hidden" class="prop-value" value="" />`);
+        }
     }
 
     function openEditStokModal() {
@@ -782,11 +975,29 @@
                 $('#newKategori').val(s.kategori);
                 $('#newBirim').val(s.birim);
                 $('#newBirimFiyat').val(s.birimFiyat);
-                $('#newDepo').val(s.depo);
+                
+                $('#newGorselDosya').val('');
+                $('#existingGorselUrl').val(s.gorselUrl);
+                if (s.gorselUrl) {
+                    $('#currentGorselInfo').show();
+                } else {
+                    $('#currentGorselInfo').hide();
+                }
                 
                 $('#newStokModal h3').html('<i class="fa-solid fa-pen" style="color: #0d9488;"></i> Stok Kartı Düzenle');
                 $('#editStokId').val(s.id);
                 
+                // Dinamik özellikleri doldur
+                $('#dynamicPropertiesContainer').empty();
+                if (s.ozelliklerJson) {
+                    try {
+                        var props = JSON.parse(s.ozelliklerJson);
+                        props.forEach(p => {
+                            addDynamicProperty(p.Key, p.Value, p.Type || 'text');
+                        });
+                    } catch(e) { }
+                }
+
                 closeModal('detailModal');
                 openModal('newStokModal');
             }
@@ -794,36 +1005,80 @@
     }
 
     function saveStokKarti() {
-        var data = {
-            id: parseInt($('#editStokId').val()) || 0,
-            stokAdi: $('#newStokAdi').val(),
-            kategori: $('#newKategori').val(),
-            birim: $('#newBirim').val(),
-            minimumMiktar: 0,
-            birimFiyat: parseFloat($('#newBirimFiyat').val()) || null,
-            depo: $('#newDepo').val() || null,
-            tedarikci: null,
-            aktif: true
-        };
-
-        if (!data.stokAdi) {
+        if (!$('#newStokAdi').val()) {
             alert('Stok adı zorunludur!');
             return;
         }
 
-        var url = data.id > 0 ? '/Stock/EditStokKarti' : '/Stock/CreateStokKarti';
+        var formData = new FormData();
+        var id = parseInt($('#editStokId').val()) || 0;
+        formData.append("Id", id);
+        formData.append("StokAdi", $('#newStokAdi').val());
+        formData.append("Kategori", $('#newKategori').val());
+        formData.append("Birim", $('#newBirim').val());
+        formData.append("MinimumMiktar", 0);
+        
+        var birimFiyat = parseFloat($('#newBirimFiyat').val());
+        if (!isNaN(birimFiyat)) {
+            formData.append("BirimFiyat", birimFiyat);
+        }
+        
+        formData.append("Aktif", true);
+
+        // Dinamik özellikleri JSON olarak ekle
+        var ozellikler = [];
+        $('.gf-prop-card').each(function() {
+            var key = $(this).find('.prop-key').val().trim();
+            var type = $(this).find('.prop-type').val();
+            var val = '';
+            
+            if (type === 'select') {
+                var opts = [];
+                $(this).find('.prop-option-input').each(function() {
+                    var v = $(this).val().trim();
+                    if (v) opts.push(v);
+                });
+                val = opts.join(',');
+            } else {
+                var valEl = $(this).find('.prop-value');
+                if (valEl.length > 0) val = valEl.val().trim();
+            }
+
+            if (key) {
+                ozellikler.push({ Key: key, Value: val, Type: type });
+            }
+        });
+        if (ozellikler.length > 0) {
+            formData.append("OzelliklerJson", JSON.stringify(ozellikler));
+        }
+        
+        var existingGorsel = $('#existingGorselUrl').val();
+        if (existingGorsel) {
+            formData.append("GorselUrl", existingGorsel);
+        }
+
+        var fileInput = $('#newGorselDosya')[0];
+        if (fileInput.files.length > 0) {
+            formData.append("gorselDosya", fileInput.files[0]);
+        }
+
+        var url = id > 0 ? '/Stock/EditStokKarti' : '/Stock/CreateStokKarti';
 
         $.ajax({
             url: url,
             type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
+            processData: false,
+            contentType: false,
+            data: formData,
             success: function (res) {
                 if (res.success) {
                     location.reload();
                 } else {
                     alert(res.message);
                 }
+            },
+            error: function (err) {
+                alert('İşlem sırasında bir hata oluştu.');
             }
         });
     }
@@ -839,7 +1094,13 @@
             var isKritik = s.minimumMiktar > 0 && s.mevcutMiktar <= s.minimumMiktar;
             var katClass = getKatClass(s.kategori);
 
-            $('#detailInfoGrid').html(`
+            if (s.gorselUrl) {
+                $('#detailGorselContainer').html(`<img src="${s.gorselUrl}" style="max-height: 200px; max-width: 100%; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />`).show();
+            } else {
+                $('#detailGorselContainer').hide().empty();
+            }
+
+            var html = `
                 <div class="detail-info-item">
                     <div class="info-label">Kategori</div>
                     <div class="info-value"><span class="kategori-badge ${katClass}">${s.kategori}</span></div>
@@ -860,11 +1121,23 @@
                     <div class="info-label">Birim Fiyat</div>
                     <div class="info-value">${s.birimFiyat ? '₺' + parseFloat(s.birimFiyat).toLocaleString('tr-TR', {minimumFractionDigits: 2}) : '—'}</div>
                 </div>
-                <div class="detail-info-item">
-                    <div class="info-label">Tedarikçi</div>
-                    <div class="info-value">${s.tedarikci || '—'}</div>
-                </div>
-            `);
+            `;
+            
+            // Dinamik özellikleri ekle
+            if (s.ozelliklerJson) {
+                try {
+                    var props = JSON.parse(s.ozelliklerJson);
+                    props.forEach(p => {
+                        html += `
+                            <div class="detail-info-item">
+                                <div class="info-label">${p.Key}</div>
+                                <div class="info-value">${p.Value || '—'}</div>
+                            </div>
+                        `;
+                    });
+                } catch(e) {}
+            }
+            $('#detailInfoGrid').html(html);
 
             renderHareketler(res.hareketler, s.birim);
             $('#hareketFormContainer').hide();
@@ -896,7 +1169,7 @@
         }
 
         var html = '<table class="hareket-table"><thead><tr>' +
-            '<th>Tarih</th><th>Tip</th><th>Belge No</th><th>Açıklama</th>' +
+            '<th>Tarih</th><th>Tip</th><th>Belge No</th><th>Tedarikçi</th><th>Açıklama</th>' +
             '<th style="text-align:right;">Miktar</th><th style="text-align:right;">Kalan</th>' +
             '</tr></thead><tbody>';
 
@@ -908,6 +1181,7 @@
                 <td>${h.islemTarihi}</td>
                 <td><span class="${typeClass}">${h.hareketTipi}</span></td>
                 <td>${h.belgeNo || '—'}</td>
+                <td>${h.tedarikci || '—'}</td>
                 <td>${h.aciklama || '—'}</td>
                 <td style="text-align:right; font-weight: 700;">${parseFloat(h.miktar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${birim}</td>
                 <td style="text-align:right; font-weight: 600;">${parseFloat(h.kalanMiktar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${birim}</td>

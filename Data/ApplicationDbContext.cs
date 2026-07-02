@@ -28,6 +28,7 @@ namespace UretimPlanlama.Data
         // Stok Yönetimi
         public DbSet<StokKarti> StokKartlari { get; set; }
         public DbSet<StokHareket> StokHareketler { get; set; }
+        public DbSet<OrderMaterial> OrderMaterials { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -58,6 +59,13 @@ namespace UretimPlanlama.Data
                 .WithMany()
                 .HasForeignKey(h => h.OrderId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Order → OrderMaterial (1:N)
+            modelBuilder.Entity<OrderMaterial>()
+                .HasOne(m => m.Order)
+                .WithMany(o => o.OrderMaterials)
+                .HasForeignKey(m => m.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // İndeksler
             modelBuilder.Entity<CariHesap>()

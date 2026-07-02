@@ -33,6 +33,7 @@ namespace UretimPlanlama.Models
 
         public string? InspectionType { get; set; } // Yurt İçi / Yurt Dışı
         public DateTime? InspectionDate { get; set; }
+        public DateTime? RevisedInspectionDate { get; set; } // Revize Termin Tarihi
 
         public string? Brand { get; set; }
 
@@ -150,7 +151,14 @@ namespace UretimPlanlama.Models
         public int AsortiSize3XL { get; set; } = 0;
 
         // Toplam Asorti Kutusu / Sayısı
-        public int AsortiCount { get; set; } = 0;
+        public int AsortiCount { get; set; } = 0; // Asorti Katsayısı/Lot Sayısı
+
+        // --- SÜREÇ TAKİP ALANLARI (Aşama 3) ---
+        public bool IsPurchasingApproved { get; set; } = false; // Satın Alma Onayı
+        public string? MaterialDispatchJson { get; set; } // Malzeme Sevk Kayıtları
+        public string? CuttingProcessJson { get; set; } // Günlük Kesim Kayıtları
+
+
 
         // --- MODEL DETAYLARI VE AKSESUAR / TELA BİLGİLERİ ---
         [Column(TypeName = "decimal(18,2)")]
@@ -230,5 +238,10 @@ namespace UretimPlanlama.Models
         public bool IsPurchasingCompleted { get; set; } = false;
         public bool IsProductionCompleted { get; set; } = false;
         public bool IsSampleTestCompleted { get; set; } = false;
+
+        [NotMapped]
+        public string? OrderMaterialsJson { get; set; }
+
+        public ICollection<OrderMaterial> OrderMaterials { get; set; } = new List<OrderMaterial>();
     }
 }

@@ -4,6 +4,208 @@
     ViewData["Title"] = "Yeni Sipariş Ekle ";
 }
 
+<style>
+    /* Global Page Background Enhancement */
+    body {
+        background: #f4f7fe !important;
+        background-image: radial-gradient(at 0% 0%, hsla(217,100%,94%,0.8) 0px, transparent 50%),
+                          radial-gradient(at 100% 100%, hsla(208,100%,96%,0.8) 0px, transparent 50%) !important;
+    }
+
+    /* Premium Card overrides */
+    .premium-wrapper {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 24px !important;
+        border: 1px solid rgba(255, 255, 255, 1) !important;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.02) !important;
+        padding: 36px !important;
+    }
+
+    /* Inputs Enhancement */
+    .form-control {
+        background-color: #f8fafc !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        font-size: 0.95rem !important;
+        color: #1e293b !important;
+        font-weight: 500 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.01) !important;
+    }
+    
+    .form-control:hover {
+        border-color: #cbd5e1 !important;
+        background-color: #ffffff !important;
+    }
+
+    .form-control:focus {
+        background-color: #ffffff !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+        outline: none !important;
+    }
+
+    /* Buttons Enhancement */
+    .btn-planner {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+        color: white !important;
+        border: none !important;
+        padding: 12px 28px !important;
+        border-radius: 14px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.15) !important;
+        text-transform: none !important;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-planner:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -5px rgba(37, 99, 235, 0.2) !important;
+    }
+
+    .btn-secondary {
+        background: #ffffff !important;
+        color: #475569 !important;
+        border: 1.5px solid #cbd5e1 !important;
+        padding: 12px 24px !important;
+        border-radius: 14px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc !important;
+        border-color: #94a3b8 !important;
+        color: #0f172a !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    /* Modal Animation & Style */
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @@keyframes modalScaleIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    .premium-modal-content {
+        background: #ffffff !important;
+        border-radius: 28px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3) !important;
+        overflow: hidden !important;
+        border: 1px solid rgba(255,255,255,0.5) !important;
+        animation: modalScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .premium-header {
+        background: #ffffff !important;
+        padding: 24px 32px !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    /* Table Enhancement inside Modal */
+    .table thead th {
+        background: #f8fafc !important;
+        color: #64748b !important;
+        font-weight: 700 !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.8px !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+        border-top: none !important;
+        padding: 16px 12px !important;
+    }
+
+    .table tbody td {
+        padding: 16px 12px !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-weight: 500 !important;
+    }
+    
+    .table tbody tr:hover td {
+        background: #f8fafc !important;
+    }
+
+    /* Color Rows Enhancement */
+    .color-row {
+        background: #ffffff !important;
+        border-radius: 20px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02) !important;
+        transition: all 0.3s ease !important;
+    }
+    .color-row:hover {
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03) !important;
+        border-color: #cbd5e1 !important;
+    }
+    .row-header {
+        background: #f8fafc !important;
+        border-top-left-radius: 20px !important;
+        border-top-right-radius: 20px !important;
+        padding: 16px 20px !important;
+    }
+    
+    /* Section Labels */
+    label {
+        font-weight: 600 !important;
+        color: #475569 !important;
+        margin-bottom: 8px !important;
+        font-size: 0.85rem !important;
+        letter-spacing: 0.2px;
+    }
+
+    /* Dynamic size badges */
+    .size-badge {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+        transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+    .size-badge:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.06) !important;
+    }
+    
+    .modal-close-btn {
+        background: #f1f5f9; 
+        border: none; 
+        width: 36px; 
+        height: 36px; 
+        border-radius: 50%; 
+        font-size: 1.1rem; 
+        cursor: pointer; 
+        color: #64748b; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        transition: all 0.2s;
+    }
+    .modal-close-btn:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+        transform: rotate(90deg);
+    }
+    
+    h4 i {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
 <div class="dashboard-header" style="margin-bottom: 25px;">
     <div class="header-title">
         <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);"><i class="fa-solid fa-briefcase" style="color: var(--primary-color);"></i> Yeni Sipariş Oluştur</h1>
@@ -14,12 +216,13 @@
     </div>
 </div>
 
-<div style="background: white; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); padding: 24px;">
+<div class="premium-wrapper">
     <form id="newOrderForm" action="/Order/Create" method="post">
         @Html.AntiForgeryToken()
+        <input type="hidden" id="orderMaterialsJson" name="OrderMaterialsJson" value="[]" />
 
-        <div style="margin-bottom: 24px;">
-            <h4 style="margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 1rem; color: var(--primary-color); font-weight: 600;"><i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Genel Bilgiler</h4>
+        <div style="margin-bottom: 32px;">
+            <h4 style="margin: 0 0 24px 0; padding-bottom: 12px; border-bottom: 2px solid #f1f5f9; font-size: 1.1rem; color: #1e293b; font-weight: 700; letter-spacing: -0.2px;"><i class="fa-solid fa-circle-info" style="margin-right: 8px; font-size: 1.2rem;"></i> Genel Bilgiler</h4>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                 <div class="form-group">
@@ -55,7 +258,7 @@
                 <div class="form-group">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
                         <span>Model Detay</span>
-                        <button type="button" onclick="openModelDetailModal()" style="padding:2px 8px; border:1px solid var(--primary-color); background:#e0f2fe; color:var(--primary-color); font-size:0.75rem; font-weight:600; cursor:pointer; border-radius:4px;"><i class="fa-solid fa-list-check" style="margin-right:4px;"></i>Aksesuar/Tela</button>
+                        <button type="button" onclick="openModelDetailModal()" style="padding:4px 12px; border:none; background:linear-gradient(135deg, #e0f2fe, #bae6fd); color:#0284c7; font-size:0.75rem; font-weight:700; cursor:pointer; border-radius:8px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1); transition: all 0.2s; display:flex; align-items:center; gap:6px;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(2, 132, 199, 0.15)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(2, 132, 199, 0.1)'"><i class="fa-solid fa-list-check"></i> Model Detayı Ekle</button>
                     </label>
                     <input name="GoodsDescription" class="form-control" placeholder="Örn: Örme Erkek Sweatshirt" />
                 </div>
@@ -92,134 +295,40 @@
 
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
             <a href="/Order/Index" class="btn-secondary" style="padding: 10px 20px; text-decoration:none;">İptal</a>
-            <button type="submit" class="btn-planner" style="padding: 10px 24px;"><i class="fa-solid fa-save"></i> Siparişi Kaydet ve Plana Al</button>
+            <button type="button" id="btnSubmitOrder" class="btn-planner" style="padding: 10px 24px;"><i class="fa-solid fa-save"></i> Siparişi Kaydet ve Plana Al</button>
         </div>
 
         <!-- Model Detail Modal -->
-        <div id="modelDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1050; align-items:center; justify-content:center;">
-            <div style="background:white; width: 800px; max-width: 95%; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column;">
-                <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
-                    <h5 style="margin:0; font-weight:600; color:var(--primary-color);"><i class="fa-solid fa-tags" style="margin-right:8px;"></i>Ek Model ve Aksesuar Detayları</h5>
-                    <button type="button" onclick="closeModelDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+        <div id="modelDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); z-index:1050; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;">
+            <div class="premium-modal-content" style="width: 850px; max-width: 95%; display:flex; flex-direction:column;">
+                <div class="premium-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <h5 style="margin:0; font-weight:800; font-size: 1.25rem; color:#1e293b; display:flex; align-items:center;"><i class="fa-solid fa-tags" style="margin-right:12px; font-size: 1.4rem;"></i>Model Detayları (Kumaş, Malzeme, Etiket, Tela)</h5>
+                    <button type="button" class="modal-close-btn" onclick="closeModelDetailModal()"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div style="padding: 24px; overflow-y:auto; max-height:70vh; display:flex; flex-direction:column; gap:20px;">
-                    <!-- Aksesuarlar -->
-                    <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Gerekli Etiket ve Kartlar</label>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasPriceCard" value="true" /> Fiyat Kartı</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasWashingInstruction" value="true" /> Yıkama Talimatı</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasInnerBarcode" value="true" /> İç Barkod</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasYokeLabel" value="true" /> Roba Etiketi</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasFifLabel" value="true" /> Fif Etiketi</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_KetenKarti" value="true" /> Keten Kartı</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="HasOtherCard" value="true" /> Diğer Kart</label>
+                <div style="padding: 32px; overflow-y:auto; max-height:70vh; display:flex; flex-direction:column; gap:24px; background: #fafafa;">
+                    <!-- Sipariş Malzemeleri (Stoktan) -->
+                    <div style="background:#ffffff; padding:24px; border:1px solid #e2e8f0; border-radius:20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                            <label style="font-size:1rem; font-weight:700; color:#1e293b; margin:0; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-boxes-stacked" style="color: #3b82f6;"></i> Kullanılacak Malzemeler (Stoktan Seçim)</label>
                         </div>
-                    </div>
-
-                    <!-- Paketleme -->
-                    <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Paketleme / Ambalaj</label>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Jelatin" value="true" /> Jelatin</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Cember" value="true" /> Çember</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_Kelebek" value="true" /> Kelebek</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" name="Acc_LotPoseti" value="true" /> Lot Poşeti</label>
-                        </div>
-                    </div>
-
-
-
-                    <!-- Fire Oranı (Kaldırıldı, artık her kumaşın içinde) -->
-
-                    <!-- Kumaşlar ve Düğmeler -->
-                    <div style="background:#f8fafc; padding:16px; border:1px solid #e2e8f0; border-radius:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <label style="font-size:0.9rem; font-weight:600; color:#475569; margin:0;">Kumaş ve Düğme Bilgileri</label>
-                            <button type="button" id="btnAddFabric" style="padding:4px 12px; border:1px solid var(--primary-color); background:#e0f2fe; color:var(--primary-color); font-size:0.8rem; font-weight:600; cursor:pointer; border-radius:6px;"><i class="fa-solid fa-plus" style="margin-right:4px;"></i> Kumaş Ekle</button>
-                        </div>
-                        <div id="fabricsContainer" style="display:flex; flex-direction:column; gap:12px;">
-                            <!-- Dinamik kumaş satırları buraya eklenecek -->
-                        </div>
-                        <input type="hidden" name="FabricsJson" id="fabricsJson" value="[]" />
                         
-                        <!-- Geri dönük uyumluluk için hidden alanlar (ilk kumaş verisi buraya yansıtılır) -->
+                        <div id="stockMaterialsContainer" style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Dinamik kartlar buraya eklenecek -->
+                        </div>
+                        <button type="button" id="btnAddStockMaterial" style="margin-top: 16px; width: 100%; padding: 12px; border: 2px dashed #cbd5e1; border-radius: 12px; background: transparent; color: #475569; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.borderColor='#cbd5e1'; this.style.color='#475569';"><i class="fa-solid fa-plus"></i> Yeni Ürün Ekle</button>
+                        <input type="hidden" name="FabricsJson" id="fabricsJson" value="[]" />
                         <input type="hidden" name="UnitFabricMeterage" id="hiddenUnitFabricMeterage" />
-                        <input type="hidden" name="FabricUnit" id="hiddenFabricUnit" value="Metraj (m)" />
+                        <input type="hidden" name="FabricUnit" id="hiddenFabricUnit" />
                         <input type="hidden" name="WastageRate" id="hiddenWastageRate" />
                         <input type="hidden" name="LargeButtonCount" id="hiddenLargeButtonCount" />
                         <input type="hidden" name="SmallButtonCount" id="hiddenSmallButtonCount" />
-                    </div>
-
-                    <!-- Astar ve Tela İhtiyacı -->
-                    <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Astar ve Tela İhtiyacı</label>
-                        <div style="overflow-x: auto;">
-                            <table class="table" style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 0;">
-                                <thead style="background-color: #f1f5f9;">
-                                    <tr>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; width:150px;">CİNSİ</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">BİRİM</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">GRAM</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA İHTİYACI (RENK)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="kusak" /> KUŞAK</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakAstarGram" id="kusakAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakTelaTipi" id="kusakTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KusakTelaRenk" id="kusakTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="yaka" /> YAKA</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaAstarGram" id="yakaAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaTelaTipi" id="yakaTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="YakaTelaRenk" id="yakaTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="manset" /> MANŞET</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetAstarGram" id="mansetAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetTelaTipi" id="mansetTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="MansetTelaRenk" id="mansetTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="kapak" /> KAPAK</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakAstarGram" id="kapakAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakTelaTipi" id="kapakTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="KapakTelaRenk" id="kapakTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="boss" /> BOSS</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossAstarGram" id="bossAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossTelaTipi" id="bossTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="BossTelaRenk" id="bossTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-tela" data-target="pat" /> PAT</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="PatAstarGram" id="patAstar" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="PatTelaTipi" id="patTelaTipi" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" name="PatTelaRenk" id="patTela" class="form-control tela-input" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        
+                        <!-- Stok Kartları Datası (JS İçin) -->
+                        <div id="stokKartlariData" style="display:none;" data-list='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StokKartlari))'></div>
                     </div>
                 </div>
-                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); background:#f8fafc; display:flex; justify-content:flex-end;">
-                    <button type="button" class="btn-planner" onclick="closeModelDetailModal()"><i class="fa-solid fa-check" style="margin-right:6px;"></i> Detayları Kaydet</button>
+                <div style="padding: 24px 32px; border-top: 1px solid #f1f5f9; background:#ffffff; display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn-planner" onclick="closeModelDetailModal()"><i class="fa-solid fa-check"></i> Detayları Kaydet</button>
                 </div>
             </div>
         </div>
@@ -228,168 +337,311 @@
 
 @section Scripts {
     <script>
-        // Tela Checkbox logic
-        $(document).on('change', '.chk-tela', function() {
-            var targetPrefix = $(this).data('target'); // kusak, yaka, manset vs.
-            var isChecked = $(this).is(':checked');
-            
-            var astarInput = $('#' + targetPrefix + 'Astar');
-            var telaTipiInput = $('#' + targetPrefix + 'TelaTipi');
-            var telaInput = $('#' + targetPrefix + 'Tela');
-            
-            if (isChecked) {
-                astarInput.prop('disabled', false).css('background', 'white');
-                telaTipiInput.prop('disabled', false).css('background', 'white');
-                telaInput.prop('disabled', false).css('background', 'white');
-            } else {
-                astarInput.prop('disabled', true).css('background', '#f8fafc').val('');
-                telaTipiInput.prop('disabled', true).css('background', '#f8fafc').val('');
-                telaInput.prop('disabled', true).css('background', '#f8fafc').val('');
-            }
-        });
+        // Stock Materials Logic
+        let stokKartlariList = [];
+        try {
+            const rawData = $('#stokKartlariData').attr('data-list');
+            if (rawData) stokKartlariList = JSON.parse(rawData);
+        } catch (e) { console.error('Stok kartları yüklenirken hata:', e); }
 
-        // Dynamic Fabrics logic
-        function addFabricRow(name = '', meterage = '', unit = 'm', wastage = '', btn1Size = '24/', btn1Qty = '', btn2Size = '14/', btn2Qty = '') {
-            var rowHtml = `
-                <div class="fabric-row" style="display:grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap:12px; align-items:end; background:white; padding:12px; border:1px solid #cbd5e1; border-radius:6px; position:relative;">
-                    <div>
-                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block;">Kumaş Adı / Kodu</label>
-                        <input type="text" class="form-control fabric-name" value="${name}" placeholder="Örn: Ana Kumaş" />
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block;">Birim Metraj</label>
-                        <div style="display:flex; gap:4px;">
-                            <input type="number" step="0.01" class="form-control fabric-meterage no-spinner" value="${meterage}" style="flex:1; min-width:70px; text-align:center; padding: 0.375rem 0.5rem;" />
-                            <select class="form-control fabric-unit" style="width:65px; padding:0 4px; flex-shrink:0;">
-                                <option value="m" ${unit === 'm' ? 'selected' : ''}>m</option>
-                                <option value="Kg" ${unit === 'Kg' ? 'selected' : ''}>Kg</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; white-space:nowrap;">Fire (%)</label>
-                        <input type="number" step="0.01" class="form-control fabric-wastage no-spinner" value="${wastage}" placeholder="5" style="text-align:center;" />
-                    </div>
-                    <div>
-                        <select class="form-control fabric-btn1-size" style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; border:none; background:transparent; padding:0; height:auto; cursor:pointer;">
-                            <option value="">1. Düğme Boyu</option>
-                            <option value="14/" ${btn1Size === '14/' ? 'selected' : ''}>14/ Düğme</option>
-                            <option value="16/" ${btn1Size === '16/' ? 'selected' : ''}>16/ Düğme</option>
-                            <option value="18/" ${btn1Size === '18/' ? 'selected' : ''}>18/ Düğme</option>
-                            <option value="20/" ${btn1Size === '20/' ? 'selected' : ''}>20/ Düğme</option>
-                            <option value="24/" ${btn1Size === '24/' ? 'selected' : ''}>24/ Düğme</option>
-                            <option value="28/" ${btn1Size === '28/' ? 'selected' : ''}>28/ Düğme</option>
-                            <option value="32/" ${btn1Size === '32/' ? 'selected' : ''}>32/ Düğme</option>
-                        </select>
-                        <input type="number" step="1" class="form-control fabric-btn1-qty no-spinner" value="${btn1Qty}" style="text-align:center;" placeholder="Adet" />
-                    </div>
-                    <div>
-                        <select class="form-control fabric-btn2-size" style="font-size:0.75rem; font-weight:600; color:#64748b; margin-bottom:4px; border:none; background:transparent; padding:0; height:auto; cursor:pointer;">
-                            <option value="">2. Düğme Boyu</option>
-                            <option value="14/" ${btn2Size === '14/' ? 'selected' : ''}>14/ Düğme</option>
-                            <option value="16/" ${btn2Size === '16/' ? 'selected' : ''}>16/ Düğme</option>
-                            <option value="18/" ${btn2Size === '18/' ? 'selected' : ''}>18/ Düğme</option>
-                            <option value="20/" ${btn2Size === '20/' ? 'selected' : ''}>20/ Düğme</option>
-                            <option value="24/" ${btn2Size === '24/' ? 'selected' : ''}>24/ Düğme</option>
-                            <option value="28/" ${btn2Size === '28/' ? 'selected' : ''}>28/ Düğme</option>
-                            <option value="32/" ${btn2Size === '32/' ? 'selected' : ''}>32/ Düğme</option>
-                        </select>
-                        <input type="number" step="1" class="form-control fabric-btn2-qty no-spinner" value="${btn2Qty}" style="text-align:center;" placeholder="Adet" />
-                    </div>
-                    <div style="padding-bottom: 6px;">
-                        <button type="button" class="btnRemoveFabric" style="background:transparent; border:none; color:#dc2626; cursor:pointer; padding:4px;" title="Sil"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-            $('#fabricsContainer').append(rowHtml);
-            updateFabricsJson();
-        }
-
-        $(document).on('click', '#btnAddFabric', function() {
-            addFabricRow();
-        });
-
-        $(document).on('click', '.btnRemoveFabric', function() {
-            $(this).closest('.fabric-row').remove();
-            updateFabricsJson();
-        });
-
-        $(document).on('input change', '.fabric-row input, .fabric-row select', function() {
-            updateFabricsJson();
-        });
-
-        function updateFabricsJson() {
-            var fabrics = [];
-            $('.fabric-row').each(function(index) {
-                var meterage = parseFloat($(this).find('.fabric-meterage').val()) || null;
-                var unit = $(this).find('.fabric-unit').val();
-                var wastage = parseFloat($(this).find('.fabric-wastage').val()) || null;
-                var btn1Size = $(this).find('.fabric-btn1-size').val();
-                var btn1Qty = parseInt($(this).find('.fabric-btn1-qty').val()) || null;
-                var btn2Size = $(this).find('.fabric-btn2-size').val();
-                var btn2Qty = parseInt($(this).find('.fabric-btn2-qty').val()) || null;
-
-                fabrics.push({
-                    Name: $(this).find('.fabric-name').val() || ("Kumaş " + (index + 1)),
-                    Meterage: meterage,
-                    Unit: unit === 'm' ? 'Metraj (m)' : 'Kg',
-                    WastageRate: wastage,
-                    Button1Size: btn1Size,
-                    Button1Qty: btn1Qty,
-                    Button2Size: btn2Size,
-                    Button2Qty: btn2Qty,
-                    LargeButtonCount: btn1Qty,
-                    SmallButtonCount: btn2Qty
-                });
-                
-                // İlk kumaşın verisini eski hidden alanlara yaz ki sistemdeki diğer yerler bozulmasın
-                if (index === 0) {
-                    $('#hiddenUnitFabricMeterage').val(meterage || '');
-                    $('#hiddenFabricUnit').val(unit === 'm' ? 'Metraj (m)' : 'Kg');
-                    $('#hiddenWastageRate').val(wastage || '');
-                    $('#hiddenLargeButtonCount').val(btn1Qty || '');
-                    $('#hiddenSmallButtonCount').val(btn2Qty || '');
-                }
+        function addStockMaterialRow(stokKartiId = '', miktar = '', aciklama = '') {
+            let optionsHtml = '<option value="">-- Stok Seçin --</option>';
+            stokKartlariList.forEach(s => {
+                const selected = s.Id == stokKartiId ? 'selected' : '';
+                optionsHtml += `<option value="${s.Id}" ${selected}>${s.StokAdi} (${s.StokKodu}) - Mevcut: ${s.MevcutMiktar}</option>`;
             });
 
-            if (fabrics.length === 0) {
-                $('#hiddenUnitFabricMeterage').val('');
-                $('#hiddenWastageRate').val('');
-                $('#hiddenLargeButtonCount').val('');
-                $('#hiddenSmallButtonCount').val('');
+            const trHtml = `
+                <div class="stock-material-row" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; padding: 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); transition: all 0.2s;">
+                    <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 3; min-width: 250px;">
+                            <label style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px; display: block; font-weight: 600;">Stok Kartı Seçimi</label>
+                            <select class="form-control sm-stokkarti" style="font-weight: 600; color: #1e293b; background: #f8fafc; padding: 10px 14px; border-radius: 8px;">
+                                ${optionsHtml}
+                            </select>
+                            <input type="hidden" class="sm-miktar" value="${miktar}" />
+                            <input type="hidden" class="sm-aciklama" value="${aciklama}" />
+                            <div class="prop-summary" style="font-size: 0.8rem; color: #3b82f6; margin-top: 6px; font-weight: 500;"></div>
+                        </div>
+                        <div>
+                            <button type="button" class="btnRemoveStockMaterial" style="background: #fee2e2; color: #ef4444; border: none; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Sil" onmouseover="this.style.background='#fecaca'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='#fee2e2'; this.style.transform='scale(1)'"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="stok-detaylari" style="display:none; border-top: 1px dashed #cbd5e1; padding-top: 16px; margin-top: 0;"></div>
+                </div>
+            `;
+            $('.stok-detaylari').slideUp(300);
+            $('#stockMaterialsContainer').append(trHtml);
+            
+            var newSelect = $('#stockMaterialsContainer').find('.stock-material-row:last .sm-stokkarti');
+            if (stokKartiId) {
+                newSelect.trigger('change');
+            }
+            updateStockMaterialsJson();
+        }
+
+        $(document).on('click', '#btnAddStockMaterial', function() {
+            addStockMaterialRow();
+        });
+
+        $(document).on('click', '.btnRemoveStockMaterial', function() {
+            $(this).closest('.stock-material-row').remove();
+            updateStockMaterialsJson();
+        });
+
+        function getFormTotalQty() {
+            var t = 0; 
+            $('.row-total-qty').each(function(){ t += parseInt($(this).val()) || 0; });
+            return t;
+        }
+
+        $(document).on('change', '.sm-stokkarti', function() {
+            var select = $(this);
+            var stokId = select.val();
+            var row = select.closest('.stock-material-row');
+            var detayDiv = row.find('.stok-detaylari');
+            
+            if (!stokId) {
+                detayDiv.hide().empty();
+                row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
+                updateStockMaterialsJson();
+                return;
             }
 
-            $('#fabricsJson').val(JSON.stringify(fabrics));
+            var stok = stokKartlariList.find(s => s.Id == stokId);
+            if (stok) {
+                var detayHtml = `<div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                                    <div style="background: #f1f5f9; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; color: #475569; display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0;"><i class="fa-solid fa-tag" style="color: #94a3b8;"></i> Kategori: <b style="color: #1e293b; margin-left: 4px;">${stok.Kategori || '-'}</b></div> 
+                                    <div style="background: #f1f5f9; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; color: #475569; display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0;"><i class="fa-solid fa-ruler" style="color: #94a3b8;"></i> Birim: <b style="color: #1e293b; margin-left: 4px;">${stok.Birim || '-'}</b></div> 
+                                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; color: #166534; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-boxes-stacked" style="color: #22c55e;"></i> Mevcut: <b style="font-size: 1rem; color: #15803d; margin-left: 4px;">${stok.MevcutMiktar || 0}</b></div>
+                                 </div>`;
+                
+                var initProps = {};
+                row.find('.sm-dyn-prop, .sm-ozellik').each(function() {
+                    var k = $(this).data('key');
+                    var v = $(this).val();
+                    if (k && v) initProps[k.toUpperCase()] = v;
+                });
+
+                var cat = (stok.Kategori || "").trim().toUpperCase();
+                var calcFields = [];
+                var isCalculable = false;
+                var totalQty = getFormTotalQty();
+
+                if (cat === "KUMAŞ" || cat === "KUMAS") {
+                    isCalculable = true;
+                    calcFields.push({ Key: "BİRİM METRAJ", Type: "number", Def: "" });
+                } else if (cat === "MALZEME") {
+                    isCalculable = true;
+                    calcFields.push({ Key: "BİRİM KULLANIM", Type: "number", Def: "" });
+                    calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
+                } else if (cat === "ETİKET" || cat === "ETIKET") {
+                    isCalculable = true;
+                    calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
+                } else if (cat === "TELA") {
+                    isCalculable = true;
+                    calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.010,0.015,0.020,0.025,0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080,0.090,0.100,0.120,0.150,0.200" });
+                    calcFields.push({ Key: "GRAM", Type: "select", Def: "10,15,20,25,30,35,40,45,50,55,60,65,70,80,90,100,115,120,130,140,150" });
+                    calcFields.push({ Key: "RENK", Type: "text", Def: "" });
+                }
+
+                var extraOzellikler = [];
+                if (stok.OzelliklerJson) {
+                    try {
+                        var parsedOz = JSON.parse(stok.OzelliklerJson);
+                        if (Array.isArray(parsedOz)) {
+                            parsedOz.forEach(function(o) {
+                                if (o.Key && !calcFields.find(c => c.Key === o.Key.toUpperCase())) {
+                                    extraOzellikler.push(o);
+                                }
+                            });
+                        }
+                    } catch(e){}
+                }
+
+                if (isCalculable) {
+                    row.find('.sm-miktar').prop('readonly', true).css('background', '#e2e8f0');
+                } else {
+                    row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
+                }
+
+                if (calcFields.length > 0 || extraOzellikler.length > 0) {
+                    detayHtml += `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                                        <div style="width: 4px; height: 18px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px;"></div>
+                                        <h6 style="color: #1e293b; font-weight: 700; font-size: 0.95rem; margin: 0; letter-spacing: -0.2px;">Hesaplama ve Özellikler</h6>
+                                   </div>
+                                   <div class="calc-fields-container" data-cat="${cat}" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:16px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px dashed #cbd5e1;">`;
+                    
+                    var allFields = [];
+                    calcFields.forEach(function(cf) {
+                        allFields.push({ Key: cf.Key.toUpperCase(), Type: cf.Type, Value: cf.Def, IsCalc: true });
+                    });
+                    extraOzellikler.forEach(function(oz) {
+                        allFields.push({ Key: oz.Key.toUpperCase(), Type: oz.Type, Value: oz.Value, IsCalc: false });
+                    });
+
+                    if (stok.StokAdi && stok.StokAdi.toUpperCase().includes("DÜĞME")) {
+                        var orderMap = { "BOYUT": 1, "BİRİM KULLANIM": 2, "FİRE (%)": 3, "RENK": 4 };
+                        allFields.sort(function(a, b) {
+                            var orderA = orderMap[a.Key] || 99;
+                            var orderB = orderMap[b.Key] || 99;
+                            return orderA - orderB;
+                        });
+                    }
+
+                    allFields.forEach(function(f) {
+                         var pVal = initProps[f.Key] !== undefined ? initProps[f.Key] : (f.Value || "");
+                         var inputHtml = '';
+                         var calcClass = f.IsCalc ? "sm-calc-trigger" : "";
+                         
+                         if (f.Type === 'select') {
+                             var options = f.Value ? f.Value.split(',') : [];
+                             inputHtml = `<select class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" style="background: #ffffff; border-color: #cbd5e1;">
+                                            <option value="">Seçiniz</option>`;
+                             options.forEach(function(opt) {
+                                 var selected = (opt.trim() === pVal) ? 'selected' : '';
+                                 inputHtml += `<option value="${opt.trim()}" ${selected}>${opt.trim()}</option>`;
+                             });
+                             inputHtml += `</select>`;
+                         } else {
+                             var typeAttr = f.Type === 'number' ? 'number' : 'text';
+                             var stepAttr = f.Type === 'number' ? 'step="any"' : '';
+                             inputHtml = `<input type="${typeAttr}" ${stepAttr} class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" value="${pVal}" placeholder="${f.Value || '...'}" style="background: #ffffff; border-color: #cbd5e1; font-weight:600;" />`;
+                         }
+                         
+                         detayHtml += `<div>
+                                        <label style="font-size:0.75rem; font-weight:700; color:#64748b; display:block; margin-bottom:6px;">${f.Key}</label>
+                                        ${inputHtml}
+                                      </div>`;
+                    });
+
+                    detayHtml += `</div>`;
+                }
+                
+                $('.stok-detaylari').not(detayDiv).slideUp(300);
+                detayDiv.html(detayHtml).hide().slideDown(300);
+                if (isCalculable) {
+                    row.find('.sm-calc-trigger').first().trigger('input');
+                }
+            } else {
+                detayDiv.hide().empty();
+                row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
+            }
+            updateStockMaterialsJson();
+        });
+
+        $(document).on('input change', '.sm-calc-trigger', function() {
+            var row = $(this).closest('.stock-material-row');
+            var container = row.find('.calc-fields-container');
+            var cat = container.data('cat');
+            var miktarInput = row.find('.sm-miktar');
+            
+            function getVal(key) {
+                var v = container.find(`.sm-dyn-prop[data-key="${key}"]`).val();
+                return parseFloat(v) || 0;
+            }
+
+            var miktar = 0;
+            if (cat === "KUMAŞ" || cat === "KUMAS") {
+                var adet = getFormTotalQty();
+                var metraj = getVal("BİRİM METRAJ");
+                miktar = adet * metraj;
+            } else if (cat === "MALZEME") {
+                // Malzeme için hesap adeti satın alma planlamasından geldiği için burada Miktar = 0 olarak kalır, özellikler kaydedilir.
+                miktar = 0;
+            } else if (cat === "ETİKET" || cat === "ETIKET") {
+                // Etiket için adetler renk tablosundan satın alma planlamasına gidecek. Burada Miktar = 0 kalır.
+                miktar = 0;
+            } else if (cat === "TELA") {
+                var toplam = getFormTotalQty();
+                var birim = getVal("TELA BİRİM");
+                miktar = toplam * birim;
+            }
+
+            if (miktarInput.prop('readonly')) {
+                miktarInput.val(Number.isInteger(miktar) ? miktar : miktar.toFixed(3));
+            }
+            updateStockMaterialsJson();
+        });
+
+        $(document).on('input change', '.sm-miktar, .sm-aciklama, .sm-dyn-prop', function() {
+            if (!$(this).hasClass('sm-calc-trigger')) {
+                updateStockMaterialsJson();
+            }
+        });
+
+        function updateStockMaterialsJson() {
+            var materials = [];
+            $('.stock-material-row').each(function() {
+                var row = $(this);
+                var stokId = parseInt(row.find('.sm-stokkarti').val());
+                var miktar = parseFloat(row.find('.sm-miktar').val()) || 0;
+                var aciklama = row.find('.sm-aciklama').val();
+                
+                var dynProps = [];
+                var propStrs = [];
+                row.find('.sm-dyn-prop').each(function() {
+                    var key = $(this).attr('data-key');
+                    var val = $(this).val();
+                    if (val) {
+                        dynProps.push({ Key: key, Value: val });
+                        if (!["HESAP ADETİ", "BİRİM KULLANIM", "FİRE (%)", "BİRİM METRAJ", "TOPLAM SİPARİŞ", "AÇIK ADET", "BİRİM ASORTİ", "LOT BAŞI BEDEN", "TELA BİRİM", "TELA TİPİ"].includes(key.toUpperCase())) {
+                            propStrs.push(key + ": " + val);
+                        }
+                    }
+                });
+                
+                var autoAciklama = propStrs.join(' | ');
+                row.find('.sm-aciklama').val(autoAciklama);
+                row.find('.prop-summary').text(autoAciklama);
+                aciklama = autoAciklama;
+                
+                var ozelliklerJsonStr = dynProps.length > 0 ? JSON.stringify(dynProps) : null;
+                
+                if (stokId > 0) {
+                    materials.push({
+                        StokKartiId: stokId,
+                        Miktar: miktar,
+                        Aciklama: aciklama,
+                        OzelliklerJson: ozelliklerJsonStr
+                    });
+                }
+            });
+            $('#orderMaterialsJson').val(JSON.stringify(materials));
         }
 
         function openModelDetailModal() {
             $('#modelDetailModal').css('display', 'flex').hide().fadeIn(200);
-            if ($('.fabric-row').length === 0) {
-                addFabricRow();
+            if ($('.stock-material-row').length === 0) {
+                addStockMaterialRow();
             }
         }
         function closeModelDetailModal() {
             $('#modelDetailModal').fadeOut(200);
         }
 
+        // Accordion behavior for stock material rows
+        $(document).on('click', '.stock-material-row', function(e) {
+            if ($(e.target).closest('.btnRemoveStockMaterial').length > 0) return;
+            var detayDiv = $(this).find('.stok-detaylari');
+            if (detayDiv.is(':visible') || detayDiv.children().length === 0) return;
+            
+            $('.stok-detaylari').not(detayDiv).slideUp(300);
+            detayDiv.slideDown(300);
+        });
+
         $(document).ready(function() {
             var colorOptionsHtml = '<option value="">-- Renk Seçin --</option>';
-            @if (ViewBag.Colors != null)
-            {
-                foreach (var c in (List<UretimPlanlama.Models.ColorDef>)ViewBag.Colors)
-                {
-                    <text>colorOptionsHtml += '<option value="@c.Name">@c.Name</option>';</text>
-                }
-            }
+            var colorsList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Colors ?? new List<UretimPlanlama.Models.ColorDef>()));
+            colorsList.forEach(function(c) {
+                colorOptionsHtml += '<option value="' + c.Name + '">' + c.Name + '</option>';
+            });
 
             var fabricatorOptionsHtml = '<option value="">-- Kumaşçı Seçiniz --</option>';
-            @if (ViewBag.Fabricators != null)
-            {
-                foreach (var f in (List<UretimPlanlama.Models.Fabricator>)ViewBag.Fabricators)
-                {
-                    <text>fabricatorOptionsHtml += '<option value="@f.Name">@f.Name</option>';</text>
-                }
-            }
+            var fabricatorsList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Fabricators ?? new List<UretimPlanlama.Models.Fabricator>()));
+            fabricatorsList.forEach(function(f) {
+                fabricatorOptionsHtml += '<option value="' + f.Name + '">' + f.Name + '</option>';
+            });
 
             var sizeTemplates = {
                 standart: ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL"],
@@ -408,6 +660,7 @@
                     var rowData = {
                         color: row.find('.row-color').val() || "",
                         inspectionDate: row.find('.row-inspection-date').val() || "",
+                        revisedInspectionDate: row.find('.row-revised-inspection-date').val() || "",
                         unitPrice: row.find('.row-unit-price').val() || "",
                         fabricator: row.find('.row-fabricator').val() || "",
                         openSizes: row.data('openSizes') || {},
@@ -443,6 +696,7 @@
             function createRowHtml(savedData) {
                 var color = savedData ? savedData.color : "";
                 var inspectionDate = savedData ? savedData.inspectionDate : "";
+                var revisedInspectionDate = savedData ? savedData.revisedInspectionDate : "";
                 var unitPrice = savedData ? savedData.unitPrice : "";
                 var fabricator = savedData ? savedData.fabricator : "";
                 var asortiCount = savedData ? savedData.asortiCount : "0";
@@ -481,7 +735,7 @@
 
                     <!-- BODY -->
                     <div class="row-body" style="padding: 16px; background: #f8f9fa;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                             <div>
                                 <label style="font-size: 0.85rem; font-weight: 600;">Renk / Option</label>
                                 <select class="form-control row-color">
@@ -493,6 +747,10 @@
                                 <input type="date" class="form-control row-inspection-date" value="${inspectionDate}" />
                             </div>
                             <div>
+                                <label style="font-size: 0.85rem; font-weight: 600;">Revize Termin Tarihi</label>
+                                <input type="date" class="form-control row-revised-inspection-date" value="${revisedInspectionDate}" />
+                            </div>
+                            <div>
                                 <label style="font-size: 0.85rem; font-weight: 600;">Kumaşçı</label>
                                 <select class="form-control row-fabricator">
                                     ${fabricatorOptionsHtml}
@@ -500,9 +758,9 @@
                             </div>
                             <div>
                                 <label style="font-size: 0.85rem; font-weight: 600;">Birim Fiyatı</label>
-                                <div style="position: relative; display: flex; align-items: center;">
-                                    <span style="position: absolute; left: 12px; color: #64748b; font-weight: 600;">₺</span>
-                                    <input type="text" class="form-control row-unit-price" placeholder="0,00" value="${unitPrice}" style="padding-left: 28px;" />
+                                <div style="display:flex; align-items:stretch; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden;">
+                                    <div style="background:#f1f5f9; color:#475569; font-weight:600; padding:6px 12px; border-right:1px solid #cbd5e1; display:flex; align-items:center;">₺</div>
+                                    <input type="number" step="0.01" class="form-control row-unit-price" placeholder="0.00" value="${unitPrice}" style="border:none; border-radius:0; box-shadow:none; flex:1;" />
                                 </div>
                             </div>
                         </div>
@@ -771,8 +1029,14 @@
 
             $("#btnAddColorRow").click();
 
-            $("#newOrderForm").on("submit", function(e) {
+            $("#btnSubmitOrder").click(function(e) {
                 e.preventDefault();
+                
+                var form = $("#newOrderForm")[0];
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
 
                 var rows = $(".color-row");
                 if (rows.length === 0) {
@@ -796,7 +1060,7 @@
                     return;
                 }
 
-                var formData = new FormData(this);
+                var formData = new FormData(form);
                 var commonData = Object.fromEntries(formData.entries());
 
                 var orders = [];
@@ -832,9 +1096,11 @@
                     var unitPriceStr = row.find('.row-unit-price').val() || "";
                     unitPriceStr = unitPriceStr.replace(',', '.');
                     orderObj.UnitPrice = parseFloat(unitPriceStr) || null;
-                    if (!orderObj.UnitFabricMeterage) orderObj.UnitFabricMeterage = null;
-                    if (!orderObj.LargeButtonCount) orderObj.LargeButtonCount = null;
-                    if (!orderObj.SmallButtonCount) orderObj.SmallButtonCount = null;
+                    if (orderObj.UnitFabricMeterage) orderObj.UnitFabricMeterage = parseFloat(orderObj.UnitFabricMeterage); else orderObj.UnitFabricMeterage = null;
+                    if (orderObj.LargeButtonCount) orderObj.LargeButtonCount = parseInt(orderObj.LargeButtonCount); else orderObj.LargeButtonCount = null;
+                    if (orderObj.SmallButtonCount) orderObj.SmallButtonCount = parseInt(orderObj.SmallButtonCount); else orderObj.SmallButtonCount = null;
+                    if (orderObj.WastageRate) orderObj.WastageRate = parseFloat(orderObj.WastageRate); else orderObj.WastageRate = null;
+                    
                     if (!orderObj.CollarInterliningMeterage) orderObj.CollarInterliningMeterage = null;
                     if (!orderObj.CuffInterliningMeterage) orderObj.CuffInterliningMeterage = null;
                     if (!orderObj.PlacketInterliningMeterage) orderObj.PlacketInterliningMeterage = null;
@@ -842,7 +1108,8 @@
 
                     orderObj.Color = row.find('.row-color').val();
                     orderObj.OptionCode = "";
-                    orderObj.InspectionDate = row.find('.row-inspection-date').val() || null;
+                    orderObj.PlannedPackagingEndDate = row.find('.row-inspection-date').val() || null;
+                    orderObj.RevisedInspectionDate = row.find('.row-revised-inspection-date').val() || null;
                     orderObj.FabricSupplier = row.find('.row-fabricator').val() || "";
                     orderObj.IsJIT = false;
                     orderObj.SalesRegion = "Yurt İçi";

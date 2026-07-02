@@ -380,7 +380,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var order in Model.Take(6))
+                    @{
+                        var activeOrdersList = Model.Where(o => 
+                            (o.Status != "Yeni Kayıt" && o.Status != "Tamamlandı" && o.Status != "İptal Edildi" && !string.IsNullOrEmpty(o.Status)) ||
+                            (string.IsNullOrEmpty(o.Status) && (o.FabricArrivalActualDate.HasValue || o.CuttingStartDate.HasValue || o.SewingStartDate.HasValue || o.PackagingStartDate.HasValue))
+                        ).ToList();
+                    }
+                    @foreach (var order in activeOrdersList.Take(6))
                     {
                         var areaName = order.Status ?? (string.IsNullOrEmpty(order.ProductionPlace) ? "PLANLAMA" : order.ProductionPlace.ToUpper());
                         var areaColor = "#0369a1";
@@ -468,7 +474,7 @@
             </table>
         </div>
         <div class="card-footer">
-            <span class="footer-text">Toplam @Model.Count aktif iş emri gösteriliyor.</span>
+            <span class="footer-text">Toplam @activeOrdersList.Count aktif iş emri listeleniyor.</span>
             <a href="/Order" class="footer-link">Tümünü Görüntüle</a>
         </div>
     </div>

@@ -87,7 +87,7 @@ public class HomeController : Controller
         foreach (var w in workshops)
         {
             var wOrders = orders
-                .Where(o => (o.SewingWorkshop == w.Name || o.ProductionPlace == w.Name) && o.Status != "İptal Edildi")
+                .Where(o => (o.SewingWorkshop == w.Name || o.ProductionPlace == w.Name || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_dikim_atolyesi\":\"{w.Name}\""))) && o.Status != "İptal Edildi")
                 .ToList();
 
             var dailyUsage = wOrders.Where(o => o.OrderDate.Date == today).Sum(o => o.Quantity);
@@ -128,9 +128,11 @@ public class HomeController : Controller
                 StatusClass = statusClass
             });
         }
-
-        ViewBag.WorkshopCapacities = capacityStatuses;
-
+        // Sadece dolu olan (en az 1 adet siparişi olan) atölyeleri filtrele ve doluluk oranına göre sırala
+        ViewBag.WorkshopCapacities = capacityStatuses
+            .Where(c => c.DailyUsage > 0 || c.MonthlyUsage > 0 || c.AnnualUsage > 0)
+            .OrderByDescending(c => c.MonthlyOccupancyRate)
+            .ToList();
         return View(orders);
     }
 

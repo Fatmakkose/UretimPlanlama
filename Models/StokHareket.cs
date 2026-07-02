@@ -28,10 +28,15 @@ namespace UretimPlanlama.Models
         [MaxLength(500)]
         public string? Aciklama { get; set; }
 
+        [MaxLength(200)]
+        public string? Tedarikci { get; set; }
+
         public int? OrderId { get; set; }
 
         [MaxLength(100)]
         public string? BelgeNo { get; set; } // İrsaliye / Fatura no
+
+        public bool IsApproved { get; set; } = false;
 
         // Navigation
         [ForeignKey("StokKartiId")]

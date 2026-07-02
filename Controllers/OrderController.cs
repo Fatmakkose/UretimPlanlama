@@ -4,6 +4,7 @@ using UretimPlanlama.Data;
 using UretimPlanlama.Models;
 using ClosedXML.Excel;
 using System.IO;
+using Microsoft.EntityFrameworkCore;
 
 namespace UretimPlanlama.Controllers
 {
@@ -29,6 +30,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
             return View(orders);
         }
 
@@ -43,6 +45,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
             ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
             return View();
         }
 
@@ -58,6 +61,26 @@ namespace UretimPlanlama.Controllers
             {
                 order.Status = "Yeni Kayıt";
                 order.FabricStatus = "Bekleniyor";
+                
+                if (!string.IsNullOrEmpty(order.OrderMaterialsJson))
+                {
+                    try
+                    {
+                        var materials = System.Text.Json.JsonSerializer.Deserialize<List<OrderMaterial>>(order.OrderMaterialsJson);
+                        if (materials != null)
+                        {
+                            foreach (var mat in materials)
+                            {
+                                order.OrderMaterials.Add(mat);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("OrderMaterials JSON Deserialization failed: " + ex.Message + " | JSON: " + order.OrderMaterialsJson, ex);
+                    }
+                }
+
                 _context.Add(order);
                 _context.SaveChanges();
                 TempData["SuccessMessage"] = "Sipariş oluşturuldu";
@@ -67,6 +90,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.OrderBy(s => s.StokAdi).ToList();
             return View(order);
         }
 
@@ -86,6 +110,27 @@ namespace UretimPlanlama.Controllers
                 {
                     order.Status = "Yeni Kayıt";
                     order.FabricStatus = "Bekleniyor";
+                    
+                    if (!string.IsNullOrEmpty(order.OrderMaterialsJson))
+                    {
+                        try
+                        {
+                            var materials = System.Text.Json.JsonSerializer.Deserialize<List<OrderMaterial>>(order.OrderMaterialsJson);
+                            if (materials != null)
+                            {
+                                foreach (var mat in materials)
+                                {
+                                    mat.OrderId = order.Id; // Will be set by EF when order is saved, but we add to collection
+                                    order.OrderMaterials.Add(mat);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception("OrderMaterials JSON Deserialization failed: " + ex.Message + " | JSON: " + order.OrderMaterialsJson, ex);
+                        }
+                    }
+                    
                     _context.Add(order);
                 }
                 _context.SaveChanges();
@@ -94,7 +139,9 @@ namespace UretimPlanlama.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                string msg = ex.Message;
+                if (ex.InnerException != null) msg += " | " + ex.InnerException.Message;
+                return Json(new { success = false, message = msg });
             }
         }
 
@@ -139,11 +186,28 @@ namespace UretimPlanlama.Controllers
             {
                 return Json(new { success = false, message = "Yetkiniz yetersiz." });
             }
-            var order = _context.Orders.Find(id);
+            var order = _context.Orders
+                .Include(o => o.OrderMaterials)
+                    .ThenInclude(m => m.StokKarti)
+                .FirstOrDefault(o => o.Id == id);
             if (order == null)
             {
                 return Json(new { success = false, message = "Sipariş bulunamadı." });
             }
+            if (order.OrderMaterials != null && order.OrderMaterials.Any())
+            {
+                order.OrderMaterialsJson = System.Text.Json.JsonSerializer.Serialize(order.OrderMaterials.Select(m => new {
+                    m.StokKartiId,
+                    StokKodu = m.StokKarti?.StokKodu,
+                    StokAdi = m.StokKarti?.StokAdi,
+                    Kategori = m.StokKarti?.Kategori,
+                    m.Miktar,
+                    m.BirimFiyat,
+                    m.Aciklama,
+                    m.OzelliklerJson
+                }));
+            }
+            order.OrderMaterials = null!;
             return Json(new { success = true, data = order });
         }
 
@@ -248,7 +312,7 @@ namespace UretimPlanlama.Controllers
 
             try
             {
-                var existingOrder = _context.Orders.Find(updatedOrder.Id);
+                var existingOrder = _context.Orders.Include(o => o.OrderMaterials).FirstOrDefault(o => o.Id == updatedOrder.Id);
                 if (existingOrder == null)
                 {
                     return Json(new { success = false, message = "Sipariş bulunamadı." });
@@ -348,6 +412,31 @@ namespace UretimPlanlama.Controllers
                 existingOrder.TotalAmount = updatedOrder.TotalAmount;
                 existingOrder.VatAmount = updatedOrder.VatAmount;
                 existingOrder.TotalAmountWithVat = updatedOrder.TotalAmountWithVat;
+
+                // Sipariş malzemelerini güncelle (OrderMaterialsJson'dan)
+                if (updatedOrder.OrderMaterialsJson != null)
+                {
+                    try
+                    {
+                        var newMaterials = System.Text.Json.JsonSerializer.Deserialize<List<OrderMaterial>>(updatedOrder.OrderMaterialsJson);
+                        
+                        _context.OrderMaterials.RemoveRange(existingOrder.OrderMaterials);
+                        existingOrder.OrderMaterials.Clear();
+                        
+                        if (newMaterials != null)
+                        {
+                            foreach (var mat in newMaterials)
+                            {
+                                mat.OrderId = existingOrder.Id;
+                                existingOrder.OrderMaterials.Add(mat);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("OrderMaterials JSON Deserialization failed in Edit: " + ex.Message + " | JSON: " + updatedOrder.OrderMaterialsJson, ex);
+                    }
+                }
 
                 _context.SaveChanges();
                 TempData["SuccessMessage"] = "Sipariş güncellendi";

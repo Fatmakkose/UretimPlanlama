@@ -1,0 +1,452 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Alış İşlemleri";
+    var cariHesaplar = ViewBag.CariHesaplar as List<UretimPlanlama.Models.CariHesap>;
+    var stokKartlari = ViewBag.StokKartlari as List<UretimPlanlama.Models.StokKarti>;
+    var stokKartlariJson = System.Text.Json.JsonSerializer.Serialize(stokKartlari.Select(s => new {
+        id = s.Id,
+        stokAdi = s.StokAdi,
+        stokKodu = s.StokKodu,
+        birim = s.Birim,
+        birimFiyat = s.BirimFiyat,
+        gorselUrl = s.GorselUrl
+    }));
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .page-header h1 {
+        font-size: 1.6rem;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .section-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    .section-title {
+        font-size: 1.1rem;
+        color: #0f172a;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 12px;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .form-group {
+        margin-bottom: 0;
+    }
+    .form-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0,71,187,0.1);
+    }
+    .form-control[readonly] {
+        background: #f8fafc;
+        cursor: not-allowed;
+    }
+
+    /* Table Styles */
+    .purchase-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    .purchase-table th {
+        background: #f8fafc;
+        padding: 12px;
+        text-align: left;
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .purchase-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+    .thumbnail {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 1.2rem;
+        border: 1px solid #e2e8f0;
+    }
+    .btn-icon {
+        background: none;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .btn-icon:hover {
+        background: #fee2e2;
+    }
+    .btn-add-row {
+        background: #eff6ff;
+        color: var(--primary-color);
+        border: 1px dashed var(--primary-color);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        transition: all 0.2s;
+        width: 100%;
+        justify-content: center;
+    }
+    .btn-add-row:hover {
+        background: #dbeafe;
+    }
+    .totals-section {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 2px solid #e2e8f0;
+    }
+    .totals-box {
+        background: #f8fafc;
+        padding: 20px 30px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        min-width: 300px;
+    }
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+        color: #475569;
+    }
+    .total-row.grand-total {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 0;
+        padding-top: 12px;
+        border-top: 1px solid #cbd5e1;
+    }
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="fa-solid fa-cart-arrow-down" style="color: var(--primary-color);"></i> Alış İşlemleri</h1>
+    <button class="btn-primary" onclick="savePurchase()"><i class="fa-solid fa-check"></i> Kaydet ve Onayla</button>
+</div>
+
+<div class="section-card">
+    <div class="section-title"><i class="fa-solid fa-file-invoice"></i> Fiş / Fatura Bilgileri</div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label class="form-label">Cari Hesap *</label>
+            <select class="form-control" id="cariHesapId" required>
+                <option value="">-- Cari Seçiniz --</option>
+                @if (cariHesaplar != null)
+                {
+                    foreach (var c in cariHesaplar)
+                    {
+                        <option value="@c.Id">@c.HesapKodu - @c.HesapAdi</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">İşlem Tarihi *</label>
+            <input type="date" class="form-control" id="islemTarihi" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Belge No *</label>
+            <input type="text" class="form-control" id="belgeNo" placeholder="Fatura veya Fiş No giriniz" required />
+        </div>
+        <div class="form-group" style="grid-column: span 3;">
+            <label class="form-label">Açıklama</label>
+            <input type="text" class="form-control" id="aciklama" placeholder="Alış faturası veya işlem ile ilgili notlar..." />
+        </div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="section-title"><i class="fa-solid fa-boxes-stacked"></i> Stok Kalemleri</div>
+    <div style="overflow-x: auto;">
+        <table class="purchase-table" id="itemsTable">
+            <thead>
+                <tr>
+                    <th style="width: 60px; text-align: center;">Görsel</th>
+                    <th>Stok (Ürün) *</th>
+                    <th style="width: 120px;">Birim</th>
+                    <th style="width: 150px;">Miktar *</th>
+                    <th style="width: 150px;">Birim Fiyat (₺) *</th>
+                    <th style="width: 150px; text-align: right;">Toplam Tutar</th>
+                    <th style="width: 60px; text-align: center;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody id="itemsBody">
+                <!-- Rows will be added dynamically -->
+            </tbody>
+        </table>
+    </div>
+    
+    <button class="btn-add-row" onclick="addRow()"><i class="fa-solid fa-plus"></i> Yeni Stok Kalemi Ekle</button>
+
+    <div class="totals-section">
+        <div class="totals-box">
+            <div class="total-row grand-total">
+                <span>Genel Toplam:</span>
+                <span id="grandTotalText">₺0,00</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const stokKartlari = @Html.Raw(stokKartlariJson);
+
+        $(document).ready(function() {
+            // İlk satırı otomatik ekle
+            addRow();
+        });
+
+        function addRow() {
+            const rowId = 'row_' + Date.now();
+            let optionsHtml = '<option value="">-- Stok Seçiniz --</option>';
+            stokKartlari.forEach(s => {
+                optionsHtml += `<option value="${s.id}">${s.stokKodu} - ${s.stokAdi}</option>`;
+            });
+
+            const tr = `
+                <tr id="${rowId}">
+                    <td style="text-align: center;">
+                        <div class="thumbnail" id="thumb_${rowId}"><i class="fa-solid fa-image"></i></div>
+                    </td>
+                    <td>
+                        <select class="form-control stok-select" onchange="onStokSelect('${rowId}', this)">
+                            ${optionsHtml}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control birim-input" readonly placeholder="Birim" />
+                    </td>
+                    <td>
+                        <input type="number" class="form-control miktar-input" min="0" step="0.01" value="1" oninput="calculateRow('${rowId}')" />
+                    </td>
+                    <td>
+                        <input type="number" class="form-control fiyat-input" min="0" step="0.01" value="0" oninput="calculateRow('${rowId}')" />
+                    </td>
+                    <td style="text-align: right; font-weight: 600; font-size: 1.05rem; color: #0f172a;" class="row-total">
+                        ₺0,00
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn-icon" onclick="removeRow('${rowId}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+            $('#itemsBody').append(tr);
+        }
+
+        function removeRow(rowId) {
+            if ($('#itemsBody tr').length > 1) {
+                $('#' + rowId).remove();
+                calculateGrandTotal();
+            } else {
+                alert("En az bir kalem girmelisiniz.");
+            }
+        }
+
+        function onStokSelect(rowId, selectElement) {
+            const stokId = parseInt($(selectElement).val());
+            const row = $('#' + rowId);
+            const stok = stokKartlari.find(s => s.id === stokId);
+
+            if (stok) {
+                row.find('.birim-input').val(stok.birim);
+                row.find('.fiyat-input').val(stok.birimFiyat || 0);
+                
+                if (stok.gorselUrl) {
+                    row.find('.thumbnail').html(`<img src="${stok.gorselUrl}" alt="görsel" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" />`);
+                } else {
+                    row.find('.thumbnail').html('<i class="fa-solid fa-image"></i>');
+                }
+            } else {
+                row.find('.birim-input').val('');
+                row.find('.fiyat-input').val(0);
+                row.find('.thumbnail').html('<i class="fa-solid fa-image"></i>');
+            }
+            calculateRow(rowId);
+        }
+
+        function calculateRow(rowId) {
+            const row = $('#' + rowId);
+            const miktar = parseFloat(row.find('.miktar-input').val()) || 0;
+            const fiyat = parseFloat(row.find('.fiyat-input').val()) || 0;
+            const total = miktar * fiyat;
+            
+            row.find('.row-total').text('₺' + total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            row.data('total', total); // Store for grand total
+            
+            calculateGrandTotal();
+        }
+
+        function calculateGrandTotal() {
+            let grandTotal = 0;
+            $('#itemsBody tr').each(function() {
+                const rowTotal = $(this).data('total') || 0;
+                grandTotal += rowTotal;
+            });
+            $('#grandTotalText').text('₺' + grandTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        }
+
+        function savePurchase() {
+            const cariHesapId = $('#cariHesapId').val();
+            const islemTarihi = $('#islemTarihi').val();
+            const aciklama = $('#aciklama').val();
+            const belgeNo = $('#belgeNo').val().trim();
+
+            if (!cariHesapId) {
+                alert("Lütfen bir cari hesap seçiniz.");
+                return;
+            }
+            if (!belgeNo) {
+                alert("Lütfen fatura/fiş belge numarasını giriniz.");
+                return;
+            }
+
+            const kalemler = [];
+            let hasError = false;
+            let grandTotal = 0;
+
+            $('#itemsBody tr').each(function() {
+                const stokId = $(this).find('.stok-select').val();
+                const miktar = parseFloat($(this).find('.miktar-input').val()) || 0;
+                const fiyat = parseFloat($(this).find('.fiyat-input').val()) || 0;
+                
+                if (!stokId) {
+                    hasError = true;
+                    $(this).find('.stok-select').css('border-color', 'red');
+                } else {
+                    $(this).find('.stok-select').css('border-color', '#cbd5e1');
+                }
+
+                if (miktar <= 0) {
+                    hasError = true;
+                    $(this).find('.miktar-input').css('border-color', 'red');
+                } else {
+                    $(this).find('.miktar-input').css('border-color', '#cbd5e1');
+                }
+
+                kalemler.push({
+                    StokKartiId: parseInt(stokId),
+                    Miktar: miktar,
+                    BirimFiyat: fiyat
+                });
+
+                grandTotal += (miktar * fiyat);
+            });
+
+            if (hasError) {
+                alert("Lütfen stok seçimi ve miktarları kontrol ediniz.");
+                return;
+            }
+
+            if (kalemler.length === 0) {
+                alert("En az bir kalem girmelisiniz.");
+                return;
+            }
+
+            const payload = {
+                CariHesapId: parseInt(cariHesapId),
+                IslemTarihi: islemTarihi,
+                IslemTipi: "Alış",
+                Aciklama: aciklama,
+                BelgeNo: belgeNo,
+                Tutar: grandTotal,
+                StokKalemleri: kalemler
+            };
+
+            $.ajax({
+                url: '/Finance/SavePurchase',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(res) {
+                    if (res.success) {
+                        alert(res.message);
+                        window.location.reload(); // Reload to get next BelgeNo and empty form
+                    } else {
+                        alert("Hata: " + res.message);
+                    }
+                },
+                error: function() {
+                    alert("Kayıt sırasında bir hata oluştu.");
+                }
+            });
+        }
+    </script>
+}

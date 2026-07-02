@@ -29,6 +29,25 @@ namespace UretimPlanlama.Controllers
             return View(stoklar);
         }
 
+        public IActionResult Definitions()
+        {
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Movements()
+        {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            var hareketler = _context.StokHareketler
+                .Include(h => h.StokKarti)
+                .OrderByDescending(h => h.IslemTarihi)
+                .ThenByDescending(h => h.Id)
+                .ToList();
+            return View(hareketler);
+        }
+
         [HttpGet]
         public IActionResult GetStokDetail(int id)
         {
@@ -56,7 +75,7 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateStokKarti([FromBody] StokKarti model)
+        public IActionResult CreateStokKarti([FromForm] StokKarti model, IFormFile? gorselDosya)
         {
             if (!User.HasPermission("Write"))
                 return Json(new { success = false, message = "Yetkiniz yetersiz." });
@@ -72,10 +91,8 @@ namespace UretimPlanlama.Controllers
                     var prefix = model.Kategori switch
                     {
                         "Kumaş" => "KMS",
-                        "Aksesuar" => "AKS",
-                        "İplik" => "IPL",
+                        "Malzeme" => "MLZ",
                         "Tela" => "TLA",
-                        "Düğme" => "DGM",
                         "Etiket" => "ETK",
                         _ => "STK"
                     };
@@ -97,6 +114,20 @@ namespace UretimPlanlama.Controllers
 
                 model.OlusturmaTarihi = DateTime.Now;
                 model.MevcutMiktar = 0;
+
+                if (gorselDosya != null && gorselDosya.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "stok");
+                    if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + gorselDosya.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        gorselDosya.CopyTo(fileStream);
+                    }
+                    model.GorselUrl = "/uploads/stok/" + uniqueFileName;
+                }
+
                 _context.StokKartlari.Add(model);
                 _context.SaveChanges();
                 return Json(new { success = true, message = "Stok kartı başarıyla oluşturuldu.", stok = model });
@@ -108,7 +139,7 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult EditStokKarti([FromBody] StokKarti model)
+        public IActionResult EditStokKarti([FromForm] StokKarti model, IFormFile? gorselDosya)
         {
             if (!User.HasPermission("Write"))
                 return Json(new { success = false, message = "Yetkiniz yetersiz." });
@@ -124,9 +155,25 @@ namespace UretimPlanlama.Controllers
                 existing.Birim = model.Birim;
                 existing.MinimumMiktar = model.MinimumMiktar;
                 existing.BirimFiyat = model.BirimFiyat;
-                existing.Depo = model.Depo;
-                existing.Tedarikci = model.Tedarikci;
                 existing.Aktif = model.Aktif;
+                
+                if (gorselDosya != null && gorselDosya.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "stok");
+                    if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + gorselDosya.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        gorselDosya.CopyTo(fileStream);
+                    }
+                    existing.GorselUrl = "/uploads/stok/" + uniqueFileName;
+                }
+                else if (model.GorselUrl != null)
+                {
+                    // Form data didn't include file but passed the old url
+                    existing.GorselUrl = model.GorselUrl;
+                }
 
                 _context.SaveChanges();
                 return Json(new { success = true, message = "Stok kartı güncellendi." });
@@ -284,12 +331,10 @@ namespace UretimPlanlama.Controllers
                 worksheet.Cell(currentRow, 4).Value = "Birim";
                 worksheet.Cell(currentRow, 5).Value = "Mevcut Miktar";
                 worksheet.Cell(currentRow, 6).Value = "Minimum Miktar";
-                worksheet.Cell(currentRow, 7).Value = "Birim Fiyat (₺)";
-                worksheet.Cell(currentRow, 8).Value = "Depo";
-                worksheet.Cell(currentRow, 9).Value = "Tedarikçi";
-                worksheet.Cell(currentRow, 10).Value = "Durum";
+                worksheet.Cell(currentRow, 7).Value = "Birim Fiyat";
+                worksheet.Cell(currentRow, 8).Value = "Durum";
 
-                var headerRange = worksheet.Range(1, 1, 1, 10);
+                var headerRange = worksheet.Range(1, 1, 1, 8);
                 headerRange.Style.Font.Bold = true;
                 headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
 
@@ -303,9 +348,7 @@ namespace UretimPlanlama.Controllers
                     worksheet.Cell(currentRow, 5).Value = (double)s.MevcutMiktar;
                     worksheet.Cell(currentRow, 6).Value = (double)s.MinimumMiktar;
                     worksheet.Cell(currentRow, 7).Value = s.BirimFiyat.HasValue ? (double)s.BirimFiyat.Value : 0;
-                    worksheet.Cell(currentRow, 8).Value = s.Depo ?? "";
-                    worksheet.Cell(currentRow, 9).Value = s.Tedarikci ?? "";
-                    worksheet.Cell(currentRow, 10).Value = s.MevcutMiktar <= s.MinimumMiktar && s.MinimumMiktar > 0 ? "KRİTİK" : "Normal";
+                    worksheet.Cell(currentRow, 8).Value = s.MevcutMiktar <= s.MinimumMiktar && s.MinimumMiktar > 0 ? "KRİTİK" : "Normal";
                 }
 
                 worksheet.Columns().AdjustToContents();
@@ -317,6 +360,26 @@ namespace UretimPlanlama.Controllers
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StokListesi.xlsx");
                 }
             }
+        }
+
+        [HttpGet]
+        public IActionResult MigrateCategories()
+        {
+            var stoklar = _context.StokKartlari.ToList();
+            int guncellenen = 0;
+            foreach (var stok in stoklar)
+            {
+                if (stok.Kategori == "Aksesuar" || stok.Kategori == "İplik" || stok.Kategori == "Düğme" || stok.Kategori == "Diğer")
+                {
+                    stok.Kategori = "Malzeme";
+                    guncellenen++;
+                }
+            }
+            if (guncellenen > 0)
+            {
+                _context.SaveChanges();
+            }
+            return Content($"Tamamlandı. Güncellenen kayıt sayısı: {guncellenen}");
         }
     }
 }

@@ -45,13 +45,14 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction("AccessDenied", "Account");
             }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
-            var order = orders.FirstOrDefault(o => o.Id == id);
+            var order = _context.Orders.Include(o => o.OrderMaterials).ThenInclude(m => m.StokKarti).FirstOrDefault(o => o.Id == id);
             
             if (order == null) return NotFound();
 
             ViewBag.AllOrders = orders;
             ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
             ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.ToList();
             return View(order);
         }
 

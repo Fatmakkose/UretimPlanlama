@@ -33,11 +33,13 @@ namespace UretimPlanlama.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal? BirimFiyat { get; set; }
 
-        [MaxLength(100)]
-        public string? Depo { get; set; }
+        [MaxLength(255)]
+        public string? GorselUrl { get; set; } // Ürün Görseli
 
-        [MaxLength(200)]
-        public string? Tedarikci { get; set; }
+        [MaxLength(500)]
+        public string? Aciklama { get; set; }
+
+        public string? OzelliklerJson { get; set; } // Dinamik Özellikler JSON
 
         public DateTime OlusturmaTarihi { get; set; } = DateTime.Now;
 

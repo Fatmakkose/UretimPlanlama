@@ -29,6 +29,227 @@ namespace UretimPlanlama.Controllers
             return View(hesaplar);
         }
 
+        public IActionResult Definitions()
+        {
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Purchase()
+        {
+            if (!User.HasPermission("View"))
+                return RedirectToAction("AccessDenied", "Account");
+
+            ViewBag.CariHesaplar = _context.CariHesaplar.Where(c => c.Aktif).OrderBy(c => c.HesapAdi).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
+
+            // Yeni belge no üretimi (YYYYMM_001 formatında)
+            var today = DateTime.Today;
+            var prefix = today.ToString("yyyyMM") + "_";
+            var lastDoc = _context.CariHareketler
+                .Where(h => h.IslemTipi == "Alış" && h.BelgeNo != null && h.BelgeNo.StartsWith(prefix))
+                .OrderByDescending(h => h.BelgeNo)
+                .Select(h => h.BelgeNo)
+                .FirstOrDefault();
+
+            int nextNum = 1;
+            if (!string.IsNullOrEmpty(lastDoc))
+            {
+                var numStr = lastDoc.Substring(prefix.Length);
+                if (int.TryParse(numStr, out int lastNum))
+                {
+                    nextNum = lastNum + 1;
+                }
+            }
+            ViewBag.YeniBelgeNo = $"{prefix}{nextNum:D3}";
+
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult SavePurchase([FromBody] CariHareketRequest model)
+        {
+            if (!User.HasPermission("Write"))
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                var cari = _context.CariHesaplar.Find(model.CariHesapId);
+                if (cari == null) return Json(new { success = false, message = "Cari hesap bulunamadı." });
+
+                // Alış işleminde cari bakiye artar (Tedarikçiye olan borcumuz artar)
+                cari.Bakiye += model.Tutar;
+                _context.CariHesaplar.Update(cari);
+
+                var cariHareket = new CariHareket
+                {
+                    CariHesapId = model.CariHesapId,
+                    IslemTarihi = model.IslemTarihi,
+                    IslemTipi = "Alış",
+                    Aciklama = model.Aciklama ?? $"{model.BelgeNo} nolu alış işlemi",
+                    BelgeNo = model.BelgeNo,
+                    Tutar = model.Tutar,
+                    KalanBakiye = cari.Bakiye
+                };
+                _context.CariHareketler.Add(cariHareket);
+
+                if (model.StokKalemleri != null && model.StokKalemleri.Any())
+                {
+                    foreach (var kalem in model.StokKalemleri)
+                    {
+                        var stok = _context.StokKartlari.Find(kalem.StokKartiId);
+                        if (stok != null)
+                        {
+                            stok.MevcutMiktar += kalem.Miktar;
+                            
+                            // İsterseniz son alış fiyatını güncelleyebilirsiniz:
+                            if (kalem.BirimFiyat.HasValue && kalem.BirimFiyat > 0)
+                            {
+                                stok.BirimFiyat = kalem.BirimFiyat;
+                            }
+                            
+                            _context.StokKartlari.Update(stok);
+
+                            var stokHareket = new StokHareket
+                            {
+                                StokKartiId = stok.Id,
+                                IslemTarihi = model.IslemTarihi,
+                                HareketTipi = "Giriş",
+                                Miktar = kalem.Miktar,
+                                KalanMiktar = stok.MevcutMiktar,
+                                Aciklama = $"{model.BelgeNo} nolu belge ile alış girişi",
+                                BelgeNo = model.BelgeNo,
+                                Tedarikci = cari.HesapAdi
+                            };
+                            _context.StokHareketler.Add(stokHareket);
+                        }
+                    }
+                }
+
+                _context.SaveChanges();
+                transaction.Commit();
+                return Json(new { success = true, message = "Alış işlemi başarıyla kaydedildi.", newBelgeNo = model.BelgeNo });
+            }
+            catch(Exception ex)
+            {
+                transaction.Rollback();
+                return Json(new { success = false, message = "Hata oluştu: " + ex.Message });
+            }
+        }
+
+        public IActionResult Sales()
+        {
+            if (!User.HasPermission("View"))
+                return RedirectToAction("AccessDenied", "Account");
+
+            ViewBag.CariHesaplar = _context.CariHesaplar.Where(c => c.Aktif).OrderBy(c => c.HesapAdi).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
+            ViewBag.Orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
+
+            // Yeni belge no üretimi (YYYYMM_001 formatında - Alış ile aynı format/ortak havuz)
+            var today = DateTime.Today;
+            var prefix = today.ToString("yyyyMM") + "_";
+            var lastDoc = _context.CariHareketler
+                .Where(h => h.BelgeNo != null && h.BelgeNo.StartsWith(prefix))
+                .OrderByDescending(h => h.BelgeNo)
+                .Select(h => h.BelgeNo)
+                .FirstOrDefault();
+
+            int nextNum = 1;
+            if (!string.IsNullOrEmpty(lastDoc))
+            {
+                var numStr = lastDoc.Substring(prefix.Length);
+                if (int.TryParse(numStr, out int lastNum))
+                {
+                    nextNum = lastNum + 1;
+                }
+            }
+            ViewBag.YeniBelgeNo = $"{prefix}{nextNum:D3}";
+
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult SaveSales([FromBody] CariHareketRequest model)
+        {
+            if (!User.HasPermission("Write"))
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                var cari = _context.CariHesaplar.Find(model.CariHesapId);
+                if (cari == null) return Json(new { success = false, message = "Cari hesap bulunamadı." });
+
+                // Satış işleminde cari bakiye azalır
+                cari.Bakiye -= model.Tutar;
+                _context.CariHesaplar.Update(cari);
+
+                var cariHareket = new CariHareket
+                {
+                    CariHesapId = model.CariHesapId,
+                    IslemTarihi = model.IslemTarihi,
+                    IslemTipi = "Satış",
+                    Aciklama = model.Aciklama ?? $"{model.BelgeNo} nolu satış işlemi",
+                    BelgeNo = model.BelgeNo,
+                    Tutar = model.Tutar,
+                    KalanBakiye = cari.Bakiye,
+                    OrderId = model.OrderId
+                };
+                _context.CariHareketler.Add(cariHareket);
+
+                if (model.StokKalemleri != null && model.StokKalemleri.Any())
+                {
+                    foreach (var kalem in model.StokKalemleri)
+                    {
+                        var stok = _context.StokKartlari.Find(kalem.StokKartiId);
+                        if (stok != null)
+                        {
+                            stok.MevcutMiktar -= kalem.Miktar; // Satışta stok düşer
+                            _context.StokKartlari.Update(stok);
+
+                            var stokHareket = new StokHareket
+                            {
+                                StokKartiId = stok.Id,
+                                IslemTarihi = model.IslemTarihi,
+                                HareketTipi = "Çıkış",
+                                Miktar = kalem.Miktar,
+                                KalanMiktar = stok.MevcutMiktar,
+                                Aciklama = $"{model.BelgeNo} nolu belge ile satış çıkışı",
+                                BelgeNo = model.BelgeNo,
+                                OrderId = model.OrderId,
+                                Tedarikci = cari.HesapAdi
+                            };
+                            _context.StokHareketler.Add(stokHareket);
+                        }
+                    }
+                }
+
+                _context.SaveChanges();
+                transaction.Commit();
+                return Json(new { success = true, message = "Satış işlemi başarıyla kaydedildi.", newBelgeNo = model.BelgeNo });
+            }
+            catch(Exception ex)
+            {
+                transaction.Rollback();
+                return Json(new { success = false, message = "Hata oluştu: " + ex.Message });
+            }
+        }
+
+        public IActionResult Reports()
+        {
+            if (!User.HasPermission("View"))
+                return RedirectToAction("AccessDenied", "Account");
+
+            var hareketler = _context.CariHareketler
+                .Include(h => h.CariHesap)
+                .OrderByDescending(h => h.IslemTarihi)
+                .ThenByDescending(h => h.Id)
+                .ToList();
+                
+            return View(hareketler);
+        }
+
         [HttpGet]
         public IActionResult GetCariDetail(int id)
         {

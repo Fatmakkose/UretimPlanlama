@@ -691,137 +691,323 @@
             </form>
 
         <!-- Edit Model Detail Modal -->
-        <div id="editModelDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1100; align-items:center; justify-content:center;">
-            <div style="background:white; width: 800px; max-width: 95%; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column;">
-                <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
-                    <h5 style="margin:0; font-weight:600; color:var(--primary-color);"><i class="fa-solid fa-tags" style="margin-right:8px;"></i>Ek Model ve Aksesuar Detayları</h5>
+        <div id="editModelDetailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); z-index:1100; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;">
+            <div class="premium-modal-content" style="background:white; width: 850px; max-width: 95%; display:flex; flex-direction:column; border-radius:12px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden;">
+                <div class="premium-header" style="display:flex; justify-content:space-between; align-items:center; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; background:#f8fafc;">
+                    <h5 style="margin:0; font-weight:800; font-size: 1.25rem; color:#1e293b; display:flex; align-items:center;"><i class="fa-solid fa-tags" style="margin-right:12px; font-size: 1.4rem;"></i>Model Detayları (Kumaş, Malzeme, Etiket, Tela)</h5>
                     <button type="button" onclick="closeEditModelDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div style="padding: 24px; overflow-y:auto; max-height:70vh; display:flex; flex-direction:column; gap:20px;">
-                    <!-- Aksesuarlar -->
-                    <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Gerekli Etiket ve Kartlar</label>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasPriceCard" /> Fiyat Kartı</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasWashingInstruction" /> Yıkama Talimatı</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasInnerBarcode" /> İç Barkod</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasYokeLabel" /> Roba Etiketi</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasFifLabel" /> Fif Etiketi</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_KetenKarti" /> Keten Kartı</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editHasOtherCard" /> Diğer Kart</label>
+                <div style="padding: 32px; overflow-y:auto; max-height:70vh; display:flex; flex-direction:column; gap:24px; background: #fafafa;">
+                    <div style="background:#ffffff; padding:24px; border:1px solid #e2e8f0; border-radius:20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                            <label style="font-size:1rem; font-weight:700; color:#1e293b; margin:0; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-boxes-stacked" style="color: #3b82f6;"></i> Kullanılacak Malzemeler (Stoktan Seçim)</label>
                         </div>
-                    </div>
-
-                    <!-- Paketleme -->
-                    <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Paketleme / Ambalaj</label>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; background:#f1f5f9; padding:12px; border-radius:8px;">
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Jelatin" /> Jelatin</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Cember" /> Çember</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_Kelebek" /> Kelebek</label>
-                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="editAcc_LotPoseti" /> Lot Poşeti</label>
+                        <div id="editStockMaterialsContainer" style="display: flex; flex-direction: column; gap: 20px;">
                         </div>
-                    </div>
-
-
-
-                    <!-- Kumaşlar ve Düğmeler -->
-                    <div style="background:#f8fafc; padding:16px; border:1px solid #e2e8f0; border-radius:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <label style="font-size:0.9rem; font-weight:600; color:#475569; margin:0;">Kumaş ve Düğme Bilgileri</label>
-                            <button type="button" id="btnEditAddFabric" style="padding:4px 12px; border:1px solid var(--primary-color); background:#e0f2fe; color:var(--primary-color); font-size:0.8rem; font-weight:600; cursor:pointer; border-radius:6px;"><i class="fa-solid fa-plus" style="margin-right:4px;"></i> Kumaş Ekle</button>
-                        </div>
-                        <div id="editFabricsContainer" style="display:flex; flex-direction:column; gap:12px;">
-                            <!-- Dinamik kumaş satırları buraya eklenecek -->
-                        </div>
-                        <input type="hidden" name="FabricsJson" id="editFabricsJson" value="[]" />
-                        
-                        <!-- Geri dönük uyumluluk için hidden alanlar (ilk kumaş verisi buraya yansıtılır) -->
-                        <input type="hidden" name="UnitFabricMeterage" id="editUnitFabricMeterage" />
-                        <input type="hidden" name="FabricUnit" id="editFabricUnit" value="Metraj (m)" />
-                        <input type="hidden" name="WastageRate" id="editWastageRate" />
-                        <input type="hidden" name="LargeButtonCount" id="editLargeButtonCount" />
-                        <input type="hidden" name="SmallButtonCount" id="editSmallButtonCount" />
-                    </div>
-
-                    <!-- Astar ve Tela İhtiyacı -->
-                    <div>
-                        <label style="font-size:0.9rem; font-weight:600; margin-bottom:12px; display:block; color:#475569;">Astar ve Tela İhtiyacı</label>
-                        <div style="overflow-x: auto;">
-                            <table class="table" style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 0;">
-                                <thead style="background-color: #f1f5f9;">
-                                    <tr>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">CİNSİ</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b; background-color: #fef08a;">BİRİM</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA TİPİ</th>
-                                        <th style="padding: 8px; border: 1px solid #e2e8f0; font-size:0.8rem; color:#64748b;">TELA İHTİYACI (RENK)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editKusak" /> KUŞAK</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKusakAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKusakTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKusakTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editYaka" /> YAKA</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editYakaAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editYakaTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editYakaTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editManset" /> MANŞET</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editMansetAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editMansetTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editMansetTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editKapak" /> KAPAK</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKapakAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKapakTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editKapakTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editBoss" /> BOSS</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editBossAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editBossTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editBossTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight:600; font-size:0.85rem; color:#334155;">
-                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;"><input type="checkbox" class="chk-edit-tela" data-target="editPat" /> PAT</label>
-                                        </td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editPatAstarGram" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editPatTelaTipi" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                        <td style="padding: 4px; border: 1px solid #e2e8f0;"><input type="text" id="editPatTelaRenk" class="form-control" disabled style="padding:6px; height:auto; border:none; box-shadow:none; text-align:center; background:#f8fafc;" /></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <button type="button" id="btnEditAddStockMaterial" style="width: 100%; margin-top: 12px; padding: 12px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; color: #475569; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#94a3b8'; this.style.color='#1e293b';" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'; this.style.color='#475569';">
+                            <i class="fa-solid fa-plus"></i> Yeni Ürün Ekle
+                        </button>
+                        <input type="hidden" name="OrderMaterialsJson" id="editOrderMaterialsJson" value="[]" />
                     </div>
                 </div>
-                <div style="padding: 16px 24px; border-top: 1px solid var(--border-color); background:#f8fafc; display:flex; justify-content:flex-end;">
+                <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:flex-end;">
                     <button type="button" class="btn-planner" onclick="closeEditModelDetailModal()"><i class="fa-solid fa-check" style="margin-right:6px;"></i> Detayları Kaydet</button>
                 </div>
             </div>
         </div>
+    </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
         <script>
+            
+            var stokKartlariList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StokKartlari ?? new List<UretimPlanlama.Models.StokKarti>()));
+
+            function updateEditStockMaterialsJson() {
+                var materials = [];
+                $('#editStockMaterialsContainer .stock-material-row').each(function() {
+                    var stokId = $(this).find('.sm-stokkarti').val();
+                    var miktar = $(this).find('.sm-miktar').val();
+                    var aciklama = $(this).find('.sm-aciklama').val();
+                    
+                    var ozellikler = [];
+                    var propStrs = [];
+                    $(this).find('.sm-dyn-prop').each(function() {
+                        var key = $(this).data('key');
+                        var val = $(this).val();
+                        if (key && val) {
+                            ozellikler.push({ Key: key, Value: val });
+                            if (!["HESAP ADETİ", "BİRİM KULLANIM", "FİRE (%)", "BİRİM METRAJ", "TOPLAM SİPARİŞ", "AÇIK ADET", "BİRİM ASORTİ", "LOT BAŞI BEDEN", "TELA BİRİM", "GRAM", "RENK"].includes(key.toUpperCase())) {
+                                propStrs.push(key + ": " + val);
+                            }
+                        }
+                    });
+                    
+                    var autoAciklama = propStrs.join(' | ');
+                    $(this).find('.sm-aciklama').val(autoAciklama);
+                    $(this).find('.prop-summary').text(autoAciklama);
+                    aciklama = autoAciklama;
+                    
+                    if (stokId && (miktar || miktar === 0 || miktar === "0")) {
+                        materials.push({
+                            StokKartiId: parseInt(stokId),
+                            Miktar: parseFloat(miktar) || 0,
+                            Aciklama: aciklama,
+                            OzelliklerJson: ozellikler.length > 0 ? JSON.stringify(ozellikler) : null
+                        });
+                    }
+                });
+                $('#editOrderMaterialsJson').val(JSON.stringify(materials));
+            }
+
+            function editAddStockMaterialRow(stokKartiId = '', miktar = '', aciklama = '', ozelliklerObj = {}) {
+                var options = '<option value="">-- Stok Seçin --</option>';
+                stokKartlariList.forEach(function(s) {
+                    var selected = s.Id == stokKartiId ? 'selected' : '';
+                    options += `<option value="${s.Id}" ${selected}>${s.StokAdi} (${s.StokKodu}) - Mevcut: ${s.MevcutMiktar}</option>`;
+                });
+                var miktarVal = miktar !== null && miktar !== undefined ? miktar : '';
+                var aciklamaVal = aciklama !== null && aciklama !== undefined ? aciklama : '';
+
+                var trHtml = `
+                    <div class="stock-material-row" style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s;">
+                        <div style="display: flex; gap: 16px; align-items: flex-end; margin-bottom: 12px; flex-wrap: wrap;">
+                            <div style="flex: 3; min-width: 250px;">
+                                <label style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px; display: block; font-weight: 600;">Stok Kartı Seçimi</label>
+                                <select class="form-control sm-stokkarti" style="width:100%; background: #f8fafc; padding: 10px 14px; border-radius: 8px; font-weight: 600; color: #1e293b;">
+                                    ${options}
+                                </select>
+                                <input type="hidden" class="sm-miktar" value="${miktarVal}" />
+                                <input type="hidden" class="sm-aciklama" value="${aciklamaVal}" />
+                                <div class="prop-summary" style="font-size: 0.8rem; color: #3b82f6; margin-top: 6px; font-weight: 500;">${aciklamaVal}</div>
+                            </div>
+                            <div>
+                                <button type="button" class="btnEditRemoveStockMaterial" style="background: #fee2e2; color: #ef4444; border: none; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Sil"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="stok-detaylari" style="display:none; border-top: 1px dashed #cbd5e1; padding-top: 16px; margin-top: 0;" data-init-props='${JSON.stringify(ozelliklerObj)}'></div>
+                    </div>
+                `;
+                var newRow = $(trHtml);
+                $('.stok-detaylari').slideUp(300);
+                $('#editStockMaterialsContainer').append(newRow);
+                
+                var newSelect = newRow.find('.sm-stokkarti');
+                newSelect.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: '-- Stok Seçin --',
+                    allowClear: true
+                });
+
+                if (stokKartiId) {
+                    newSelect.trigger('change');
+                }
+            }
+
+            $(document).on('click', '#btnEditAddStockMaterial', function() {
+                editAddStockMaterialRow();
+            });
+
+            $(document).on('click', '.btnEditRemoveStockMaterial', function() {
+                $(this).closest('.stock-material-row').remove();
+                updateEditStockMaterialsJson();
+            });
+
+            function getFormTotalQty() {
+                return parseInt($('#editRowTotalQtyInput').val()) || 0;
+            }
+
+            $(document).on('change', '.sm-stokkarti', function() {
+                var select = $(this);
+                var stokId = select.val();
+                var row = select.closest('.stock-material-row');
+                var detayDiv = row.find('.stok-detaylari');
+                
+                if (!stokId) {
+                    detayDiv.hide().empty();
+                    row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
+                    updateEditStockMaterialsJson();
+                    return;
+                }
+
+                var stok = stokKartlariList.find(s => s.Id == stokId);
+                if (stok) {
+                    var detayHtml = `<div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                                        <div style="background: #f1f5f9; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; color: #475569; display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0;"><i class="fa-solid fa-tag" style="color: #94a3b8;"></i> Kategori: <b style="color: #1e293b; margin-left: 4px;">${stok.Kategori || '-'}</b></div> 
+                                        <div style="background: #f1f5f9; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; color: #475569; display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0;"><i class="fa-solid fa-ruler" style="color: #94a3b8;"></i> Birim: <b style="color: #1e293b; margin-left: 4px;">${stok.Birim || '-'}</b></div> 
+                                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; color: #166534; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-boxes-stacked" style="color: #22c55e;"></i> Mevcut: <b style="font-size: 1rem; color: #15803d; margin-left: 4px;">${stok.MevcutMiktar || 0}</b></div>
+                                     </div>`;
+                    
+                    var initPropsStr = detayDiv.attr('data-init-props');
+                    var initProps = {};
+                    if(initPropsStr) {
+                        try { 
+                            var parsed = JSON.parse(initPropsStr); 
+                            if (Array.isArray(parsed)) {
+                                parsed.forEach(function(p) {
+                                    if (p.Key && p.Value) initProps[p.Key.toUpperCase()] = p.Value;
+                                });
+                            } else {
+                                for(var k in parsed) initProps[k.toUpperCase()] = parsed[k];
+                            }
+                        } catch(e){}
+                        detayDiv.removeAttr('data-init-props');
+                    }
+
+                    var cat = (stok.Kategori || "").trim().toUpperCase();
+                    var calcFields = [];
+                    var isCalculable = false;
+                    var totalQty = getFormTotalQty();
+
+                    if (cat === "KUMAŞ" || cat === "KUMAS") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "BİRİM METRAJ", Type: "number", Def: "" });
+                    } else if (cat === "MALZEME") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "BİRİM KULLANIM", Type: "number", Def: "" });
+                        calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
+                    } else if (cat === "ETİKET" || cat === "ETIKET") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
+                    } else if (cat === "TELA") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.010,0.015,0.020,0.025,0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080,0.090,0.100,0.120,0.150,0.200" });
+                        calcFields.push({ Key: "GRAM", Type: "select", Def: "10,15,20,25,30,35,40,45,50,55,60,65,70,80,90,100,115,120,130,140,150" });
+                        calcFields.push({ Key: "RENK", Type: "text", Def: "" });
+                    }
+
+                    var extraOzellikler = [];
+                    if (stok.OzelliklerJson) {
+                        try {
+                            var parsedOz = JSON.parse(stok.OzelliklerJson);
+                            if (Array.isArray(parsedOz)) {
+                                parsedOz.forEach(function(o) {
+                                    if (o.Key && !calcFields.find(c => c.Key === o.Key.toUpperCase())) {
+                                        extraOzellikler.push(o);
+                                    }
+                                });
+                            }
+                        } catch(e){}
+                    }
+
+                    if (isCalculable) row.find('.sm-miktar').prop('readonly', true).css('background', '#e2e8f0');
+                    else row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
+
+                    if (calcFields.length > 0 || extraOzellikler.length > 0) {
+                        detayHtml += `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                                            <div style="width: 4px; height: 18px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px;"></div>
+                                            <h6 style="color: #1e293b; font-weight: 700; font-size: 0.95rem; margin: 0; letter-spacing: -0.2px;">Hesaplama ve Özellikler</h6>
+                                       </div>
+                                       <div class="calc-fields-container" data-cat="${cat}" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:16px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px dashed #cbd5e1;">`;
+                        
+                        var allFields = [];
+                        calcFields.forEach(function(cf) {
+                            allFields.push({ Key: cf.Key.toUpperCase(), Type: cf.Type, Value: cf.Def, IsCalc: true });
+                        });
+                        extraOzellikler.forEach(function(oz) {
+                            allFields.push({ Key: oz.Key.toUpperCase(), Type: oz.Type, Value: oz.Value, IsCalc: false });
+                        });
+
+                        if (stok.StokAdi && stok.StokAdi.toUpperCase().includes("DÜĞME")) {
+                            var orderMap = { "BOYUT": 1, "BİRİM KULLANIM": 2, "FİRE (%)": 3, "RENK": 4 };
+                            allFields.sort(function(a, b) {
+                                var orderA = orderMap[a.Key] || 99;
+                                var orderB = orderMap[b.Key] || 99;
+                                return orderA - orderB;
+                            });
+                        }
+
+                        allFields.forEach(function(f) {
+                             var pVal = initProps[f.Key] !== undefined ? initProps[f.Key] : (f.Value || "");
+                             var inputHtml = '';
+                             var calcClass = f.IsCalc ? "sm-calc-trigger" : "";
+                             
+                             if (f.Type === 'select') {
+                                 var options = f.Value ? f.Value.split(',') : [];
+                                 inputHtml = `<select class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" style="background: #ffffff; border-color: #cbd5e1;">
+                                                <option value="">Seçiniz</option>`;
+                                 options.forEach(function(opt) {
+                                     var selected = (opt.trim() === pVal) ? 'selected' : '';
+                                     inputHtml += `<option value="${opt.trim()}" ${selected}>${opt.trim()}</option>`;
+                                 });
+                                 inputHtml += `</select>`;
+                             } else {
+                                 var typeAttr = f.Type === 'number' ? 'number' : 'text';
+                                 var stepAttr = f.Type === 'number' ? 'step="any"' : '';
+                                 inputHtml = `<input type="${typeAttr}" ${stepAttr} class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" value="${pVal}" placeholder="${f.Value || '...'}" style="background: #ffffff; border-color: #cbd5e1; font-weight:600;" />`;
+                             }
+                             
+                             detayHtml += `<div>
+                                            <label style="font-size:0.75rem; font-weight:700; color:#64748b; display:block; margin-bottom:6px;">${f.Key}</label>
+                                            ${inputHtml}
+                                          </div>`;
+                        });
+                        
+                        detayHtml += `</div>`;
+                    }
+                    
+                    $('.stok-detaylari').not(detayDiv).slideUp(300);
+                    detayDiv.html(detayHtml).hide().slideDown(300);
+                    if (isCalculable) row.find('.sm-calc-trigger').first().trigger('input');
+                } else {
+                    detayDiv.hide().empty();
+                    row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
+                }
+                updateEditStockMaterialsJson();
+            });
+
+            $(document).on('input change', '.sm-calc-trigger', function() {
+                var row = $(this).closest('.stock-material-row');
+                var container = row.find('.calc-fields-container');
+                var cat = container.data('cat');
+                var miktarInput = row.find('.sm-miktar');
+                
+                function getVal(key) {
+                    var v = container.find(`.sm-dyn-prop[data-key="${key}"]`).val();
+                    return parseFloat(v) || 0;
+                }
+
+                var miktar = 0;
+                if (cat === "KUMAŞ" || cat === "KUMAS") {
+                    var adet = getFormTotalQty();
+                    var metraj = getVal("BİRİM METRAJ");
+                    miktar = adet * metraj;
+                } else if (cat === "MALZEME") {
+                    // Malzeme için hesap adeti satın alma planlamasından geldiği için burada Miktar = 0 olarak kalır, özellikler kaydedilir.
+                    miktar = 0;
+                } else if (cat === "ETİKET" || cat === "ETIKET") {
+                    // Etiket için adetler renk tablosundan satın alma planlamasına gidecek. Burada Miktar = 0 kalır.
+                    miktar = 0;
+                } else if (cat === "TELA") {
+                    var toplam = getFormTotalQty();
+                    var birim = getVal("TELA BİRİM");
+                    miktar = toplam * birim;
+                }
+
+                if (miktarInput.prop('readonly')) {
+                    miktarInput.val(Number.isInteger(miktar) ? miktar : miktar.toFixed(3));
+                }
+                updateEditStockMaterialsJson();
+            });
+
+            $(document).on('input change', '.sm-miktar, .sm-aciklama, .sm-dyn-prop, .sm-ozellik', function() {
+                if (!$(this).hasClass('sm-calc-trigger')) {
+                    updateEditStockMaterialsJson();
+                }
+            });
+
+            $(document).on('click', '.stock-material-row', function(e) {
+                if ($(e.target).closest('.btnRemoveStockMaterial, .btnEditRemoveStockMaterial').length > 0) return;
+                var detayDiv = $(this).find('.stok-detaylari');
+                if (detayDiv.is(':visible') || detayDiv.children().length === 0) return;
+                
+                $('.stok-detaylari').not(detayDiv).slideUp(300);
+                detayDiv.slideDown(300);
+            });
+
             $(document).ready(function() {
                 var colorOptionsHtml = '<option value="">-- Renk Seçin --</option>';
         @if (ViewBag.Colors != null)
@@ -1064,77 +1250,36 @@
                                 $("#detDynamicSizesContainer").html(tableHtml);
 
                                 // Model Detayları & Aksesuarlar (Dinamik HTML)
-                                 var acc = {};
-                                 try { acc = JSON.parse(order.selectedAccessoriesJson || "{}"); } catch(e){}
-
-                                 var accHtml = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px;">';
-                                 var fabricUnitDisplay = order.fabricUnit ? order.fabricUnit : "m";
-                                 accHtml += '<div><span style="color:var(--text-muted); display:block; font-size:0.8rem;">Birim Metraj</span><strong>' + (order.unitFabricMeterage ? order.unitFabricMeterage + ' ' + fabricUnitDisplay : '-') + '</strong></div>';
-                                 accHtml += '<div><span style="color:var(--text-muted); display:block; font-size:0.8rem;">Fire (%)</span><strong>' + (order.wastageRate ? '%' + order.wastageRate : '-') + '</strong></div>';
-                                 accHtml += '</div>';
-
-                                 accHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px; margin-top:12px;">';
-                                 accHtml += '<div><span style="color:var(--text-muted); display:block; font-size:0.8rem;">24/ Düğme</span><strong>' + (order.largeButtonCount !== null && order.largeButtonCount !== undefined ? order.largeButtonCount + ' Adet' : '-') + '</strong></div>';
-                                 accHtml += '<div><span style="color:var(--text-muted); display:block; font-size:0.8rem;">14/ Düğme</span><strong>' + (order.smallButtonCount !== null && order.smallButtonCount !== undefined ? order.smallButtonCount + ' Adet' : '-') + '</strong></div>';
-                                 accHtml += '</div>';
-
-                                 accHtml += '<div style="margin-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569;">Tela & Astar Detayları</h5>';
-                                 accHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">';
+                                 var accHtml = '';
+                                 var materials = [];
+                                 try { materials = JSON.parse(order.orderMaterialsJson || "[]"); } catch(e){}
                                  
-                                 var renderAstarTela = function(label, astar, tipi, renk) {
-                                     var a = astar || '-';
-                                     var ti = tipi || '-';
-                                     var r = renk || '-';
-                                     if(a === '-' && ti === '-' && r === '-') return '';
-                                     return '<div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0;">' +
-                                            '<div style="font-weight:600; color:#334155; font-size:0.85rem; margin-bottom:4px;">' + label + '</div>' +
-                                            '<div style="display:flex; justify-content:space-between; font-size:0.8rem;">' +
-                                            '<span style="color:#64748b;">Birim: <strong style="color:#0f172a;">' + a + '</strong></span>' +
-                                            '<span style="color:#64748b;">Tip: <strong style="color:#0f172a;">' + ti + '</strong></span>' +
-                                            '<span style="color:#64748b;">Renk: <strong style="color:#0f172a;">' + r + '</strong></span>' +
-                                            '</div></div>';
-                                 };
-
-                                 var astarTelaHtml = renderAstarTela('Kuşak', order.kusakAstarGram, order.kusakTelaTipi, order.kusakTelaRenk) +
-                                                     renderAstarTela('Yaka', order.yakaAstarGram, order.yakaTelaTipi, order.yakaTelaRenk) +
-                                                     renderAstarTela('Manşet', order.mansetAstarGram, order.mansetTelaTipi, order.mansetTelaRenk) +
-                                                     renderAstarTela('Kapak', order.kapakAstarGram, order.kapakTelaTipi, order.kapakTelaRenk) +
-                                                     renderAstarTela('Boss', order.bossAstarGram, order.bossTelaTipi, order.bossTelaRenk) +
-                                                     renderAstarTela('Pat', order.patAstarGram, order.patTelaTipi, order.patTelaRenk);
-                                 
-                                 if (astarTelaHtml === '') {
-                                     astarTelaHtml = '<div style="color:#94a3b8; font-size:0.8rem; font-style:italic;">Astar/Tela bilgisi yok</div>';
+                                 if (materials && materials.length > 0) {
+                                     var grouped = {};
+                                     materials.forEach(function(m) {
+                                         var cat = (m.Kategori || "Diğer").trim().toUpperCase();
+                                         if (!grouped[cat]) grouped[cat] = [];
+                                         grouped[cat].push(m);
+                                     });
+                                     
+                                     for (var category in grouped) {
+                                         accHtml += '<div style="margin-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569; border-bottom: 1px solid #e2e8f0; padding-bottom:4px;">' + category + '</h5>';
+                                         accHtml += '<div style="display: grid; grid-template-columns: 1fr; gap: 8px;">';
+                                         grouped[category].forEach(function(item) {
+                                             var displayName = (item.StokAdi || item.StokKodu || 'Bilinmeyen Ürün');
+                                             var qtyDisplay = '';
+                                             if (category !== 'KUMAŞ' && category !== 'MALZEME' && category !== 'ETİKET' && category !== 'TELA') {
+                                                 qtyDisplay = '<br/><span style="color:#64748b; font-size:0.8rem;">Miktar: ' + item.Miktar + '</span>';
+                                             }
+                                             var aciklamaDisplay = item.Aciklama ? '<br/><span style="color:#0284c7; font-size:0.8rem; font-weight: 500;">' + item.Aciklama + '</span>' : '';
+                                             accHtml += '<div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0; font-size:0.85rem;">' +
+                                                        '<strong>' + displayName + '</strong>' + qtyDisplay + aciklamaDisplay + '</div>';
+                                         });
+                                         accHtml += '</div></div>';
+                                     }
+                                 } else {
+                                     accHtml = '<div style="color:#94a3b8; font-size:0.85rem; font-style:italic;">Bu siparişte model detayı seçilmemiştir.</div>';
                                  }
-                                 
-                                 accHtml += astarTelaHtml;
-                                 accHtml += '</div></div>';
-
-                                 accHtml += '<div style="margin-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569;">Ek Parçalar</h5>';
-                                 accHtml += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">';
-                                 accHtml += '<div><small style="color:#64748b;">Tela 1</small><br/><strong>' + (acc.Tela1 || '-') + '</strong></div>';
-                                 accHtml += '<div><small style="color:#64748b;">Tela 2</small><br/><strong>' + (acc.Tela2 || '-') + '</strong></div>';
-                                 accHtml += '<div><small style="color:#64748b;">Cep</small><br/><strong>' + (acc.Cep || '-') + '</strong></div>';
-                                 accHtml += '<div><small style="color:#64748b;">Roba</small><br/><strong>' + (acc.Roba || '-') + '</strong></div>';
-                                 accHtml += '<div><small style="color:#64748b;">Apolet</small><br/><strong>' + (acc.Apolet || '-') + '</strong></div>';
-                                 accHtml += '<div><small style="color:#64748b;">Diğer</small><br/><strong>' + (acc.Diger || '-') + '</strong></div>';
-                                 accHtml += '</div></div>';
-
-                                 accHtml += '<div style="margin-top:12px; border-top: 1px dashed #e2e8f0; padding-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569;">Paketleme</h5><div style="display:flex; flex-wrap:wrap; gap:6px;">';
-                                 if(acc.Jelatin) accHtml += '<span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Jelatin</span>';
-                                 if(acc.Cember) accHtml += '<span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Çember</span>';
-                                 if(acc.Kelebek) accHtml += '<span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Kelebek</span>';
-                                 if(acc.LotPoseti) accHtml += '<span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Lot Poşeti</span>';
-                                 accHtml += '</div></div>';
-
-                                 accHtml += '<div style="margin-top:12px; border-top: 1px dashed #e2e8f0; padding-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569;">Kartlar & Etiketler</h5><div style="display:flex; flex-wrap:wrap; gap:6px;">';
-                                 if(order.hasPriceCard) accHtml += '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Fiyat Kartı</span>';
-                                 if(order.hasWashingInstruction) accHtml += '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Yıkama Tlm.</span>';
-                                 if(order.hasInnerBarcode) accHtml += '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:0.75rem;">İç Barkod</span>';
-                                 if(order.hasYokeLabel) accHtml += '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Roba Etiketi</span>';
-                                 if(order.hasFifLabel) accHtml += '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Fif Etiketi</span>';
-                                 if(acc.KetenKarti) accHtml += '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Keten Kartı</span>';
-                                 if(order.hasOtherCard) accHtml += '<span style="background:#e0e7ff; color:#4f46e5; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Diğer Kart</span>';
-                                 accHtml += '</div></div>';
 
                                  $("#detAccessoriesContainer").html(accHtml);
 
@@ -1471,6 +1616,18 @@
                                 }
                                 
                                 $("#editProductionJson").val(order.productionJson || "");
+
+                                $('#editStockMaterialsContainer').empty();
+                                if (order.orderMaterialsJson) {
+                                    try {
+                                        var mats = JSON.parse(order.orderMaterialsJson);
+                                        mats.forEach(mat => {
+                                            var ozObj = {};
+                                            if(mat.OzelliklerJson) { try { ozObj = JSON.parse(mat.OzelliklerJson); }catch(e){} }
+                                            editAddStockMaterialRow(mat.StokKartiId, mat.Miktar, mat.Aciklama, ozObj);
+                                        });
+                                    } catch(e){}
+                                }
                                 var revizeTermin = "";
                                 if (order.productionJson) {
                                     try {
@@ -1763,20 +1920,7 @@
                 $("#editOrderForm").on("submit", function(e) {
                     e.preventDefault();
 
-                    var acc = {
-                        KetenKarti: $("#editAcc_KetenKarti").is(":checked"),
-                        Jelatin: $("#editAcc_Jelatin").is(":checked"),
-                        Cember: $("#editAcc_Cember").is(":checked"),
-                        Kelebek: $("#editAcc_Kelebek").is(":checked"),
-                        LotPoseti: $("#editAcc_LotPoseti").is(":checked"),
-
-                        Tela1: parseFloat($("#editAcc_Tela1").val()) || null,
-                        Tela2: parseFloat($("#editAcc_Tela2").val()) || null,
-                        Cep: parseFloat($("#editAcc_Cep").val()) || null,
-                        Roba: parseFloat($("#editAcc_Roba").val()) || null,
-                        Apolet: parseFloat($("#editAcc_Apolet").val()) || null,
-                        Diger: parseFloat($("#editAcc_Diger").val()) || null
-                    };
+                    updateEditStockMaterialsJson();
 
                     Object.keys(editOpenSizes).forEach(function(key) {
                         if (editOpenSizes[key] <= 0) delete editOpenSizes[key];
@@ -1800,7 +1944,9 @@
                     var finalVat = finalTotal * 0.10;
                     var finalGrand = finalTotal + finalVat;
 
+                    var acc = {};
                     var orderObj = {
+                        OrderMaterialsJson: $("#editOrderMaterialsJson").val() || "[]",
                         Id: parseInt($("#editOrderId").val()),
                         OrderDate: $("#editOrderDate").val(),
                         OrderCode: $("#editOrderCode").val(),

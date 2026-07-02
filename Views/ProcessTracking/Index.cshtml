@@ -1,0 +1,270 @@
+@model IEnumerable<UretimPlanlama.Models.Order>
+@{
+    ViewData["Title"] = "Süreç Takip";
+}
+
+<div class="content-header" style="animation: fadeInDown 0.6s ease-out;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h2 style="margin: 0; font-size: 1.8rem; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%); color: white; border-radius: 14px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); margin-right: 12px;">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </span>
+                Süreç Takip
+            </h2>
+            <p style="margin: 6px 0 0 60px; color: #64748b; font-size: 0.95rem;">Aktif siparişlerinizin tüm aşamalarını buradan takip edebilirsiniz.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @@keyframes rowEntry {
+        from { opacity: 0; transform: translateX(-10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .card-container {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        overflow: hidden;
+        animation: fadeInDown 0.8s ease-out;
+    }
+
+    .card-header {
+        padding: 28px 32px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        background: linear-gradient(120deg, #f8fafc 0%, rgba(255,255,255,0.9) 100%);
+        position: relative;
+    }
+    
+    .card-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        opacity: 0.2;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .modern-table th {
+        padding: 20px 32px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        background: rgba(248, 250, 252, 0.6);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .modern-table td {
+        padding: 20px 32px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+        color: #334155;
+        vertical-align: middle;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modern-table tbody tr {
+        animation: rowEntry 0.5s ease-out forwards;
+        opacity: 0;
+    }
+
+    .modern-table tbody tr:hover td {
+        background: linear-gradient(90deg, rgba(241, 245, 249, 0.4) 0%, rgba(255,255,255,0) 100%);
+    }
+
+    .modern-table tbody tr:hover td:first-child {
+        padding-left: 36px;
+    }
+
+    .modern-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .order-code {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+        color: #0f172a;
+        font-size: 1.05rem;
+    }
+    
+    .order-code::before {
+        content: '';
+        display: block;
+        width: 8px;
+        height: 8px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .customer-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .customer-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        color: #475569;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .model-name {
+        font-weight: 600;
+        color: #334155;
+        padding: 6px 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+        display: inline-block;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, #2563eb 100%);
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.35);
+        color: white;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+    
+    .btn-action i {
+        transition: transform 0.3s ease;
+    }
+    
+    .btn-action:hover i {
+        transform: translateX(4px);
+    }
+
+    .qty-badge {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #0f172a;
+        font-variant-numeric: tabular-nums;
+    }
+
+</style>
+
+<div class="card-container">
+    <div class="card-header">
+        <h3 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-bars-progress" style="color: var(--primary-color); font-size: 1.2rem;"></i> 
+            Aktif Siparişler
+            <span style="font-size: 0.8rem; background: #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 20px; font-weight: 600; margin-left: auto;">@Model.Count() Sipariş</span>
+        </h3>
+    </div>
+
+    <div style="padding: 0; overflow-x: auto;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Sipariş Kodu</th>
+                    <th>Müşteri</th>
+                    <th>Model</th>
+                    <th>Renk / Beden</th>
+                    <th>Adet</th>
+                    <th style="text-align: center;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int delay = 0; }
+                @foreach (var order in Model)
+                {
+                    <tr style="animation-delay: @(delay)ms;">
+                        <td>
+                            <span class="order-code">@order.OrderCode</span>
+                        </td>
+                        <td>
+                            <div class="customer-info">
+                                <div class="customer-avatar">
+                                    @(string.IsNullOrEmpty(order.Customer) ? "?" : order.Customer.Substring(0, 1).ToUpper())
+                                </div>
+                                <span style="font-weight: 600; color: #334155;">@order.Customer</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="model-name">@order.ModelName</span>
+                        </td>
+                        <td>
+                            @{
+                                var colors = string.IsNullOrEmpty(order.Color) ? new string[0] : order.Color.Split(new[] { ',', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                            }
+                            @if(colors.Any()) {
+                                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                    @foreach(var c in colors) {
+                                        <span style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">@c.Trim()</span>
+                                    }
+                                </div>
+                            } else {
+                                <span style="color: #94a3b8; font-style: italic; font-size: 0.85rem;">Belirtilmedi</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="qty-badge">@order.Quantity.ToString("N0")</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <a href="/ProcessTracking/Track/@order.Id" class="btn-action">
+                                Takip Et <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    delay += 50;
+                }
+                
+                @if(!Model.Any()) {
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px 20px;">
+                            <div style="color: #94a3b8; font-size: 3rem; margin-bottom: 15px;"><i class="fa-solid fa-box-open"></i></div>
+                            <h4 style="color: #475569; font-weight: 600; margin-bottom: 5px;">Aktif sipariş bulunmuyor.</h4>
+                            <p style="color: #64748b; font-size: 0.95rem;">Süreç takibine başlayabilmek için yeni bir sipariş oluşturun.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
