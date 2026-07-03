@@ -33,6 +33,24 @@
     </div>
 </div>
 
+    <ul class="nav nav-tabs" id="trackTabs" style="margin-bottom: 24px;">
+        <li class="nav-item">
+            <button class="nav-link active" onclick="switchTab('purchase')" id="purchase-tab">Satın Alma Onay</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('dispatch')" id="dispatch-tab">Malzeme Sevk</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('cutting')" id="cutting-tab">Kesim Süreci</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('packing')" id="packing-tab">Çeki Listesi</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" onclick="switchTab('reports')" id="reports-tab" style="background: #e0f2fe; color: #0284c7;">Raporlar <i class="fa-solid fa-chart-pie"></i></button>
+        </li>
+    </ul>
+
 <div id="orderDetailsCard" style="margin-bottom: 24px; background: white; border-radius: 10px; box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; padding: 12px 16px;">
     <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 10px;">
         <span style="font-weight: 700; color: #0f172a; font-size: 0.9rem;"><i class="fa-solid fa-box-open" style="color: #0ea5e9; margin-right: 6px;"></i>Sipariş Özellikleri</span>
@@ -242,24 +260,6 @@
 </style>
 
 <div class="tabs-container">
-    <ul class="nav nav-tabs" id="trackTabs">
-        <li class="nav-item">
-            <button class="nav-link active" onclick="switchTab('purchase')" id="purchase-tab">Satın Alma Onay</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('dispatch')" id="dispatch-tab">Malzeme Sevk</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('cutting')" id="cutting-tab">Kesim Süreci</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('packing')" id="packing-tab">Çeki Listesi</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('reports')" id="reports-tab" style="background: #e0f2fe; color: #0284c7;">Raporlar <i class="fa-solid fa-chart-pie"></i></button>
-        </li>
-    </ul>
-
     <div class="tab-content" id="trackTabsContent">
         
         <!-- SATIN ALMA ONAYI TAB -->
@@ -373,7 +373,10 @@
                             <td style="padding: 16px; font-weight: 700; color: #b45309; text-align: right; background: #fdf6e3; border-right: 1px solid #f1f5f9; font-size: 1.1rem;">@displayPlanlanan</td>
                             <td style="padding: 16px; width: 250px; background: #f0f9ff; border-right: 1px solid #f1f5f9;">
                                 <div style="display: flex; align-items: center; justify-content: center;">
-                                    <input type="number" step="0.01" style="width: 120px; padding: 8px 12px; border: 1px solid #bae6fd; border-radius: 6px; text-align: right; font-weight: 600; color: #0284c7; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);" id="actual_qty_@mat.Id" value="@mat.ActualQuantity.ToString("F2").Replace(',', '.')" oninput="updateComparison(@mat.Id, @(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture)))" />
+                                    @{
+                                        decimal displayQty = mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0;
+                                    }
+                                    <input type="number" step="0.01" style="width: 120px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right; font-weight: 600; color: #475569; background-color: #f1f5f9; outline: none; box-shadow: none; cursor: not-allowed;" id="actual_qty_@mat.Id" value="@displayQty.ToString("F2").Replace(',', '.')" readonly oninput="updateComparison(@mat.Id, @(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture)))" />
                                 </div>
                             </td>
                             <td style="padding: 16px; text-align: center; border-right: 1px solid #f1f5f9; vertical-align: middle;">
@@ -388,6 +391,9 @@
                     }
                 </tbody>
                 </table>
+            </div>
+            <div class="text-end mt-3 mb-2">
+                <button class="btn btn-primary" onclick="switchTab('dispatch')">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
             </div>
         </div>
 
@@ -440,92 +446,240 @@
                     </table>
                 </div>
             </div>
+            <div class="text-end mt-3 mb-2">
+                <button class="btn btn-primary" onclick="switchTab('cutting')">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
+            </div>
         </div>
 
         <!-- KESİM SÜRECİ TAB -->
         <div class="tab-pane" id="cutting">
+            @{
+                var sizesObj = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.SizeDistributionJson)) {
+                    try { 
+                        using (var doc = System.Text.Json.JsonDocument.Parse(Model.SizeDistributionJson)) {
+                            foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number) sizesObj[prop.Name] = prop.Value.GetInt32().ToString();
+                                else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String) sizesObj[prop.Name] = prop.Value.GetString() ?? "0";
+                            }
+                        }
+                    } catch {}
+                }
+                if (sizesObj.Count == 0) {
+                    if (Model.SizeS > 0) sizesObj.Add("S", Model.SizeS.ToString());
+                    if (Model.SizeM > 0) sizesObj.Add("M", Model.SizeM.ToString());
+                    if (Model.SizeL > 0) sizesObj.Add("L", Model.SizeL.ToString());
+                    if (Model.SizeXL > 0) sizesObj.Add("XL", Model.SizeXL.ToString());
+                    if (Model.Size2XL > 0) sizesObj.Add("2XL", Model.Size2XL.ToString());
+                    if (Model.Size3XL > 0) sizesObj.Add("3XL", Model.Size3XL.ToString());
+                }
+
+                var asortiObj = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.AsortiDistributionJson)) {
+                    try { 
+                        using (var doc = System.Text.Json.JsonDocument.Parse(Model.AsortiDistributionJson)) {
+                            foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number) asortiObj[prop.Name] = prop.Value.GetInt32().ToString();
+                                else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String) asortiObj[prop.Name] = prop.Value.GetString() ?? "0";
+                            }
+                        }
+                    } catch {}
+                }
+                if (asortiObj.Count == 0) {
+                    if (Model.AsortiSizeS > 0) asortiObj.Add("S", Model.AsortiSizeS.ToString());
+                    if (Model.AsortiSizeM > 0) asortiObj.Add("M", Model.AsortiSizeM.ToString());
+                    if (Model.AsortiSizeL > 0) asortiObj.Add("L", Model.AsortiSizeL.ToString());
+                    if (Model.AsortiSizeXL > 0) asortiObj.Add("XL", Model.AsortiSizeXL.ToString());
+                    if (Model.AsortiSize2XL > 0) asortiObj.Add("2XL", Model.AsortiSize2XL.ToString());
+                    if (Model.AsortiSize3XL > 0) asortiObj.Add("3XL", Model.AsortiSize3XL.ToString());
+                }
+
+                int acikAdetTotal = 0;
+                foreach(var v in sizesObj.Values) { if (int.TryParse(v, out int val)) acikAdetTotal += val; }
+                
+                int asortiTotal = 0;
+                foreach(var v in asortiObj.Values) { if (int.TryParse(v, out int val)) asortiTotal += val; }
+            }
+
             <h4 style="margin-bottom: 24px; color: #0f172a; font-weight: 700; font-size: 1.25rem;"><i class="fa-solid fa-scissors" style="color: var(--primary-color);"></i> Kesim Süreci (Günlük Takip)</h4>
             
-            <div class="card mb-4" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-                <div class="card-body" style="padding: 24px; background: linear-gradient(to right, #f8fafc, #ffffff);">
-                    <div class="row mb-3">
-                        <div class="col-md-2">
-                            <label>Tarih</label>
-                            <input type="date" id="txtCutDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                        </div>
-                        <div class="col-md-2">
-                            <label>Kat Sayısı</label>
-                            <input type="number" id="txtCutMultiplier" class="form-control" value="1" oninput="calculateCutting()" />
-                        </div>
-                        <div class="col-md-2">
-                            <label>Pastal Boyu (m)</label>
-                            <input type="number" id="txtMarkerLength" class="form-control" value="0" step="0.01" oninput="calculateCutting()" />
-                        </div>
-                        <div class="col-md-2">
-                            <label>Toplam Adet</label>
-                            <input type="number" id="txtCutTotal" class="form-control" readonly />
-                        </div>
-                        <div class="col-md-2">
-                            <label>Birim Metraj (m)</label>
-                            <input type="number" id="txtCutUnitMeterage" class="form-control" readonly />
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" onclick="addCuttingItem()"><i class="fa-solid fa-plus"></i> Ekle</button>
+            <!-- SİPARİŞ HEDEFİ BİLGİ ŞERİDİ -->
+            <div style="padding: 18px 24px; margin-bottom: 24px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; box-shadow: 0 2px 4px rgba(22, 101, 52, 0.05);">
+                <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+                        <div style="font-size: 1.25rem; color: #15803d; font-weight: 700;">
+                            <i class="fa-solid fa-bullseye" style="margin-right: 8px;"></i>Genel Toplam Hedef: @Model.Quantity Adet
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-12">
-                            <label>Bedenlere Göre Kesim (Açık Adet)</label>
-                            <div class="d-flex gap-2" id="cuttingSizesContainer">
-                                @{
-                                    var sizesObj = new Dictionary<string, string>();
-                                    if (!string.IsNullOrEmpty(Model.SizeDistributionJson)) {
-                                        try { sizesObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.SizeDistributionJson) ?? new Dictionary<string, string>(); } catch {}
-                                    }
-                                    
-                                    if (sizesObj.Count == 0) {
-                                        if (Model.SizeS > 0) sizesObj.Add("S", Model.SizeS.ToString());
-                                        if (Model.SizeM > 0) sizesObj.Add("M", Model.SizeM.ToString());
-                                        if (Model.SizeL > 0) sizesObj.Add("L", Model.SizeL.ToString());
-                                        if (Model.SizeXL > 0) sizesObj.Add("XL", Model.SizeXL.ToString());
-                                        if (Model.Size2XL > 0) sizesObj.Add("2XL", Model.Size2XL.ToString());
-                                        if (Model.Size3XL > 0) sizesObj.Add("3XL", Model.Size3XL.ToString());
-                                    }
-                                }
-                                @if(sizesObj.Any()) {
-                                    foreach(var kvp in sizesObj) {
-                                        <div style="flex: 1; min-width: 70px; max-width: 90px; background: white; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
-                                            <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">@kvp.Key</span>
-                                            <input type="number" class="form-control form-control-sm cut-size-input" data-size="@kvp.Key" value="0" oninput="calculateCutting()" style="text-align: center; padding: 6px; font-weight: 600;" />
-                                        </div>
-                                    }
-                                } else {
-                                    <span class="text-muted">Bu siparişte beden dağılımı bulunmuyor.</span>
-                                }
-                            </div>
-                        </div>
+                    <div style="font-size: 1.2rem; color: #166534; text-align: right;" id="divRemainingCut">
+                        Kalan İhtiyaç: <strong id="lblRemainingQty">@Model.Quantity</strong> Adet
                     </div>
                 </div>
             </div>
 
-            <table class="table table-bordered" id="tblCutting">
-                <thead style="background: #f8fafc;">
+
+
+            <!-- JS Array Definitions for Sizes -->
+            <script>
+                var acikSizesArr = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(sizesObj.Keys));
+                var asortiSizesArr = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(asortiObj.Keys));
+            </script>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; margin-bottom: 15px;">
+                <div>
+                    <h5 style="margin: 0 0 8px 0; color: #334155; font-weight: 700;">Açık Adet Kesim Tablosu</h5>
+                    <div style="font-size: 0.85rem; color: #15803d; display: flex; flex-wrap: wrap; align-items: center;">
+                        <strong style="margin-right: 8px;"><i class="fa-solid fa-shirt" style="margin-right: 4px;"></i> Sipariş Açık Adet Dağılımı:</strong>
+                        @if (sizesObj.Any()) {
+                            foreach(var kvp in sizesObj) {
+                                <span style="display: inline-block; background: #dcfce7; padding: 2px 8px; border-radius: 12px; margin-right: 6px; font-weight: 600; border: 1px solid #bbf7d0;">@kvp.Key: @kvp.Value</span>
+                            }
+                            <span style="display: inline-block; margin-left: 8px; padding-left: 12px; border-left: 1px solid #bbf7d0; font-weight: 700; color: #166534;">
+                                Toplam: @acikAdetTotal Adet
+                            </span>
+                        } else {
+                            <span style="font-style: italic;">Yok</span>
+                        }
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="toggleCutForm('AcikAdet')" style="margin-bottom: 2px;"><i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Açık Adet Kesim Ekle</button>
+            </div>
+            <table class="table table-bordered" id="tblCuttingAcik">
+                <thead style="background: #f8fafc; text-align: center;">
                     <tr>
-                        <th>Tarih</th>
-                        <th>Kat Sayısı</th>
-                        <th>Bedenler</th>
-                        <th>Toplam Adet</th>
-                        <th>Pastal Boyu</th>
-                        <th>Birim Metraj</th>
-                        <th>İşlem</th>
+                        <th rowspan="2" style="vertical-align: middle;">Kesim No</th>
+                        <th rowspan="2" style="vertical-align: middle;">Kat Sayısı</th>
+                        <th colspan="@Math.Max(1, sizesObj.Count)">Bedenler</th>
+                        <th rowspan="2" style="vertical-align: middle;">Çıkan Adet</th>
+                        <th rowspan="2" style="vertical-align: middle;">Pastal Boyu</th>
+                        <th rowspan="2" style="vertical-align: middle;">Birim Metraj</th>
+                        <th rowspan="2" style="vertical-align: middle;">Tarih</th>
+                        <th rowspan="2" style="vertical-align: middle;">İşlem</th>
+                    </tr>
+                    <tr>
+                        @if (sizesObj.Count > 0) {
+                            foreach (var k in sizesObj.Keys) {
+                                <th>@k</th>
+                            }
+                        } else {
+                            <th>-</th>
+                        }
                     </tr>
                 </thead>
-                <tbody id="cuttingBody">
+                <tbody id="cuttingBodyAcik">
                 </tbody>
+                <tbody id="cuttingEntryAcik" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAcik()" style="min-width: 60px; text-align: center; font-weight: bold;" /></td>
+                        @if (sizesObj.Count > 0) {
+                            foreach (var k in sizesObj.Keys) {
+                                <td style="vertical-align: middle;"><input type="number" id="txtAcikSize_@k" class="form-control form-control-sm acik-adet-input-row" data-size="@k" value="0" oninput="calculateAcik()" style="min-width: 50px; text-align: center; font-weight: bold;" /></td>
+                            }
+                        } else {
+                            <td style="vertical-align: middle;">-</td>
+                        }
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikTotal" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAcik()" style="min-width: 70px; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="date" id="txtAcikDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="min-width: 115px; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle; text-align: center;">
+                            <div style="display: flex; gap: 4px; justify-content: center;">
+                                <button class="btn btn-success btn-sm" onclick="saveAcikRow()" title="Kaydet"><i class="fa-solid fa-check"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="$('#cuttingEntryAcik').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot style="background: #f1f5f9; font-weight: bold;">
+                    <tr>
+                        <td colspan="@(6 + Math.Max(1, sizesObj.Count))" style="text-align: right; vertical-align: middle; color: #475569; padding-right: 20px;">AÇIK ADET TOPLAMI:</td>
+                        <td id="acikTotalCut" style="font-size: 1.2rem; color: #0f172a; vertical-align: middle; text-align: center;">0</td>
+                    </tr>
+                </tfoot>
             </table>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; margin-bottom: 15px;">
+                <div>
+                    <h5 style="margin: 0 0 8px 0; color: #334155; font-weight: 700;">Asorti Kesim Tablosu</h5>
+                    <div style="font-size: 0.85rem; color: #15803d; display: flex; flex-wrap: wrap; align-items: center;">
+                        <strong style="margin-right: 8px;"><i class="fa-solid fa-layer-group" style="margin-right: 4px;"></i> Sipariş Asorti Dağılımı:</strong>
+                        @if (asortiObj.Any()) {
+                            foreach(var kvp in asortiObj) {
+                                <span style="display: inline-block; background: #dcfce7; padding: 2px 8px; border-radius: 12px; margin-right: 6px; font-weight: 600; border: 1px solid #bbf7d0;">@kvp.Key: @kvp.Value</span>
+                            }
+                            <span style="display: inline-block; margin-left: 8px; padding-left: 12px; border-left: 1px solid #bbf7d0; font-weight: 700; color: #166534;">
+                                1 Asorti: @asortiTotal Adet | Lot Sayısı: @Model.AsortiCount | Toplam: @(asortiTotal * Model.AsortiCount) Adet
+                            </span>
+                        } else {
+                            <span style="font-style: italic;">Yok</span>
+                        }
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="toggleCutForm('Asorti')" style="margin-bottom: 2px;"><i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Asorti Kesim Ekle</button>
+            </div>
+            <table class="table table-bordered" id="tblCuttingAsorti">
+                <thead style="background: #f8fafc; text-align: center;">
+                    <tr>
+                        <th rowspan="2" style="vertical-align: middle;">Kesim No</th>
+                        <th rowspan="2" style="vertical-align: middle;">Kat Sayısı</th>
+                        <th colspan="@Math.Max(1, asortiObj.Count)">Bedenler</th>
+                        <th rowspan="2" style="vertical-align: middle;">Çıkan Adet</th>
+                        <th rowspan="2" style="vertical-align: middle;">Pastal Boyu</th>
+                        <th rowspan="2" style="vertical-align: middle;">Birim Metraj</th>
+                        <th rowspan="2" style="vertical-align: middle;">Tarih</th>
+                        <th rowspan="2" style="vertical-align: middle;">İşlem</th>
+                    </tr>
+                    <tr>
+                        @if (asortiObj.Count > 0) {
+                            foreach (var k in asortiObj.Keys) {
+                                <th>@k</th>
+                            }
+                        } else {
+                            <th>-</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody id="cuttingBodyAsorti">
+                </tbody>
+                <tbody id="cuttingEntryAsorti" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAsorti()" style="min-width: 60px; text-align: center; font-weight: bold;" /></td>
+                        @if (asortiObj.Count > 0) {
+                            foreach (var kvp in asortiObj) {
+                                <td style="vertical-align: middle;"><input type="number" id="txtAsortiSize_@kvp.Key" class="form-control form-control-sm asorti-input-row" data-size="@kvp.Key" data-asortivalue="@kvp.Value" value="@kvp.Value" readonly style="min-width: 50px; text-align: center; font-weight: bold; background: #f1f5f9; cursor: not-allowed;" /></td>
+                            }
+                        } else {
+                            <td style="vertical-align: middle;">-</td>
+                        }
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiTotal" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAsorti()" style="min-width: 70px; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="date" id="txtAsortiDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="min-width: 115px; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle; text-align: center;">
+                            <div style="display: flex; gap: 4px; justify-content: center;">
+                                <button class="btn btn-success btn-sm" onclick="saveAsortiRow()" title="Kaydet"><i class="fa-solid fa-check"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="$('#cuttingEntryAsorti').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot style="background: #f1f5f9; font-weight: bold;">
+                    <tr>
+                        <td colspan="@(6 + Math.Max(1, asortiObj.Count))" style="text-align: right; vertical-align: middle; color: #475569; padding-right: 20px;">ASORTİ TOPLAMI:</td>
+                        <td id="asortiTotalCut" style="font-size: 1.2rem; color: #0f172a; vertical-align: middle; text-align: center;">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="background: #e2e8f0; padding: 15px 20px; border-radius: 8px; margin-bottom: 30px; margin-top: 20px; text-align: right; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                <span style="font-size: 1.1rem; color: #334155; font-weight: bold; margin-right: 15px;">GENEL TOPLAM KESİM ADEDİ:</span>
+                <span id="grandTotalCut" style="font-size: 1.5rem; color: #0f172a; font-weight: 900;">0</span>
+            </div>
             <div class="text-end">
                 <button class="btn btn-success" onclick="saveCutting()"><i class="fa-solid fa-save"></i> Kesimleri Kaydet</button>
+                <button class="btn btn-primary" onclick="saveCutting(); switchTab('packing')" style="margin-left: 8px;">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
             </div>
         </div>
 
@@ -683,6 +837,9 @@
                 <div style="margin-top: 50px;">
                     <p style="border-top: 1px solid black; display: inline-block; padding-top: 5px;">ÜRETİCİ SORUMLUSU / İMZA</p>
                 </div>
+            </div>
+            <div class="text-end mt-3 mb-2">
+                <button class="btn btn-primary" onclick="switchTab('reports')">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
             </div>
         </div>
         
@@ -944,6 +1101,9 @@
                     </table>
                 </div>
             </div>
+            <div class="text-end mt-3 mb-2">
+                <button class="btn btn-primary" onclick="switchTab('purchase')">Başa Dön <i class="fa-solid fa-rotate-left" style="margin-left: 8px;"></i></button>
+            </div>
         </div>
     </div>
 </div>
@@ -956,12 +1116,14 @@
         let cuttingItems = @Html.Raw(string.IsNullOrEmpty(Model.CuttingProcessJson) ? "[]" : Model.CuttingProcessJson);
 
         $(document).ready(function() {
-            renderDispatchTable();
             renderCuttingTable();
             
             // Initial comparison calculation
             $('input[id^="actual_qty_"]').each(function() {
-                $(this).trigger('input');
+                var funcStr = $(this).attr('oninput');
+                if (funcStr) {
+                    eval(funcStr);
+                }
             });
         });
 
@@ -979,11 +1141,6 @@
             const actualInput = $('#actual_qty_' + materialId);
             const actualQty = parseFloat(actualInput.val()) || 0;
             const compSpan = $('#comp_' + materialId);
-            
-            if (actualQty === 0) {
-                compSpan.text("-").css({ 'background': '#f1f5f9', 'color': '#64748b' });
-                return;
-            }
             
             const diff = actualQty - plannedQty;
             if (Math.abs(diff) < 0.01) {
@@ -1039,49 +1196,119 @@
         }
 
         // --- TAB 3: KESİM SÜRECİ ---
-        function calculateCutting() {
-            const multiplier = parseFloat($('#txtCutMultiplier').val()) || 1;
-            const markerLength = parseFloat($('#txtMarkerLength').val()) || 0;
+        function toggleCutForm(type) {
+            if (type === 'AcikAdet') {
+                $('#cuttingEntryAcik').show();
+                calculateAcik();
+                setTimeout(function() { $('#txtAcikMultiplier').focus(); }, 100);
+            } else {
+                $('#cuttingEntryAsorti').show();
+                calculateAsorti();
+                setTimeout(function() { $('#txtAsortiMultiplier').focus(); }, 100);
+            }
+        }
+        
+        function calculateAcik() {
+            const multiplier = parseFloat($('#txtAcikMultiplier').val()) || 1;
+            const markerLength = parseFloat($('#txtAcikMarkerLength').val()) || 0;
             
             let totalQty = 0;
-            const sizes = {};
-            $('.cut-size-input').each(function() {
-                const sizeName = $(this).data('size');
+            $('.acik-adet-input-row').each(function() {
                 const val = parseFloat($(this).val()) || 0;
-                sizes[sizeName] = val;
-                totalQty += val;
+                totalQty += (val * multiplier);
             });
             
-            $('#txtCutTotal').val(totalQty);
-            
+            $('#txtAcikTotal').val(totalQty);
             if (totalQty > 0) {
-                const unitMet = (markerLength * multiplier) / totalQty;
-                $('#txtCutUnitMeterage').val(unitMet.toFixed(2));
+                $('#txtAcikUnitMeterage').val(((markerLength * multiplier) / totalQty).toFixed(2));
             } else {
-                $('#txtCutUnitMeterage').val('0');
+                $('#txtAcikUnitMeterage').val('0');
             }
         }
 
-        function addCuttingItem() {
-            const date = $('#txtCutDate').val();
-            const multiplier = parseFloat($('#txtCutMultiplier').val()) || 1;
-            const markerLength = parseFloat($('#txtMarkerLength').val()) || 0;
-            const totalQty = parseFloat($('#txtCutTotal').val()) || 0;
-            const unitMeterage = parseFloat($('#txtCutUnitMeterage').val()) || 0;
+        function calculateAsorti() {
+            const multiplier = parseFloat($('#txtAsortiMultiplier').val()) || 1;
+            const markerLength = parseFloat($('#txtAsortiMarkerLength').val()) || 0;
+            
+            let totalQty = 0;
+            $('.asorti-input-row').each(function() {
+                const asortiValue = parseFloat($(this).data('asortivalue')) || 0;
+                const calculatedValue = asortiValue * multiplier;
+                $(this).val(calculatedValue); 
+                totalQty += calculatedValue;
+            });
+            
+            $('#txtAsortiTotal').val(totalQty);
+            if (totalQty > 0) {
+                $('#txtAsortiUnitMeterage').val(((markerLength * multiplier) / totalQty).toFixed(2));
+            } else {
+                $('#txtAsortiUnitMeterage').val('0');
+            }
+        }
+        
+        function saveAcikRow() {
+            const date = $('#txtAcikDate').val();
+            const multiplier = parseFloat($('#txtAcikMultiplier').val()) || 1;
+            const markerLength = parseFloat($('#txtAcikMarkerLength').val()) || 0;
+            const totalQty = parseFloat($('#txtAcikTotal').val()) || 0;
+            const unitMeterage = parseFloat($('#txtAcikUnitMeterage').val()) || 0;
 
             if (totalQty <= 0) {
-                showToast("Lütfen en az bir beden için kesim adeti giriniz.", "warning");
+                showToast("Lütfen geçerli bir kesim değeri giriniz (toplam adet > 0 olmalı).", "warning");
                 return;
             }
 
             const sizes = {};
-            $('.cut-size-input').each(function() {
+            $('.acik-adet-input-row').each(function() {
                 const sizeName = $(this).data('size');
                 const val = parseFloat($(this).val()) || 0;
+                const calculatedValue = val * multiplier;
+                if(calculatedValue > 0) sizes[sizeName] = calculatedValue;
+            });
+            
+            _addCutToGlobalAndRender('Açık Adet', date, multiplier, sizes, totalQty, markerLength, unitMeterage);
+            
+            // Reset
+            $('.acik-adet-input-row').val('0');
+            $('#txtAcikMultiplier').val('1');
+            $('#cuttingEntryAcik').hide();
+            calculateAcik();
+        }
+
+        function saveAsortiRow() {
+            const date = $('#txtAsortiDate').val();
+            const multiplier = parseFloat($('#txtAsortiMultiplier').val()) || 1;
+            const markerLength = parseFloat($('#txtAsortiMarkerLength').val()) || 0;
+            const totalQty = parseFloat($('#txtAsortiTotal').val()) || 0;
+            const unitMeterage = parseFloat($('#txtAsortiUnitMeterage').val()) || 0;
+
+            if (totalQty <= 0) {
+                showToast("Lütfen geçerli bir kesim değeri giriniz (toplam adet > 0 olmalı).", "warning");
+                return;
+            }
+
+            const sizes = {};
+            $('.asorti-input-row').each(function() {
+                const sizeName = $(this).data('size');
+                const asortiValue = parseFloat($(this).data('asortivalue')) || 0;
+                const val = asortiValue * multiplier;
                 if(val > 0) sizes[sizeName] = val;
             });
+            
+            _addCutToGlobalAndRender('Asorti', date, multiplier, sizes, totalQty, markerLength, unitMeterage);
+            
+            // Reset
+            $('#txtAsortiMultiplier').val('1');
+            $('#cuttingEntryAsorti').hide();
+            calculateAsorti();
+        }
+
+        function _addCutToGlobalAndRender(cutType, date, multiplier, sizes, totalQty, markerLength, unitMeterage) {
+            const newCutName = "Kesim " + (cuttingItems.length + 1);
 
             cuttingItems.push({
+                CutName: newCutName,
+                CutType: cutType,
                 Date: date,
                 Multiplier: multiplier,
                 Sizes: sizes,
@@ -1091,33 +1318,94 @@
             });
 
             renderCuttingTable();
-            // Reset
-            $('.cut-size-input').val('0');
-            calculateCutting();
         }
 
         function removeCuttingItem(index) {
             cuttingItems.splice(index, 1);
+            
+            // Numaraları Yeniden Sırala
+            cuttingItems.forEach((item, idx) => {
+                item.CutName = "Kesim " + (idx + 1);
+            });
+            
             renderCuttingTable();
         }
 
         function renderCuttingTable() {
-            let html = '';
+            let htmlAcik = '';
+            let htmlAsorti = '';
+            let acikTotal = 0;
+            let asortiTotal = 0;
+            let grandTotal = 0;
+            
             cuttingItems.forEach((item, index) => {
-                let sizesStr = Object.entries(item.Sizes).map(([k, v]) => `${k}:${v}`).join(', ');
-                html += `
-                    <tr>
-                        <td>${item.Date}</td>
-                        <td>${item.Multiplier}</td>
-                        <td><small>${sizesStr}</small></td>
-                        <td><strong>${item.TotalQuantity}</strong></td>
-                        <td>${item.MarkerLength}</td>
-                        <td>${item.UnitMeterage}</td>
-                        <td><button class="btn btn-sm btn-danger" onclick="removeCuttingItem(${index})"><i class="fa-solid fa-trash"></i></button></td>
+                let cutName = item.CutName || `Kesim ${index + 1}`;
+                let cutTypeLabel = item.CutType || 'Açık Adet';
+                let isAsorti = cutTypeLabel === 'Asorti';
+                let sizesArr = isAsorti ? (typeof asortiSizesArr !== 'undefined' ? asortiSizesArr : []) : (typeof acikSizesArr !== 'undefined' ? acikSizesArr : []);
+                
+                let sizesHtml = '';
+                if (sizesArr && sizesArr.length > 0) {
+                    sizesArr.forEach(s => {
+                        let val = item.Sizes && item.Sizes[s] ? item.Sizes[s] : 0;
+                        let displayVal = val;
+                        if (item.Multiplier && item.Multiplier > 0) {
+                            displayVal = val / item.Multiplier;
+                        }
+                        if (displayVal % 1 !== 0) {
+                            displayVal = displayVal.toFixed(2);
+                        }
+                        sizesHtml += `<td style="vertical-align: middle; text-align: center; color: #475569; font-weight: 500;">${displayVal}</td>`;
+                    });
+                } else {
+                    sizesHtml = `<td style="vertical-align: middle; text-align: center; color: #475569;">-</td>`;
+                }
+                
+                let qty = item.TotalQuantity || 0;
+                grandTotal += qty;
+                
+                let rowHtml = `
+                    <tr style="background: white; text-align: center;">
+                        <td style="font-weight: 700; color: #1e293b; vertical-align: middle;">${cutName}</td>
+                        <td style="vertical-align: middle;">${item.Multiplier}</td>
+                        ${sizesHtml}
+                        <td style="vertical-align: middle;"><strong style="color: #0f172a; font-size: 1.1rem;">${qty}</strong></td>
+                        <td style="vertical-align: middle;">${item.MarkerLength}</td>
+                        <td style="vertical-align: middle;">${item.UnitMeterage}</td>
+                        <td style="vertical-align: middle;">${item.Date}</td>
+                        <td style="vertical-align: middle;"><button class="btn btn-sm btn-danger" onclick="removeCuttingItem(${index})"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
                 `;
+                
+                if (isAsorti) {
+                    htmlAsorti += rowHtml;
+                    asortiTotal += qty;
+                } else {
+                    htmlAcik += rowHtml;
+                    acikTotal += qty;
+                }
             });
-            $('#cuttingBody').html(html);
+            
+            $('#cuttingBodyAcik').html(htmlAcik);
+            $('#acikTotalCut').text(acikTotal.toLocaleString('tr-TR'));
+            
+            $('#cuttingBodyAsorti').html(htmlAsorti);
+            $('#asortiTotalCut').text(asortiTotal.toLocaleString('tr-TR'));
+            
+            $('#grandTotalCut').text(grandTotal.toLocaleString('tr-TR'));
+
+            // Sipariş limit kontrolü
+            let orderQty = @(Model.Quantity);
+            let remaining = orderQty - grandTotal;
+            if (remaining > 0) {
+                $('#divRemainingCut').css('color', '#166534').html(`Kalan İhtiyaç: <strong id="lblRemainingQty">${remaining}</strong> Adet`);
+                $('#btnEkleKesim').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary').html('<i class="fa-solid fa-plus" style="margin-right:4px;"></i> Kesim Ekle');
+            } else {
+                let excess = Math.abs(remaining);
+                let text = excess > 0 ? `Hedef Tamamlandı! (Fazla: ${excess} Adet)` : `Hedef Tamamlandı!`;
+                $('#divRemainingCut').css('color', '#15803d').html(`<i class="fa-solid fa-circle-check" style="margin-right: 5px;"></i> <strong>${text}</strong>`);
+                $('#btnEkleKesim').prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary').html('<i class="fa-solid fa-lock" style="margin-right:4px;"></i> Kilitli');
+            }
         }
 
         function saveCutting() {

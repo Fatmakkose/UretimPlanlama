@@ -211,8 +211,8 @@ namespace UretimPlanlama.Controllers
 
                 _context.SaveChanges();
 
-                TempData["SuccessMessage"] = "Üretim planı başarıyla kaydedildi. Gerçekleşen (Takip) sayfasına yönlendirildiniz.";
-                return RedirectToAction("Tracking", new { selectedId = order.Id });
+                TempData["SuccessMessage"] = "Üretim planı başarıyla kaydedildi. Süreç Takip sayfasına yönlendirildiniz.";
+                return RedirectToAction("Track", "ProcessTracking", new { id = order.Id });
             }
             return NotFound();
         }

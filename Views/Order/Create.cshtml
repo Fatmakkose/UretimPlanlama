@@ -12,6 +12,17 @@
                           radial-gradient(at 100% 100%, hsla(208,100%,96%,0.8) 0px, transparent 50%) !important;
     }
 
+    /* Beden dağılımı inputlarının okunabilirliği */
+    .no-spinner::-webkit-inner-spin-button, 
+    .no-spinner::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .no-spinner {
+        -moz-appearance: textfield;
+        padding: 2px 4px !important;
+    }
+
     /* Premium Card overrides */
     .premium-wrapper {
         background: rgba(255, 255, 255, 0.95);
@@ -370,7 +381,6 @@
                     <div class="stok-detaylari" style="display:none; border-top: 1px dashed #cbd5e1; padding-top: 16px; margin-top: 0;"></div>
                 </div>
             `;
-            $('.stok-detaylari').slideUp(300);
             $('#stockMaterialsContainer').append(trHtml);
             
             var newSelect = $('#stockMaterialsContainer').find('.stock-material-row:last .sm-stokkarti');
@@ -381,6 +391,7 @@
         }
 
         $(document).on('click', '#btnAddStockMaterial', function() {
+            $('#stockMaterialsContainer .stok-detaylari').slideUp(200);
             addStockMaterialRow();
         });
 
@@ -518,8 +529,7 @@
                     detayHtml += `</div>`;
                 }
                 
-                $('.stok-detaylari').not(detayDiv).slideUp(300);
-                detayDiv.html(detayHtml).hide().slideDown(300);
+                detayDiv.html(detayHtml).show();
                 if (isCalculable) {
                     row.find('.sm-calc-trigger').first().trigger('input');
                 }
@@ -1198,6 +1208,10 @@
                     });
                 }, 3000);
             }
+
+
+            // Stok kalemlerine mouse ile gelindiğinde tıklanabilir olduğunu göster.
+            $("<style type='text/css'> .stock-material-row:hover { cursor: pointer; border-color: #94a3b8 !important; } .stok-detaylari { cursor: default; } </style>").appendTo("head");
         });
     </script>
 }

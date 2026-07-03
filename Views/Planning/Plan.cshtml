@@ -521,7 +521,7 @@
                         var stok = stokKartlari.FirstOrDefault(x => x.Id == mat.StokKartiId);
                         if (stok != null) {
                             var miktar = mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                            var key = "stk_" + stok.Id.ToString();
+                            var key = "stk_" + stok.Id.ToString() + "_" + mat.Id.ToString();
                             var m = new { Name = stok.StokAdi, DefaultUnit = miktar, Key = key, Stok = stok, OrderOzelliklerJson = mat.OzelliklerJson, Aciklama = mat.Aciklama };
                             
                             var cat = (stok.Kategori ?? "").Trim().ToUpperInvariant();
@@ -1378,6 +1378,51 @@ document.getElementById('colorPanesContainer')?.addEventListener('input', functi
     }
 });
 
+    // Güzel bir uyarı ve onay penceresi (SweetAlert benzeri)
+    function showBeautifulAlert(message, type = 'warning') {
+        $("#beautifulAlertOverlay").remove();
+        var icon = type === 'warning' ? '<i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:#eab308; margin-bottom:15px;"></i>' : '<i class="fa-solid fa-circle-exclamation" style="font-size:3rem; color:#dc2626; margin-bottom:15px;"></i>';
+        var overlay = $('<div id="beautifulAlertOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); opacity:0; transition:opacity 0.3s;">' +
+            '<div style="background:#fff; padding:30px 40px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); text-align:center; max-width:450px; transform:scale(0.9); transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">' +
+            icon +
+            '<h3 style="margin:0 0 10px 0; color:#1e293b; font-size:1.25rem; font-weight:700;">Uyarı</h3>' +
+            '<p style="color:#475569; font-size:1rem; margin-bottom:25px; line-height:1.5;">' + message + '</p>' +
+            '<button onclick="$(\'#beautifulAlertOverlay\').css(\'opacity\',\'0\').find(\'div\').css(\'transform\',\'scale(0.9)\'); setTimeout(function(){ $(\'#beautifulAlertOverlay\').remove(); }, 300)" style="background:#2563eb; color:#fff; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background=\'#1d4ed8\'" onmouseout="this.style.background=\'#2563eb\'">Tamam, Anladım</button>' +
+            '</div></div>');
+        $("body").append(overlay);
+        // Force reflow and animate
+        overlay[0].offsetHeight;
+        overlay.css('opacity', '1').find('div').css('transform', 'scale(1)');
+    }
+
+    function showBeautifulConfirm(message, onConfirm) {
+        $("#beautifulConfirmOverlay").remove();
+        var overlay = $('<div id="beautifulConfirmOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); opacity:0; transition:opacity 0.3s;">' +
+            '<div style="background:#fff; padding:30px 40px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); text-align:center; max-width:450px; transform:scale(0.9); transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">' +
+            '<i class="fa-solid fa-circle-question" style="font-size:3rem; color:#3b82f6; margin-bottom:15px;"></i>' +
+            '<h3 style="margin:0 0 10px 0; color:#1e293b; font-size:1.25rem; font-weight:700;">Emin misiniz?</h3>' +
+            '<p style="color:#475569; font-size:1rem; margin-bottom:25px; line-height:1.5;">' + message + '</p>' +
+            '<div style="display:flex; justify-content:center; gap:12px;">' +
+            '<button id="btnConfirmCancel" style="background:#e2e8f0; color:#475569; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background=\'#cbd5e1\'" onmouseout="this.style.background=\'#e2e8f0\'">İptal</button>' +
+            '<button id="btnConfirmOk" style="background:#2563eb; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background=\'#1d4ed8\'" onmouseout="this.style.background=\'#2563eb\'">Evet, Devam Et</button>' +
+            '</div></div></div>');
+        
+        $("body").append(overlay);
+        overlay[0].offsetHeight;
+        overlay.css('opacity', '1').find('div').css('transform', 'scale(1)');
+
+        var close = function() {
+            overlay.css('opacity', '0').find('div').css('transform', 'scale(0.9)');
+            setTimeout(function() { overlay.remove(); }, 300);
+        };
+
+        $('#btnConfirmCancel').click(function() { close(); });
+        $('#btnConfirmOk').click(function() {
+            close();
+            onConfirm();
+        });
+    }
+
 document.addEventListener('DOMContentLoaded', function() {
     calculateMRP();
 
@@ -1407,7 +1452,7 @@ document.addEventListener('DOMContentLoaded', function() {
         checkbox.addEventListener('change', function(e) {
             if (this.checked) {
                 if (checkEmptyFields()) {
-                    alert("Tüm alanlar doldurulmadan " + phaseName + " tamamlandı olarak işaretlenemez. Lütfen boş alanları doldurunuz.");
+                    showBeautifulAlert("Tüm alanlar doldurulmadan " + phaseName + " tamamlandı olarak işaretlenemez. Lütfen boş alanları doldurunuz.");
                     this.checked = false;
                 }
             }
@@ -1417,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var isCompleted = checkbox.checked;
             if (isCompleted) {
                 if (checkEmptyFields()) {
-                    alert("Tüm alanlar doldurulmadan " + phaseName + " tamamlandı olarak işaretlenemez. Plan kaydedilecek ancak tamamlandı işareti kaldırılacaktır.");
+                    showBeautifulAlert("Tüm alanlar doldurulmadan " + phaseName + " tamamlandı olarak işaretlenemez. Plan kaydedilecek ancak tamamlandı işareti kaldırılacaktır.");
                     checkbox.checked = false;
                     isCompleted = false;
                 }
@@ -1427,11 +1472,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formId === 'purchasing-form') {
                 var hasMissingEl = document.getElementById('pur_has_missing_materials');
                 var hasMissing = hasMissingEl ? hasMissingEl.value === "true" : false;
-                if (hasMissing && isCompleted) {
-                    var result = confirm("Dikkat: Bu siparişte eksik malzemeler bulunmaktadır. Yine de Satın Alma aşamasını tamamlanmış olarak işaretlemek istiyor musunuz?");
-                    if (!result) {
-                        e.preventDefault();
-                    }
+                if (hasMissing && isCompleted && !form.dataset.confirmed) {
+                    e.preventDefault();
+                    showBeautifulConfirm("Dikkat: Bu siparişte eksik malzemeler bulunmaktadır. Yine de Satın Alma aşamasını tamamlanmış olarak işaretlemek istiyor musunuz?", function() {
+                        form.dataset.confirmed = 'true';
+                        form.submit();
+                    });
                 }
             }
         });

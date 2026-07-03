@@ -13,6 +13,17 @@
         background-color: #f8fafc;
     }
 
+    /* Beden dağılımı inputlarının okunabilirliği */
+    .edit-dyn-size-input::-webkit-inner-spin-button, 
+    .edit-dyn-size-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .edit-dyn-size-input {
+        -moz-appearance: textfield;
+        padding: 2px 4px !important;
+    }
+
     /* Excel Table Styles */
     .excel-table {
         width: 100%;
@@ -545,9 +556,9 @@
                             </datalist>
                         </div>
                         <div class="form-group">
-                            <label style="display:flex; justify-content:space-between; align-items:center;">
-                                <span>Model Detay</span>
-                                <button type="button" onclick="openEditModelDetailModal()" style="padding:2px 8px; border:1px solid var(--primary-color); background:#e0f2fe; color:var(--primary-color); font-size:0.75rem; font-weight:600; cursor:pointer; border-radius:4px;"><i class="fa-solid fa-list-check" style="margin-right:4px;"></i>Aksesuar/Tela</button>
+                            <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span style="font-size:0.8rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">Model Detay</span>
+                                <button type="button" onclick="openEditModelDetailModal()" style="padding:4px 12px; border:none; background:linear-gradient(135deg, #e0f2fe, #bae6fd); color:#0284c7; font-size:0.75rem; font-weight:700; cursor:pointer; border-radius:8px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1); transition: all 0.2s; display:flex; align-items:center; gap:6px;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 6px rgba(2, 132, 199, 0.15)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(2, 132, 199, 0.1)'"><i class="fa-solid fa-list-check"></i> Model Detayı Düzenle</button>
                             </label>
                             <input name="GoodsDescription" id="editGoodsDescription" class="form-control" placeholder="Örn: Örme Erkek Sweatshirt" />
                         </div>
@@ -737,9 +748,9 @@
                     $(this).find('.sm-dyn-prop').each(function() {
                         var key = $(this).data('key');
                         var val = $(this).val();
-                        if (key && val) {
+                        if (key !== undefined && val !== undefined) {
                             ozellikler.push({ Key: key, Value: val });
-                            if (!["HESAP ADETİ", "BİRİM KULLANIM", "FİRE (%)", "BİRİM METRAJ", "TOPLAM SİPARİŞ", "AÇIK ADET", "BİRİM ASORTİ", "LOT BAŞI BEDEN", "TELA BİRİM", "GRAM", "RENK"].includes(key.toUpperCase())) {
+                            if (!["HESAP ADETİ", "BİRİM KULLANIM", "FİRE (%)", "BİRİM METRAJ", "TOPLAM SİPARİŞ", "AÇIK ADET", "BİRİM ASORTİ", "LOT BAŞI BEDEN", "TELA BİRİM", "GRAM", "RENK"].includes((key + "").toUpperCase())) {
                                 propStrs.push(key + ": " + val);
                             }
                         }
@@ -808,6 +819,7 @@
             }
 
             $(document).on('click', '#btnEditAddStockMaterial', function() {
+                $('#editStockMaterialsContainer .stok-detaylari').slideUp(200);
                 editAddStockMaterialRow();
             });
 
@@ -949,8 +961,8 @@
                         detayHtml += `</div>`;
                     }
                     
-                    $('.stok-detaylari').not(detayDiv).slideUp(300);
-                    detayDiv.html(detayHtml).hide().slideDown(300);
+                    $('.stok-detaylari').not(detayDiv).slideUp(200);
+                    detayDiv.html(detayHtml).hide().slideDown(200);
                     if (isCalculable) row.find('.sm-calc-trigger').first().trigger('input');
                 } else {
                     detayDiv.hide().empty();
@@ -1000,12 +1012,17 @@
             });
 
             $(document).on('click', '.stock-material-row', function(e) {
-                if ($(e.target).closest('.btnRemoveStockMaterial, .btnEditRemoveStockMaterial').length > 0) return;
-                var detayDiv = $(this).find('.stok-detaylari');
-                if (detayDiv.is(':visible') || detayDiv.children().length === 0) return;
+                if ($(e.target).closest('.btnRemoveStockMaterial, .btnEditRemoveStockMaterial, .select2-container, .sm-stokkarti, .stok-detaylari').length > 0) return;
                 
-                $('.stok-detaylari').not(detayDiv).slideUp(300);
-                detayDiv.slideDown(300);
+                var detayDiv = $(this).find('.stok-detaylari');
+                if (detayDiv.children().length === 0) return;
+                
+                if (detayDiv.is(':visible')) {
+                    detayDiv.slideUp(200);
+                } else {
+                    $('.stok-detaylari').not(detayDiv).slideUp(200);
+                    detayDiv.slideDown(200);
+                }
             });
 
             $(document).ready(function() {
@@ -1620,13 +1637,31 @@
                                 $('#editStockMaterialsContainer').empty();
                                 if (order.orderMaterialsJson) {
                                     try {
+                                        console.log("Raw OrderMaterialsJson:", order.orderMaterialsJson);
                                         var mats = JSON.parse(order.orderMaterialsJson);
+                                        console.log("Parsed mats:", mats);
                                         mats.forEach(mat => {
-                                            var ozObj = {};
-                                            if(mat.OzelliklerJson) { try { ozObj = JSON.parse(mat.OzelliklerJson); }catch(e){} }
-                                            editAddStockMaterialRow(mat.StokKartiId, mat.Miktar, mat.Aciklama, ozObj);
+                                            try {
+                                                var ozObj = {};
+                                                var ozJson = mat.OzelliklerJson || mat.ozelliklerJson;
+                                                if (ozJson) {
+                                                    if (typeof ozJson === 'string') {
+                                                        try { ozObj = JSON.parse(ozJson); } catch(e){}
+                                                    } else {
+                                                        ozObj = ozJson;
+                                                    }
+                                                }
+                                                var sId = mat.StokKartiId || mat.stokKartiId;
+                                                var mik = mat.Miktar !== undefined ? mat.Miktar : (mat.miktar || '');
+                                                var acik = mat.Aciklama || mat.aciklama || '';
+                                                editAddStockMaterialRow(sId, mik, acik, ozObj);
+                                            } catch(err) {
+                                                console.error("Error adding material row:", err, mat);
+                                            }
                                         });
-                                    } catch(e){}
+                                    } catch(e) {
+                                        console.error("Error parsing orderMaterialsJson:", e);
+                                    }
                                 }
                                 var revizeTermin = "";
                                 if (order.productionJson) {
