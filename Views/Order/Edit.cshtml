@@ -1,0 +1,707 @@
+@model UretimPlanlama.Models.Order
+@{
+    ViewData["Title"] = "Sipariş Güncelleme";
+}
+
+<style>
+    /* Global Page Background Enhancement */
+    body {
+        background: #f4f7fe !important;
+        background-image: radial-gradient(at 0% 0%, hsla(217,100%,94%,0.8) 0px, transparent 50%),
+                          radial-gradient(at 100% 100%, hsla(208,100%,96%,0.8) 0px, transparent 50%) !important;
+    }
+
+    /* Premium Card overrides */
+    .premium-wrapper {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0,0,0,0.02);
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    /* Inputs Enhancement */
+    .form-control {
+        background-color: #f8fafc !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        font-size: 0.95rem !important;
+        color: #1e293b !important;
+        font-weight: 500 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .form-control:hover {
+        border-color: #cbd5e1 !important;
+        background-color: #ffffff !important;
+    }
+
+    .form-control:focus {
+        background-color: #ffffff !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+        outline: none !important;
+    }
+
+    /* Buttons Enhancement */
+    .btn-planner {
+        background: #0f3057 !important;
+        color: white !important;
+        border: none !important;
+        padding: 10px 24px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-planner:hover {
+        background: #1a4a85 !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .btn-secondary {
+        background: #ffffff !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 10px 24px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+    }
+
+    .btn-outline {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-outline:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    /* Section Labels */
+    label {
+        font-weight: 600 !important;
+        color: #475569 !important;
+        margin-bottom: 6px !important;
+        font-size: 0.85rem !important;
+        display: block;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        color: #0f3057;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .breadcrumb {
+        font-size: 0.85rem;
+        color: #0f3057;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .breadcrumb span {
+        color: #64748b;
+    }
+
+    .materials-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    .materials-table th {
+        background: #f8fafc;
+        padding: 12px 16px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #475569;
+        text-align: left;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .materials-table td {
+        padding: 24px 16px;
+        vertical-align: top;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .badge-kumas { background: #dcfce7; color: #16a34a; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-block;}
+    .badge-aksesuar { background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-block;}
+    .badge-tela { background: #e0e7ff; color: #4f46e5; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; display: inline-block;}
+
+    .color-circle {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+
+    /* Select2 Alignment Fix */
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        padding-left: 16px !important;
+        line-height: 2 !important;
+        color: #0f3057 !important;
+        font-weight: 700 !important;
+        font-size: 1.05rem !important;
+    }
+    .select2-container .select2-selection--single {
+        height: auto !important;
+        padding: 8px 0 !important;
+        border: 2px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        background-color: #f8fafc !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    }
+    .mat-stokkarti {
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        color: #0f3057 !important;
+        border: 2px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        background-color: #f8fafc !important;
+        padding: 10px 14px !important;
+        height: auto !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+    }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h1 style="font-size: 1.6rem; margin: 0; color: #0f3057; font-weight: 700;">Sipariş Güncelleme</h1>
+</div>
+
+<div class="breadcrumb">
+    Üretim <span>›</span> Siparişler <span>›</span> <b style="color: #0f3057;">Sipariş Güncelle</b>
+</div>
+
+<form id="editOrderFormFull">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <input type="hidden" id="orderMaterialsJson" name="OrderMaterialsJson" value='@Html.Raw(Model.OrderMaterialsJson)' />
+    <!-- Preserve unedited fields for the existing POST action -->
+    <input type="hidden" name="Quantity" value="@Model.Quantity" />
+    <input type="hidden" name="FabricSupplier" value="@Model.FabricSupplier" />
+
+    <div class="premium-wrapper">
+        <h3 class="section-title">
+            <i class="fa-solid fa-circle-info" style="color: #0f3057;"></i> Genel Bilgiler
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Sipariş Tarihi</label>
+                <input name="OrderDate" class="form-control" type="date" required value="@Model.OrderDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group">
+                <label>Sipariş Kodu (PO)</label>
+                <input name="OrderCode" class="form-control" required value="@Model.OrderCode" />
+            </div>
+            <div class="form-group">
+                <label>Müşteri (Buyer)</label>
+                <select name="Customer" class="form-control" required>
+                    <option value="">-- Müşteri Seçin --</option>
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (var c in (List<UretimPlanlama.Models.Customer>)ViewBag.Customers)
+                        {
+                            if (Model.Customer == c.Name)
+                            {
+                                <option value="@c.Name" selected>@c.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@c.Name">@c.Name</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Model Adı</label>
+                <input name="ModelName" class="form-control" required value="@Model.ModelName" />
+            </div>
+            <div class="form-group">
+                <label>Marka</label>
+                <select name="Brand" class="form-control">
+                    <option value="">-- Marka Seçin --</option>
+                    @if (ViewBag.Brands != null)
+                    {
+                        foreach (var brand in (List<UretimPlanlama.Models.Brand>)ViewBag.Brands)
+                        {
+                            if (Model.Brand == brand.Name)
+                            {
+                                <option value="@brand.Name" selected>@brand.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@brand.Name">@brand.Name</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Renk</label>
+                <input list="editColorOptions" name="Color" class="form-control" placeholder="Renk Seçin veya Yazın" required value="@Model.Color" autocomplete="off" />
+                <datalist id="editColorOptions">
+                    @if (ViewBag.Colors != null)
+                    {
+                        foreach (var c in (List<UretimPlanlama.Models.ColorDef>)ViewBag.Colors)
+                        {
+                            <option value="@c.Name">@c.Name</option>
+                        }
+                    }
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label>Termin Tarihi</label>
+                <input name="PlannedPackagingEndDate" class="form-control" type="date" value="@(Model.PlannedPackagingEndDate?.ToString("yyyy-MM-dd") ?? "")" />
+            </div>
+            <div class="form-group">
+                <label>Revize Termin Tarihi</label>
+                @{
+                    string revizeTermin = "";
+                    if (!string.IsNullOrEmpty(Model.ProductionJson)) {
+                        try {
+                            var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.ProductionJson);
+                            if (dict != null && dict.ContainsKey("prod_knn_revize_termin")) {
+                                revizeTermin = dict["prod_knn_revize_termin"];
+                            }
+                        } catch {}
+                    }
+                }
+                <input id="revizeTerminInput" class="form-control" type="date" value="@revizeTermin" />
+                <input type="hidden" id="hiddenProductionJson" name="ProductionJson" value='@Html.Raw(Model.ProductionJson ?? "{}")' />
+            </div>
+        </div>
+    </div>
+
+    <div class="premium-wrapper">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 class="section-title" style="margin-bottom: 0; border: none; padding: 0;">
+                <i class="fa-solid fa-box-archive" style="color: #0f3057;"></i> Model ve Aksesuar Detayları
+            </h3>
+            <button type="button" class="btn-outline" id="btnAddRow">
+                <i class="fa-solid fa-plus"></i> Yeni Satır Ekle
+            </button>
+        </div>
+
+        <table class="materials-table">
+            <thead>
+                <tr>
+                    <th style="width: 50%; text-transform: uppercase; font-size: 0.75rem; color: #94a3b8; font-weight: 700;">Stok Kartı (Arama/Seçim)</th>
+                    <th style="width: 20%; text-transform: uppercase; font-size: 0.75rem; color: #94a3b8; font-weight: 700;">Kategori</th>
+                    <th style="width: 20%; text-transform: uppercase; font-size: 0.75rem; color: #94a3b8; font-weight: 700;">Birim Bilgisi</th>
+                    <th style="width: 10%; text-align: center; text-transform: uppercase; font-size: 0.75rem; color: #94a3b8; font-weight: 700;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody id="materialsBody">
+                <!-- Rows will be added dynamically -->
+            </tbody>
+        </table>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            <div style="font-size: 0.9rem; color: #64748b;">
+                Toplam <span id="totalItemsCount" style="font-weight: 700; color: #1e293b;">0</span> kalem ürün listeleniyor.
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="handleCancel()" class="btn-secondary" style="text-decoration:none;">Vazgeç</button>
+                <button type="button" id="btnSubmitFullEdit" class="btn-planner"><i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stok Kartları Datası (JS İçin) -->
+    <div id="stokKartlariData" style="display:none;" data-list='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StokKartlari, new System.Text.Json.JsonSerializerOptions { ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles }))'></div>
+</form>
+
+@section Scripts {
+    <script>
+        let stokKartlariList = [];
+        try {
+            const rawData = $('#stokKartlariData').attr('data-list');
+            if (rawData) stokKartlariList = JSON.parse(rawData);
+        } catch (e) { console.error('Stok kartları yüklenirken hata:', e); }
+
+        let currentMaterials = [];
+        try {
+            const matJson = $('#orderMaterialsJson').val();
+            if (matJson && matJson !== '[]') {
+                currentMaterials = JSON.parse(matJson);
+            }
+        } catch(e) {}
+
+        function getCategoryBadge(kategori) {
+            if (!kategori) return '-';
+            const cat = kategori.trim().toUpperCase();
+            if (cat === "KUMAŞ" || cat === "KUMAS") return '<span class="badge-kumas">KUMAŞ</span>';
+            if (cat === "AKSESUAR" || cat === "MALZEME") return '<span class="badge-aksesuar">AKSESUAR</span>';
+            if (cat === "TELA") return '<span class="badge-tela">TELA</span>';
+            if (cat === "ETİKET" || cat === "ETIKET") return '<span class="badge-aksesuar" style="background:#fef3c7; color:#d97706;">ETİKET</span>';
+            return '<span class="badge-aksesuar">' + kategori + '</span>';
+        }
+
+        function getColorDot(renk) {
+            if (!renk) return '';
+            const r = renk.toLowerCase();
+            let hex = '#cbd5e1';
+            if (r.includes('navy') || r.includes('lacivert')) hex = '#1e3a8a';
+            else if (r.includes('siyah') || r.includes('black')) hex = '#0f172a';
+            else if (r.includes('beyaz') || r.includes('white') || r.includes('ekru')) hex = '#ffffff';
+            else if (r.includes('kırmızı') || r.includes('red')) hex = '#dc2626';
+            else if (r.includes('mavi') || r.includes('blue')) hex = '#3b82f6';
+            else if (r.includes('yeşil') || r.includes('green')) hex = '#16a34a';
+            
+            const border = hex === '#ffffff' ? 'border: 1px solid #e2e8f0;' : '';
+            return `<div class="color-circle" style="background-color: ${hex}; ${border}"></div>`;
+        }
+
+        function addMaterialRow(mat = null) {
+            let optionsHtml = '<option value="">-- Arama / Seçim --</option>';
+            stokKartlariList.forEach(s => {
+                const selected = (mat && mat.StokKartiId === s.Id) ? 'selected' : '';
+                optionsHtml += `<option value="${s.Id}" ${selected}>${s.StokAdi} (${s.StokKodu})</option>`;
+            });
+
+            const miktar = mat ? mat.Miktar : '';
+            
+            // Try to extract color from OzelliklerJson if exists
+            let renkVal = '';
+            if (mat && mat.OzelliklerJson) {
+                try {
+                    let ozProps = JSON.parse(mat.OzelliklerJson);
+                    let colorProp = ozProps.find(p => p.Key.toUpperCase() === 'RENK');
+                    if(colorProp) renkVal = colorProp.Value;
+                } catch(e) {}
+            }
+
+            const trHtml = `
+                <tr class="material-row">
+                    <td style="vertical-align: top;">
+                        <div style="position: relative;">
+                            <select class="form-control mat-stokkarti" style="width:100%; padding-left: 14px; background: white !important;">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                        <div class="stok-detaylari" style="margin-top: 10px;"></div>
+                        <input type="hidden" class="mat-ozellikler" value="${mat && mat.OzelliklerJson ? encodeURIComponent(mat.OzelliklerJson) : ''}" />
+                        <input type="hidden" class="mat-aciklama" value="${mat && mat.Aciklama ? mat.Aciklama : ''}" />
+                        <input type="hidden" class="mat-miktar" value="${miktar}" />
+                        <input type="hidden" class="mat-renk-input" value="${renkVal}" />
+                    </td>
+                    <td class="mat-kategori-cell" style="vertical-align: top; padding-top: 20px;">-</td>
+                    <td class="mat-birim-cell" style="font-weight: 600; color: #475569; vertical-align: top; padding-top: 20px;">-</td>
+                    <td style="text-align: center; vertical-align: top; padding-top: 20px;">
+                        <button type="button" class="btnRemoveRow" style="background: transparent; color: #ef4444; border: none; font-size: 1.1rem; cursor: pointer; padding: 6px 10px; transition: all 0.2s;"><i class="fa-regular fa-trash-can"></i></button>
+                    </td>
+                </tr>
+            `;
+            $('#materialsBody').append(trHtml);
+            updateRowCount();
+            
+            const newRow = $('#materialsBody').find('.material-row:last');
+            if (mat) {
+                newRow.find('.mat-stokkarti').trigger('change');
+            }
+            
+            // Try initializing select2 if available
+            if(typeof $.fn.select2 !== 'undefined') {
+                 newRow.find('.mat-stokkarti').select2({ width: '100%' });
+            }
+        }
+
+        $(document).on('change', '.mat-stokkarti', function() {
+            const stokId = $(this).val();
+            const row = $(this).closest('.material-row');
+            const detayDiv = row.find('.stok-detaylari');
+            
+            if (stokId) {
+                const stok = stokKartlariList.find(s => s.Id == stokId);
+                if (stok) {
+                    row.find('.mat-kategori-cell').html(getCategoryBadge(stok.Kategori));
+                    row.find('.mat-birim-cell').text(stok.Birim || '-');
+
+                    // Kategoriye özel dinamik alanlar (Create.cshtml mantığı)
+                    let initProps = {};
+                    let existingOzStr = decodeURIComponent(row.find('.mat-ozellikler').val() || '');
+                    if (existingOzStr) {
+                        try {
+                            let parsed = JSON.parse(existingOzStr);
+                            parsed.forEach(p => { initProps[p.Key.toUpperCase()] = p.Value; });
+                        } catch(e){}
+                    }
+
+                    const cat = (stok.Kategori || "").trim().toUpperCase();
+                    let calcFields = [];
+                    let isCalculable = false;
+
+                    if (cat === "KUMAŞ" || cat === "KUMAS") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "BİRİM METRAJ", Type: "number", Def: "" });
+                    } else if (cat === "MALZEME" || cat === "AKSESUAR") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "BİRİM KULLANIM", Type: "number", Def: "" });
+                        calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
+                        
+                        const stokAdi = (stok.StokAdi || "").toUpperCase();
+                        if (stokAdi.includes("DÜĞME") || stokAdi.includes("DUGME")) {
+                            calcFields.push({ Key: "BOYUT", Type: "select", Def: "14L,16L,18L,20L,24L,28L,32L,36L,40L,44L" });
+                        }
+                    } else if (cat === "ETİKET" || cat === "ETIKET") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
+                    } else if (cat === "TELA") {
+                        isCalculable = true;
+                        calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.010,0.015,0.020,0.025,0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080,0.090,0.100,0.120,0.150,0.200" });
+                        calcFields.push({ Key: "GRAM", Type: "select", Def: "10,15,20,25,30,35,40,45,50,55,60,65,70,80,90,100,115,120,130,140,150" });
+                    }
+
+                    if (stok.OzelliklerJson) {
+                        try {
+                            let sProps = JSON.parse(stok.OzelliklerJson);
+                            if (Array.isArray(sProps)) {
+                                sProps.forEach(sp => {
+                                    if (sp.Key) {
+                                        let existingIdx = calcFields.findIndex(cf => cf.Key.toUpperCase() === sp.Key.toUpperCase());
+                                        if (existingIdx > -1) {
+                                            calcFields[existingIdx] = { Key: sp.Key.toUpperCase(), Type: sp.Type || 'text', Def: sp.Value || '' };
+                                        } else {
+                                            calcFields.push({ Key: sp.Key.toUpperCase(), Type: sp.Type || 'text', Def: sp.Value || '' });
+                                        }
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                    }
+
+                    if (calcFields.length > 0) {
+                        let detayHtml = `<div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 12px;">`;
+                        calcFields.forEach(f => {
+                            let pVal = initProps[f.Key] !== undefined ? initProps[f.Key] : (f.Def || "");
+                            let inputHtml = "";
+                            if (f.Type === 'select') {
+                                let opts = f.Def.split(',');
+                                inputHtml = `<select class="form-control mat-dyn-prop" data-key="${f.Key}" style="padding: 6px 10px; font-size:0.75rem; width:100%;">
+                                                <option value="">Seçiniz</option>`;
+                                opts.forEach(o => {
+                                    let sel = (o.trim() === pVal) ? 'selected' : '';
+                                    inputHtml += `<option value="${o.trim()}" ${sel}>${o.trim()}</option>`;
+                                });
+                                inputHtml += `</select>`;
+                            } else if (f.Type === 'text') {
+                                inputHtml = `<input type="text" class="form-control mat-dyn-prop" data-key="${f.Key}" value="${pVal}" placeholder="${f.Def || '...'}" style="padding: 6px 10px; font-size:0.75rem; width:100%;" />`;
+                            } else {
+                                inputHtml = `<input type="number" step="any" class="form-control mat-dyn-prop" data-key="${f.Key}" value="${pVal}" placeholder="${f.Def || '...'}" style="padding: 6px 10px; font-size:0.75rem; width:100%;" />`;
+                            }
+                            detayHtml += `<div style="flex: 1;"><label style="font-size:0.65rem; text-transform:uppercase; color:#94a3b8; font-weight:700; margin-bottom:4px;">${f.Key}</label>${inputHtml}</div>`;
+                        });
+                        detayHtml += `</div>`;
+                        detayDiv.html(detayHtml);
+                    } else {
+                        detayDiv.empty();
+                    }
+
+                }
+            } else {
+                row.find('.mat-kategori-cell').text('-');
+                row.find('.mat-birim-cell').text('-');
+                detayDiv.empty();
+            }
+        });
+
+        // Dinamik alanlar değiştiğinde mat-ozellikler gizli inputunu güncelle
+        $(document).on('input change', '.mat-dyn-prop', function() {
+            const row = $(this).closest('.material-row');
+            
+            let dynProps = [];
+            // Mevcut özellikleri al (renk gibi diğer bileşenler kaybolmasın diye)
+            let existingOz = decodeURIComponent(row.find('.mat-ozellikler').val() || '');
+            if(existingOz) {
+                try { dynProps = JSON.parse(existingOz); } catch(e){}
+            }
+            
+            row.find('.mat-dyn-prop').each(function() {
+                let key = $(this).attr('data-key');
+                let val = $(this).val();
+                
+                // Varsa güncelle, yoksa ekle
+                let existing = dynProps.find(p => p.Key === key);
+                if (existing) {
+                    if (val) existing.Value = val;
+                    else dynProps = dynProps.filter(p => p.Key !== key);
+                } else if (val) {
+                    dynProps.push({ Key: key, Value: val });
+                }
+            });
+            
+            if (dynProps.length > 0) {
+                row.find('.mat-ozellikler').val(encodeURIComponent(JSON.stringify(dynProps)));
+            } else {
+                row.find('.mat-ozellikler').val('');
+            }
+        });
+        
+        $(document).on('input', '.mat-renk-input', function() {
+            const val = $(this).val();
+            const dot = getColorDot(val);
+            $(this).siblings('.dot-container').html(dot);
+        });
+
+        $('#btnAddRow').click(function() {
+            addMaterialRow();
+        });
+
+        $(document).on('click', '.btnRemoveRow', function() {
+            $(this).closest('tr').remove();
+            updateRowCount();
+        });
+
+        function updateRowCount() {
+            $('#totalItemsCount').text($('.material-row').length);
+        }
+
+        // Initialize existing
+        $(document).ready(function() {
+            if (currentMaterials && currentMaterials.length > 0) {
+                currentMaterials.forEach(m => addMaterialRow(m));
+            } else {
+                addMaterialRow(); // add at least one empty
+            }
+        });
+
+        $('#btnSubmitFullEdit').click(function() {
+            // Gather materials
+            let materials = [];
+            $('.material-row').each(function() {
+                const stokId = parseInt($(this).find('.mat-stokkarti').val());
+                if (stokId > 0) {
+                    const miktar = parseFloat($(this).find('.mat-miktar').val()) || 0;
+                    let ozelliklerJsonStr = null;
+                    let existingOz = decodeURIComponent($(this).find('.mat-ozellikler').val() || '');
+                    let renk = $(this).find('.mat-renk-input').val();
+                    
+                    let dynProps = [];
+                    if(existingOz) {
+                        try { dynProps = JSON.parse(existingOz); } catch(e){}
+                    }
+                    
+                    if (renk) {
+                        // update or add RENK prop
+                        let rProp = dynProps.find(p => p.Key.toUpperCase() === 'RENK');
+                        if (rProp) rProp.Value = renk;
+                        else dynProps.push({ Key: 'RENK', Value: renk });
+                    }
+                    
+                    if (dynProps.length > 0) ozelliklerJsonStr = JSON.stringify(dynProps);
+                    
+                    let aciklama = $(this).find('.mat-aciklama').val();
+                    if (!aciklama && dynProps.length > 0) {
+                        aciklama = dynProps.map(p => p.Key + ": " + p.Value).join(' | ');
+                    }
+
+                    materials.push({
+                        StokKartiId: stokId,
+                        Miktar: miktar,
+                        Aciklama: aciklama,
+                        OzelliklerJson: ozelliklerJsonStr
+                    });
+                }
+            });
+            $('#orderMaterialsJson').val(JSON.stringify(materials));
+            
+            const formData = new FormData($('#editOrderFormFull')[0]);
+            let dataObj = {};
+            formData.forEach((value, key) => { 
+                dataObj[key] = value; 
+            });
+
+            // Need to handle Id as int
+            if (dataObj.Id) dataObj.Id = parseInt(dataObj.Id);
+
+            $.ajax({
+                url: '/Order/Edit',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dataObj),
+                success: function(res) {
+                    if (res.success) {
+                        window.location.href = '/Order/Index';
+                    } else {
+                        alert('Hata: ' + res.message);
+                    }
+                },
+                error: function(err) {
+                    alert('Bir hata oluştu. Veriler kaydedilemedi.');
+                    console.error(err);
+                }
+            });
+        });
+
+        function handleCancel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('isClone') === 'true') {
+                $.ajax({
+                    url: '/Order/DeleteMultiple',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify([@Model.Id]),
+                    success: function() {
+                        window.location.href = '/Order/Index';
+                    },
+                    error: function() {
+                        window.location.href = '/Order/Index';
+                    }
+                });
+            } else {
+                window.location.href = '/Order/Index';
+            }
+        }
+
+        $('#revizeTerminInput').on('change', function() {
+            var val = $(this).val();
+            var jsonStr = $('#hiddenProductionJson').val() || "{}";
+            try {
+                var obj = JSON.parse(jsonStr);
+                obj["prod_knn_revize_termin"] = val;
+                $('#hiddenProductionJson').val(JSON.stringify(obj));
+            } catch(e) {}
+        });
+    </script>
+}

@@ -335,7 +335,7 @@
                         <input type="hidden" name="SmallButtonCount" id="hiddenSmallButtonCount" />
                         
                         <!-- Stok Kartları Datası (JS İçin) -->
-                        <div id="stokKartlariData" style="display:none;" data-list='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StokKartlari))'></div>
+                        <div id="stokKartlariData" style="display:none;" data-list='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StokKartlari, new System.Text.Json.JsonSerializerOptions { ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles }))'></div>
                     </div>
                 </div>
                 <div style="padding: 24px 32px; border-top: 1px solid #f1f5f9; background:#ffffff; display:flex; justify-content:flex-end;">
@@ -367,12 +367,12 @@
                     <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
                         <div style="flex: 3; min-width: 250px;">
                             <label style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px; display: block; font-weight: 600;">Stok Kartı Seçimi</label>
-                            <select class="form-control sm-stokkarti" style="font-weight: 600; color: #1e293b; background: #f8fafc; padding: 10px 14px; border-radius: 8px;">
+                            <select class="form-control sm-stokkarti" style="width:100%; background: #f8fafc; padding: 10px 14px; border-radius: 8px; font-weight: 600; color: #1e293b;">
                                 ${optionsHtml}
                             </select>
                             <input type="hidden" class="sm-miktar" value="${miktar}" />
                             <input type="hidden" class="sm-aciklama" value="${aciklama}" />
-                            <div class="prop-summary" style="font-size: 0.8rem; color: #3b82f6; margin-top: 6px; font-weight: 500;"></div>
+                            <div class="prop-summary" style="font-size: 0.8rem; color: #3b82f6; margin-top: 6px; font-weight: 500; text-decoration: underline;" title="Detayları düzenlemek için tıklayın">${aciklama ? '<i class="fa-solid fa-pen-to-square"></i> ' + aciklama : '<i class="fa-solid fa-pen-to-square"></i> Detay ekle/düzenle'}</div>
                         </div>
                         <div>
                             <button type="button" class="btnRemoveStockMaterial" style="background: #fee2e2; color: #ef4444; border: none; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Sil" onmouseover="this.style.background='#fecaca'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='#fee2e2'; this.style.transform='scale(1)'"><i class="fa-solid fa-trash"></i></button>
@@ -409,11 +409,15 @@
         $(document).on('change', '.sm-stokkarti', function() {
             var select = $(this);
             var stokId = select.val();
+            var prevStokId = select.data('prev-stok');
+            if (prevStokId === stokId) return;
+            select.data('prev-stok', stokId);
+
             var row = select.closest('.stock-material-row');
             var detayDiv = row.find('.stok-detaylari');
             
             if (!stokId) {
-                detayDiv.hide().empty();
+                detayDiv.empty();
                 row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
                 updateStockMaterialsJson();
                 return;
@@ -462,8 +466,14 @@
                         var parsedOz = JSON.parse(stok.OzelliklerJson);
                         if (Array.isArray(parsedOz)) {
                             parsedOz.forEach(function(o) {
-                                if (o.Key && !calcFields.find(c => c.Key === o.Key.toUpperCase())) {
-                                    extraOzellikler.push(o);
+                                if (o.Key) {
+                                    var existingIdx = calcFields.findIndex(c => c.Key === o.Key.toUpperCase());
+                                    if (existingIdx > -1) {
+                                        // Stok kartında tanımlanmışsa varsayılan (hardcoded) olanı ez
+                                        calcFields[existingIdx] = { Key: o.Key.toUpperCase(), Type: o.Type || 'text', Def: o.Value || '' };
+                                    } else {
+                                        extraOzellikler.push(o);
+                                    }
                                 }
                             });
                         }
@@ -478,10 +488,10 @@
 
                 if (calcFields.length > 0 || extraOzellikler.length > 0) {
                     detayHtml += `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-                                        <div style="width: 4px; height: 18px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px;"></div>
-                                        <h6 style="color: #1e293b; font-weight: 700; font-size: 0.95rem; margin: 0; letter-spacing: -0.2px;">Hesaplama ve Özellikler</h6>
-                                   </div>
-                                   <div class="calc-fields-container" data-cat="${cat}" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:16px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px dashed #cbd5e1;">`;
+                                      <div style="width: 4px; height: 18px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 4px;"></div>
+                                      <h6 style="color: #1e293b; font-weight: 700; font-size: 0.95rem; margin: 0;">Hesaplama ve Özellikler</h6>
+                                  </div>
+                                  <div class="calc-fields-container" data-cat="${cat}" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:16px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px dashed #cbd5e1;">`;
                     
                     var allFields = [];
                     calcFields.forEach(function(cf) {
@@ -502,39 +512,40 @@
 
                     allFields.forEach(function(f) {
                          var pVal = initProps[f.Key] !== undefined ? initProps[f.Key] : (f.Value || "");
-                         var inputHtml = '';
-                         var calcClass = f.IsCalc ? "sm-calc-trigger" : "";
-                         
+                         var calcClass = f.IsCalc ? 'sm-calc-trigger' : '';
+                         var inputHtml = "";
                          if (f.Type === 'select') {
-                             var options = f.Value ? f.Value.split(',') : [];
-                             inputHtml = `<select class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" style="background: #ffffff; border-color: #cbd5e1;">
+                             var opts = f.Value.split(',');
+                             inputHtml = `<select class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" style="width:100%; padding: 10px 14px; border-radius: 8px; font-weight:600;">
                                             <option value="">Seçiniz</option>`;
-                             options.forEach(function(opt) {
-                                 var selected = (opt.trim() === pVal) ? 'selected' : '';
-                                 inputHtml += `<option value="${opt.trim()}" ${selected}>${opt.trim()}</option>`;
+                             opts.forEach(function(o) {
+                                 var sel = (o.trim() === pVal) ? 'selected' : '';
+                                 inputHtml += `<option value="${o.trim()}" ${sel}>${o.trim()}</option>`;
                              });
                              inputHtml += `</select>`;
                          } else {
                              var typeAttr = f.Type === 'number' ? 'number' : 'text';
                              var stepAttr = f.Type === 'number' ? 'step="any"' : '';
-                             inputHtml = `<input type="${typeAttr}" ${stepAttr} class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" value="${pVal}" placeholder="${f.Value || '...'}" style="background: #ffffff; border-color: #cbd5e1; font-weight:600;" />`;
+                             inputHtml = `<input type="${typeAttr}" ${stepAttr} class="form-control sm-dyn-prop ${calcClass}" data-key="${f.Key}" value="${pVal}" placeholder="${f.Value || '...'}" style="width:100%; font-weight:600; padding: 10px 14px; border-radius: 8px;" />`;
                          }
                          
-                         detayHtml += `<div>
-                                        <label style="font-size:0.75rem; font-weight:700; color:#64748b; display:block; margin-bottom:6px;">${f.Key}</label>
-                                        ${inputHtml}
-                                      </div>`;
+                         detayHtml += `
+                         <div>
+                             <label style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px; display: block; font-weight: 600;">${f.Key}</label>
+                             ${inputHtml}
+                         </div>`;
                     });
 
                     detayHtml += `</div>`;
                 }
                 
-                detayDiv.html(detayHtml).show();
+                $('.stok-detaylari').not(detayDiv).slideUp(300);
+                detayDiv.html(detayHtml).hide().slideDown(300);
                 if (isCalculable) {
                     row.find('.sm-calc-trigger').first().trigger('input');
                 }
             } else {
-                detayDiv.hide().empty();
+                detayDiv.slideUp(300, function() { $(this).empty(); });
                 row.find('.sm-miktar').prop('readonly', false).css('background', '#f8fafc');
             }
             updateStockMaterialsJson();
@@ -619,6 +630,21 @@
             });
             $('#orderMaterialsJson').val(JSON.stringify(materials));
         }
+        
+
+        $(document).on('click', '.stock-material-row', function(e) {
+            if ($(e.target).closest('.btnRemoveStockMaterial, .select2-container, .sm-stokkarti, .stok-detaylari').length > 0) return;
+            
+            var detayDiv = $(this).find('.stok-detaylari');
+            if (detayDiv.children().length === 0) return;
+            
+            if (detayDiv.is(':visible')) {
+                detayDiv.slideUp(300);
+            } else {
+                $('.stok-detaylari').not(detayDiv).slideUp(300);
+                detayDiv.slideDown(300);
+            }
+        });
 
         function openModelDetailModal() {
             $('#modelDetailModal').css('display', 'flex').hide().fadeIn(200);
@@ -629,16 +655,6 @@
         function closeModelDetailModal() {
             $('#modelDetailModal').fadeOut(200);
         }
-
-        // Accordion behavior for stock material rows
-        $(document).on('click', '.stock-material-row', function(e) {
-            if ($(e.target).closest('.btnRemoveStockMaterial').length > 0) return;
-            var detayDiv = $(this).find('.stok-detaylari');
-            if (detayDiv.is(':visible') || detayDiv.children().length === 0) return;
-            
-            $('.stok-detaylari').not(detayDiv).slideUp(300);
-            detayDiv.slideDown(300);
-        });
 
         $(document).ready(function() {
             var colorOptionsHtml = '<option value="">-- Renk Seçin --</option>';
@@ -1210,7 +1226,7 @@
             }
 
 
-            // Stok kalemlerine mouse ile gelindiğinde tıklanabilir olduğunu göster.
+
             $("<style type='text/css'> .stock-material-row:hover { cursor: pointer; border-color: #94a3b8 !important; } .stok-detaylari { cursor: default; } </style>").appendTo("head");
         });
     </script>

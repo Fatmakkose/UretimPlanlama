@@ -17,6 +17,11 @@ namespace UretimPlanlama.Models
         [ForeignKey("StokKartiId")]
         public StokKarti StokKarti { get; set; } = null!;
 
+        public int? StokVaryantId { get; set; }
+
+        [ForeignKey("StokVaryantId")]
+        public StokVaryant? StokVaryant { get; set; }
+
         [Column(TypeName = "decimal(18,2)")]
         public decimal Miktar { get; set; }
 

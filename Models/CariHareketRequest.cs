@@ -19,7 +19,9 @@ namespace UretimPlanlama.Models
     public class StokKalemDto
     {
         public int StokKartiId { get; set; }
+        public int? StokVaryantId { get; set; }
         public decimal Miktar { get; set; }
         public decimal? BirimFiyat { get; set; }
+        public string? VaryantAdi { get; set; }
     }
 }

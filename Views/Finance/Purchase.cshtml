@@ -9,7 +9,9 @@
         stokKodu = s.StokKodu,
         birim = s.Birim,
         birimFiyat = s.BirimFiyat,
-        gorselUrl = s.GorselUrl
+        gorselUrl = s.GorselUrl,
+        kategori = s.Kategori,
+        ozelliklerJson = s.OzelliklerJson
     }));
 }
 
@@ -198,7 +200,6 @@
 
 <div class="page-header">
     <h1><i class="fa-solid fa-cart-arrow-down" style="color: var(--primary-color);"></i> Alış İşlemleri</h1>
-    <button class="btn-primary" onclick="savePurchase()"><i class="fa-solid fa-check"></i> Kaydet ve Onayla</button>
 </div>
 
 <div class="section-card">
@@ -239,8 +240,9 @@
             <thead>
                 <tr>
                     <th style="width: 60px; text-align: center;">Görsel</th>
-                    <th>Stok (Ürün) *</th>
-                    <th style="width: 120px;">Birim</th>
+                    <th style="width: 250px;">Stok (Ürün) *</th>
+                    <th style="width: 300px;">Varyant (Özellik)</th>
+                    <th style="width: 100px;">Birim</th>
                     <th style="width: 150px;">Miktar *</th>
                     <th style="width: 150px;">Birim Fiyat (₺) *</th>
                     <th style="width: 150px; text-align: right;">Toplam Tutar</th>
@@ -255,13 +257,14 @@
     
     <button class="btn-add-row" onclick="addRow()"><i class="fa-solid fa-plus"></i> Yeni Stok Kalemi Ekle</button>
 
-    <div class="totals-section">
-        <div class="totals-box">
+    <div class="totals-section" style="display: flex; flex-direction: column; align-items: flex-end; gap: 16px;">
+        <div class="totals-box" style="width: 300px; margin-bottom: 0;">
             <div class="total-row grand-total">
                 <span>Genel Toplam:</span>
                 <span id="grandTotalText">₺0,00</span>
             </div>
         </div>
+        <button class="btn-primary" onclick="savePurchase()" style="width: 300px; justify-content: center; padding: 14px; font-size: 1.05rem;"><i class="fa-solid fa-check"></i> Kaydet ve Onayla</button>
     </div>
 </div>
 
@@ -290,6 +293,9 @@
                         <select class="form-control stok-select" onchange="onStokSelect('${rowId}', this)">
                             ${optionsHtml}
                         </select>
+                    </td>
+                    <td class="varyant-container" style="vertical-align: top;">
+                        <input type="text" class="form-control varyant-input" placeholder="Örn: 14/boy" />
                     </td>
                     <td>
                         <input type="text" class="form-control birim-input" readonly placeholder="Birim" />
@@ -324,6 +330,7 @@
             const stokId = parseInt($(selectElement).val());
             const row = $('#' + rowId);
             const stok = stokKartlari.find(s => s.id === stokId);
+            const varyantContainer = row.find('.varyant-container');
 
             if (stok) {
                 row.find('.birim-input').val(stok.birim);
@@ -334,10 +341,74 @@
                 } else {
                     row.find('.thumbnail').html('<i class="fa-solid fa-image"></i>');
                 }
+
+                // Generate dynamic fields
+                var cat = (stok.kategori || "").trim().toUpperCase();
+                var calcFields = [];
+                var extraOzellikler = [];
+
+                if (cat === "TELA") {
+                    calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.010,0.015,0.020,0.025,0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080,0.090,0.100,0.120,0.150,0.200" });
+                    calcFields.push({ Key: "GRAM", Type: "select", Def: "10,15,20,25,30,35,40,45,50,55,60,65,70,80,90,100,115,120,130,140,150" });
+                    calcFields.push({ Key: "RENK", Type: "text", Def: "" });
+                }
+
+                if (stok.ozelliklerJson) {
+                    try {
+                        var parsedOz = JSON.parse(stok.ozelliklerJson);
+                        if (Array.isArray(parsedOz)) {
+                            parsedOz.forEach(function(o) {
+                                if (o.Key && !calcFields.find(c => c.Key === o.Key.toUpperCase())) {
+                                    extraOzellikler.push(o);
+                                }
+                            });
+                        }
+                    } catch(e){}
+                }
+
+                var allFields = [];
+                calcFields.forEach(function(cf) {
+                    allFields.push({ Key: cf.Key.toUpperCase(), Type: cf.Type, Value: cf.Def });
+                });
+                extraOzellikler.forEach(function(oz) {
+                    allFields.push({ Key: oz.Key.toUpperCase(), Type: oz.Type, Value: oz.Value });
+                });
+
+                if (stok.stokAdi && stok.stokAdi.toUpperCase().includes("DÜĞME")) {
+                    var orderMap = { "BOYUT": 1, "RENK": 2 };
+                    allFields.sort(function(a, b) {
+                        var orderA = orderMap[a.Key] || 99;
+                        var orderB = orderMap[b.Key] || 99;
+                        return orderA - orderB;
+                    });
+                }
+
+                if (allFields.length > 0) {
+                    var html = `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">`;
+                    allFields.forEach(function(f) {
+                        var inputHtml = '';
+                        if (f.Type === 'select') {
+                            var options = f.Value ? f.Value.split(',') : [];
+                            inputHtml = `<select class="form-control sm-dyn-prop" data-key="${f.Key}" style="padding: 6px; font-size: 0.8rem;"><option value="">Seçiniz</option>`;
+                            options.forEach(opt => inputHtml += `<option value="${opt.trim()}">${opt.trim()}</option>`);
+                            inputHtml += `</select>`;
+                        } else {
+                            var typeAttr = f.Type === 'number' ? 'number' : 'text';
+                            inputHtml = `<input type="${typeAttr}" class="form-control sm-dyn-prop" data-key="${f.Key}" placeholder="${f.Value || '...'}" style="padding: 6px; font-size: 0.8rem;" />`;
+                        }
+                        html += `<div><label style="font-size:0.7rem; font-weight:700; color:#64748b; margin-bottom:2px;">${f.Key}</label>${inputHtml}</div>`;
+                    });
+                    html += `</div><input type="hidden" class="varyant-input" />`;
+                    varyantContainer.html(html);
+                } else {
+                    varyantContainer.html(`<input type="text" class="form-control varyant-input" placeholder="Örn: 14/boy" />`);
+                }
+
             } else {
                 row.find('.birim-input').val('');
                 row.find('.fiyat-input').val(0);
                 row.find('.thumbnail').html('<i class="fa-solid fa-image"></i>');
+                varyantContainer.html(`<input type="text" class="form-control varyant-input" placeholder="Örn: 14/boy" />`);
             }
             calculateRow(rowId);
         }
@@ -383,15 +454,35 @@
             let grandTotal = 0;
 
             $('#itemsBody tr').each(function() {
-                const stokId = $(this).find('.stok-select').val();
-                const miktar = parseFloat($(this).find('.miktar-input').val()) || 0;
-                const fiyat = parseFloat($(this).find('.fiyat-input').val()) || 0;
+                const row = $(this);
+                const stokId = row.find('.stok-select').val();
+                
+                // Varyantı topla (dinamik özellikler varsa JSON yap, yoksa text al)
+                let varyant = null;
+                if (row.find('.sm-dyn-prop').length > 0) {
+                    let dynProps = [];
+                    row.find('.sm-dyn-prop').each(function() {
+                        var key = $(this).attr('data-key');
+                        var val = $(this).val();
+                        if (val) {
+                            dynProps.push({ Key: key, Value: val });
+                        }
+                    });
+                    if (dynProps.length > 0) {
+                        varyant = JSON.stringify(dynProps);
+                    }
+                } else {
+                    varyant = row.find('.varyant-input').val() || null;
+                }
+
+                const miktar = parseFloat(row.find('.miktar-input').val()) || 0;
+                const fiyat = parseFloat(row.find('.fiyat-input').val()) || 0;
                 
                 if (!stokId) {
                     hasError = true;
-                    $(this).find('.stok-select').css('border-color', 'red');
+                    row.find('.stok-select').css('border-color', 'red');
                 } else {
-                    $(this).find('.stok-select').css('border-color', '#cbd5e1');
+                    row.find('.stok-select').css('border-color', '#cbd5e1');
                 }
 
                 if (miktar <= 0) {
@@ -403,6 +494,7 @@
 
                 kalemler.push({
                     StokKartiId: parseInt(stokId),
+                    VaryantAdi: varyant,
                     Miktar: miktar,
                     BirimFiyat: fiyat
                 });
@@ -438,7 +530,7 @@
                 success: function(res) {
                     if (res.success) {
                         alert(res.message);
-                        window.location.reload(); // Reload to get next BelgeNo and empty form
+                        window.location.href = '/Finance/Reports';
                     } else {
                         alert("Hata: " + res.message);
                     }

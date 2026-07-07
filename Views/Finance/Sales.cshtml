@@ -198,7 +198,6 @@
 
 <div class="page-header">
     <h1><i class="fa-solid fa-money-bill-trend-up" style="color: var(--primary-color);"></i> Satış İşlemleri</h1>
-    <button class="btn-primary" onclick="saveSales()"><i class="fa-solid fa-check"></i> Kaydet ve Onayla</button>
 </div>
 
 <div class="section-card">
@@ -268,13 +267,14 @@
     
     <button class="btn-add-row" onclick="addRow()"><i class="fa-solid fa-plus"></i> Yeni Stok Kalemi Ekle</button>
 
-    <div class="totals-section">
-        <div class="totals-box">
+    <div class="totals-section" style="display: flex; flex-direction: column; align-items: flex-end; gap: 16px;">
+        <div class="totals-box" style="width: 300px; margin-bottom: 0;">
             <div class="total-row grand-total">
                 <span>Genel Toplam:</span>
                 <span id="grandTotalText">₺0,00</span>
             </div>
         </div>
+        <button class="btn-primary" onclick="saveSales()" style="width: 300px; justify-content: center; padding: 14px; font-size: 1.05rem;"><i class="fa-solid fa-check"></i> Kaydet ve Onayla</button>
     </div>
 </div>
 
@@ -448,7 +448,7 @@
                 success: function(res) {
                     if (res.success) {
                         alert(res.message);
-                        window.location.reload(); // Reload to get next BelgeNo and empty form
+                        window.location.href = '/Finance/Reports';
                     } else {
                         alert("Hata: " + res.message);
                     }

@@ -1,0 +1,233 @@
+<!-- KESİM SÜRECİ TAB -->
+        <div class="tab-pane" id="cutting">
+            @{
+                var sizesObj = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.SizeDistributionJson)) {
+                    try { 
+                        using (var doc = System.Text.Json.JsonDocument.Parse(Model.SizeDistributionJson)) {
+                            foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number) sizesObj[prop.Name] = prop.Value.GetInt32().ToString();
+                                else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String) sizesObj[prop.Name] = prop.Value.GetString() ?? "0";
+                            }
+                        }
+                    } catch {}
+                }
+                if (sizesObj.Count == 0) {
+                    if (Model.SizeS > 0) sizesObj.Add("S", Model.SizeS.ToString());
+                    if (Model.SizeM > 0) sizesObj.Add("M", Model.SizeM.ToString());
+                    if (Model.SizeL > 0) sizesObj.Add("L", Model.SizeL.ToString());
+                    if (Model.SizeXL > 0) sizesObj.Add("XL", Model.SizeXL.ToString());
+                    if (Model.Size2XL > 0) sizesObj.Add("2XL", Model.Size2XL.ToString());
+                    if (Model.Size3XL > 0) sizesObj.Add("3XL", Model.Size3XL.ToString());
+                }
+
+                var asortiObj = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.AsortiDistributionJson)) {
+                    try { 
+                        using (var doc = System.Text.Json.JsonDocument.Parse(Model.AsortiDistributionJson)) {
+                            foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number) asortiObj[prop.Name] = prop.Value.GetInt32().ToString();
+                                else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String) asortiObj[prop.Name] = prop.Value.GetString() ?? "0";
+                            }
+                        }
+                    } catch {}
+                }
+                if (asortiObj.Count == 0) {
+                    if (Model.AsortiSizeS > 0) asortiObj.Add("S", Model.AsortiSizeS.ToString());
+                    if (Model.AsortiSizeM > 0) asortiObj.Add("M", Model.AsortiSizeM.ToString());
+                    if (Model.AsortiSizeL > 0) asortiObj.Add("L", Model.AsortiSizeL.ToString());
+                    if (Model.AsortiSizeXL > 0) asortiObj.Add("XL", Model.AsortiSizeXL.ToString());
+                    if (Model.AsortiSize2XL > 0) asortiObj.Add("2XL", Model.AsortiSize2XL.ToString());
+                    if (Model.AsortiSize3XL > 0) asortiObj.Add("3XL", Model.AsortiSize3XL.ToString());
+                }
+
+                int acikAdetTotal = 0;
+                foreach(var v in sizesObj.Values) { if (int.TryParse(v, out int val)) acikAdetTotal += val; }
+                
+                int asortiTotal = 0;
+                foreach(var v in asortiObj.Values) { if (int.TryParse(v, out int val)) asortiTotal += val; }
+            }
+
+            <h4 style="margin-bottom: 24px; color: #0f172a; font-weight: 700; font-size: 1.25rem;"><i class="fa-solid fa-scissors" style="color: var(--primary-color);"></i> Kesim Süreci (Günlük Takip)</h4>
+            
+            <!-- SİPARİŞ HEDEFİ BİLGİ ŞERİDİ -->
+            <div style="padding: 18px 24px; margin-bottom: 24px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; box-shadow: 0 2px 4px rgba(22, 101, 52, 0.05);">
+                <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+                        <div style="font-size: 1.25rem; color: #15803d; font-weight: 700;">
+                            <i class="fa-solid fa-bullseye" style="margin-right: 8px;"></i>Genel Toplam Hedef: @plannedCutQty Adet
+                        </div>
+                    </div>
+                    <div style="font-size: 1.2rem; color: #166534; text-align: right;" id="divRemainingCut">
+                        Kalan İhtiyaç: <strong id="lblRemainingQty">@plannedCutQty</strong> Adet
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- JS Array Definitions for Sizes -->
+            <script>
+                var acikSizesArr = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(sizesObj.Keys));
+                var asortiSizesArr = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(asortiObj.Keys));
+            </script>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; margin-bottom: 15px;">
+                <div>
+                    <h5 style="margin: 0 0 8px 0; color: #334155; font-weight: 700;">Açık Adet Kesim Tablosu</h5>
+                    <div style="font-size: 0.85rem; color: #15803d; display: flex; flex-wrap: wrap; align-items: center;">
+                        <strong style="margin-right: 8px;"><i class="fa-solid fa-shirt" style="margin-right: 4px;"></i> Sipariş Açık Adet Dağılımı:</strong>
+                        @if (sizesObj.Any()) {
+                            foreach(var kvp in sizesObj) {
+                                <span style="display: inline-block; background: #dcfce7; padding: 2px 8px; border-radius: 12px; margin-right: 6px; font-weight: 600; border: 1px solid #bbf7d0;">@kvp.Key: @kvp.Value</span>
+                            }
+                            <span style="display: inline-block; margin-left: 8px; padding-left: 12px; border-left: 1px solid #bbf7d0; font-weight: 700; color: #166534;">
+                                Toplam: @acikAdetTotal Adet
+                            </span>
+                        } else {
+                            <span style="font-style: italic;">Yok</span>
+                        }
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="toggleCutForm('AcikAdet')" style="margin-bottom: 2px;"><i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Açık Adet Kesim Ekle</button>
+            </div>
+            <table class="table table-bordered" id="tblCuttingAcik">
+                <thead style="background: #f8fafc; text-align: center;">
+                    <tr>
+                        <th rowspan="2" style="vertical-align: middle;">Kesim No</th>
+                        <th rowspan="2" style="vertical-align: middle;">Kat Sayısı</th>
+                        <th colspan="@Math.Max(1, sizesObj.Count)">Bedenler</th>
+                        <th rowspan="2" style="vertical-align: middle;">Çıkan Adet</th>
+                        <th rowspan="2" style="vertical-align: middle;">Pastal Boyu</th>
+                        <th rowspan="2" style="vertical-align: middle;">Birim Metraj</th>
+                        <th rowspan="2" style="vertical-align: middle;">Tarih</th>
+                        <th rowspan="2" style="vertical-align: middle;">İşlem</th>
+                    </tr>
+                    <tr>
+                        @if (sizesObj.Count > 0) {
+                            foreach (var k in sizesObj.Keys) {
+                                <th>@k</th>
+                            }
+                        } else {
+                            <th>-</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody id="cuttingBodyAcik">
+                </tbody>
+                <tbody id="cuttingEntryAcik" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAcik()" style="min-width: 80px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
+                        @if (sizesObj.Count > 0) {
+                            foreach (var k in sizesObj.Keys) {
+                                <td style="vertical-align: middle;"><input type="number" id="txtAcikSize_@k" class="form-control form-control-sm acik-adet-input-row" data-size="@k" value="0" oninput="calculateAcik()" style="min-width: 75px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
+                            }
+                        } else {
+                            <td style="vertical-align: middle;">-</td>
+                        }
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikTotal" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAcik()" style="min-width: 95px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="date" id="txtAcikDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="min-width: 115px; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle; text-align: center;">
+                            <div style="display: flex; gap: 4px; justify-content: center;">
+                                <button class="btn btn-success btn-sm" onclick="saveAcikRow()" title="Kaydet"><i class="fa-solid fa-check"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="$('#cuttingEntryAcik').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot style="background: #f1f5f9; font-weight: bold;">
+                    <tr>
+                        <td colspan="@(6 + Math.Max(1, sizesObj.Count))" style="text-align: right; vertical-align: middle; color: #475569; padding-right: 20px;">AÇIK ADET TOPLAMI:</td>
+                        <td id="acikTotalCut" style="font-size: 1.2rem; color: #0f172a; vertical-align: middle; text-align: center;">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; margin-bottom: 15px;">
+                <div>
+                    <h5 style="margin: 0 0 8px 0; color: #334155; font-weight: 700;">Asorti Kesim Tablosu</h5>
+                    <div style="font-size: 0.85rem; color: #15803d; display: flex; flex-wrap: wrap; align-items: center;">
+                        <strong style="margin-right: 8px;"><i class="fa-solid fa-layer-group" style="margin-right: 4px;"></i> Sipariş Asorti Dağılımı:</strong>
+                        @if (asortiObj.Any()) {
+                            foreach(var kvp in asortiObj) {
+                                <span style="display: inline-block; background: #dcfce7; padding: 2px 8px; border-radius: 12px; margin-right: 6px; font-weight: 600; border: 1px solid #bbf7d0;">@kvp.Key: @kvp.Value</span>
+                            }
+                            <span style="display: inline-block; margin-left: 8px; padding-left: 12px; border-left: 1px solid #bbf7d0; font-weight: 700; color: #166534;">
+                                1 Asorti: @asortiTotal Adet | Lot Sayısı: @Model.AsortiCount | Toplam: @(asortiTotal * Model.AsortiCount) Adet
+                            </span>
+                        } else {
+                            <span style="font-style: italic;">Yok</span>
+                        }
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="toggleCutForm('Asorti')" style="margin-bottom: 2px;"><i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Asorti Kesim Ekle</button>
+            </div>
+            <table class="table table-bordered" id="tblCuttingAsorti">
+                <thead style="background: #f8fafc; text-align: center;">
+                    <tr>
+                        <th rowspan="2" style="vertical-align: middle;">Kesim No</th>
+                        <th rowspan="2" style="vertical-align: middle;">Kat Sayısı</th>
+                        <th colspan="@Math.Max(1, asortiObj.Count)">Bedenler</th>
+                        <th rowspan="2" style="vertical-align: middle;">Çıkan Adet</th>
+                        <th rowspan="2" style="vertical-align: middle;">Pastal Boyu</th>
+                        <th rowspan="2" style="vertical-align: middle;">Birim Metraj</th>
+                        <th rowspan="2" style="vertical-align: middle;">Tarih</th>
+                        <th rowspan="2" style="vertical-align: middle;">İşlem</th>
+                    </tr>
+                    <tr>
+                        @if (asortiObj.Count > 0) {
+                            foreach (var k in asortiObj.Keys) {
+                                <th>@k</th>
+                            }
+                        } else {
+                            <th>-</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody id="cuttingBodyAsorti">
+                </tbody>
+                <tbody id="cuttingEntryAsorti" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                    <tr>
+                        <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAsorti()" style="min-width: 80px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
+                        @if (asortiObj.Count > 0) {
+                            foreach (var kvp in asortiObj) {
+                                <td style="vertical-align: middle;"><input type="number" id="txtAsortiSize_@kvp.Key" class="form-control form-control-sm asorti-input-row" data-size="@kvp.Key" data-asortivalue="@kvp.Value" value="@kvp.Value" readonly style="min-width: 75px; padding: 4px;; text-align: center; font-weight: bold; background: #f1f5f9; cursor: not-allowed;" /></td>
+                            }
+                        } else {
+                            <td style="vertical-align: middle;">-</td>
+                        }
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiTotal" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAsorti()" style="min-width: 95px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="date" id="txtAsortiDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="min-width: 115px; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle; text-align: center;">
+                            <div style="display: flex; gap: 4px; justify-content: center;">
+                                <button class="btn btn-success btn-sm" onclick="saveAsortiRow()" title="Kaydet"><i class="fa-solid fa-check"></i></button>
+                                <button class="btn btn-secondary btn-sm" onclick="$('#cuttingEntryAsorti').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot style="background: #f1f5f9; font-weight: bold;">
+                    <tr>
+                        <td colspan="@(6 + Math.Max(1, asortiObj.Count))" style="text-align: right; vertical-align: middle; color: #475569; padding-right: 20px;">ASORTİ TOPLAMI:</td>
+                        <td id="asortiTotalCut" style="font-size: 1.2rem; color: #0f172a; vertical-align: middle; text-align: center;">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="background: #e2e8f0; padding: 15px 20px; border-radius: 8px; margin-bottom: 30px; margin-top: 20px; text-align: right; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                <span style="font-size: 1.1rem; color: #334155; font-weight: bold; margin-right: 15px;">GENEL TOPLAM KESİM ADEDİ:</span>
+                <span id="grandTotalCut" style="font-size: 1.5rem; color: #0f172a; font-weight: 900;">0</span>
+            </div>
+            <div class="text-end">
+                <button class="btn btn-success" onclick="saveCutting()"><i class="fa-solid fa-save"></i> Kesimleri Kaydet</button>
+                <button class="btn btn-primary" onclick="saveCutting(); switchTab('packing')" style="margin-left: 8px;">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
+            </div>
+        </div>
+
+        

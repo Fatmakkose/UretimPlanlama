@@ -27,6 +27,7 @@ namespace UretimPlanlama.Data
 
         // Stok Yönetimi
         public DbSet<StokKarti> StokKartlari { get; set; }
+        public DbSet<StokVaryant> StokVaryantlar { get; set; }
         public DbSet<StokHareket> StokHareketler { get; set; }
         public DbSet<OrderMaterial> OrderMaterials { get; set; }
 

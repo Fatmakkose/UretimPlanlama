@@ -12,6 +12,26 @@
         } catch {}
     }
     string GetProdVal(string key) => prodData != null && prodData.ContainsKey(key) ? prodData[key] : "";
+
+    var purData = new System.Collections.Generic.Dictionary<string, string>();
+    if (!string.IsNullOrEmpty(Model.PurchasingMaterialsJson))
+    {
+        try {
+            purData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(Model.PurchasingMaterialsJson);
+        } catch {}
+    }
+    string GetPurVal(string key) => purData != null && purData.ContainsKey(key) ? purData[key] : "";
+
+    string colorKey = string.IsNullOrEmpty(Model.Color) ? "GENEL" : Model.Color;
+    string plannedCutQtyStr = GetPurVal($"pur_color_{colorKey}_beden_cikacak");
+    if (string.IsNullOrEmpty(plannedCutQtyStr)) {
+        plannedCutQtyStr = GetPurVal("pur_color_GENEL_beden_cikacak");
+    }
+    int plannedCutQty = Model.Quantity;
+    if (!string.IsNullOrEmpty(plannedCutQtyStr) && int.TryParse(plannedCutQtyStr.Replace(".", ""), out int parsedVal) && parsedVal > 0)
+    {
+        plannedCutQty = parsedVal;
+    }
 }
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
@@ -508,11 +528,11 @@
                 <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
                     <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
                         <div style="font-size: 1.25rem; color: #15803d; font-weight: 700;">
-                            <i class="fa-solid fa-bullseye" style="margin-right: 8px;"></i>Genel Toplam Hedef: @Model.Quantity Adet
+                            <i class="fa-solid fa-bullseye" style="margin-right: 8px;"></i>Genel Toplam Hedef: @plannedCutQty Adet
                         </div>
                     </div>
                     <div style="font-size: 1.2rem; color: #166534; text-align: right;" id="divRemainingCut">
-                        Kalan İhtiyaç: <strong id="lblRemainingQty">@Model.Quantity</strong> Adet
+                        Kalan İhtiyaç: <strong id="lblRemainingQty">@plannedCutQty</strong> Adet
                     </div>
                 </div>
             </div>
@@ -571,17 +591,17 @@
                 <tbody id="cuttingEntryAcik" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
                     <tr>
                         <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
-                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAcik()" style="min-width: 60px; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAcik()" style="min-width: 80px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
                         @if (sizesObj.Count > 0) {
                             foreach (var k in sizesObj.Keys) {
-                                <td style="vertical-align: middle;"><input type="number" id="txtAcikSize_@k" class="form-control form-control-sm acik-adet-input-row" data-size="@k" value="0" oninput="calculateAcik()" style="min-width: 50px; text-align: center; font-weight: bold;" /></td>
+                                <td style="vertical-align: middle;"><input type="number" id="txtAcikSize_@k" class="form-control form-control-sm acik-adet-input-row" data-size="@k" value="0" oninput="calculateAcik()" style="min-width: 75px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
                             }
                         } else {
                             <td style="vertical-align: middle;">-</td>
                         }
-                        <td style="vertical-align: middle;"><input type="number" id="txtAcikTotal" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAcik()" style="min-width: 70px; text-align: center; font-weight: bold;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="txtAcikUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikTotal" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAcik()" style="min-width: 95px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAcikUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
                         <td style="vertical-align: middle;"><input type="date" id="txtAcikDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="min-width: 115px; font-weight: bold;" /></td>
                         <td style="vertical-align: middle; text-align: center;">
                             <div style="display: flex; gap: 4px; justify-content: center;">
@@ -645,17 +665,17 @@
                 <tbody id="cuttingEntryAsorti" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
                     <tr>
                         <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
-                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAsorti()" style="min-width: 60px; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMultiplier" class="form-control form-control-sm" value="1" oninput="calculateAsorti()" style="min-width: 80px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
                         @if (asortiObj.Count > 0) {
                             foreach (var kvp in asortiObj) {
-                                <td style="vertical-align: middle;"><input type="number" id="txtAsortiSize_@kvp.Key" class="form-control form-control-sm asorti-input-row" data-size="@kvp.Key" data-asortivalue="@kvp.Value" value="@kvp.Value" readonly style="min-width: 50px; text-align: center; font-weight: bold; background: #f1f5f9; cursor: not-allowed;" /></td>
+                                <td style="vertical-align: middle;"><input type="number" id="txtAsortiSize_@kvp.Key" class="form-control form-control-sm asorti-input-row" data-size="@kvp.Key" data-asortivalue="@kvp.Value" value="@kvp.Value" readonly style="min-width: 75px; padding: 4px;; text-align: center; font-weight: bold; background: #f1f5f9; cursor: not-allowed;" /></td>
                             }
                         } else {
                             <td style="vertical-align: middle;">-</td>
                         }
-                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiTotal" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAsorti()" style="min-width: 70px; text-align: center; font-weight: bold;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 70px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiTotal" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="calculateAsorti()" style="min-width: 95px; padding: 4px;; text-align: center; font-weight: bold;" /></td>
+                        <td style="vertical-align: middle;"><input type="number" id="txtAsortiUnitMeterage" class="form-control form-control-sm" readonly style="min-width: 95px; padding: 4px;; text-align: center; background: #dcfce7; font-weight: bold; color: #166534;" /></td>
                         <td style="vertical-align: middle;"><input type="date" id="txtAsortiDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="min-width: 115px; font-weight: bold;" /></td>
                         <td style="vertical-align: middle; text-align: center;">
                             <div style="display: flex; gap: 4px; justify-content: center;">
@@ -1114,6 +1134,19 @@
         
         let dispatchItems = @Html.Raw(string.IsNullOrEmpty(Model.MaterialDispatchJson) ? "[]" : Model.MaterialDispatchJson);
         let cuttingItems = @Html.Raw(string.IsNullOrEmpty(Model.CuttingProcessJson) ? "[]" : Model.CuttingProcessJson);
+        let targetSizes = @Html.Raw(string.IsNullOrEmpty(Model.SizeDistributionJson) ? "{}" : Model.SizeDistributionJson);
+        let targetSizesAsorti = @Html.Raw(string.IsNullOrEmpty(Model.AsortiDistributionJson) ? "{}" : Model.AsortiDistributionJson);
+        const asortiCount = @(Model.AsortiCount ?? 0);
+
+        function getTotalCutForSize(sizeName, cutType) {
+            let total = 0;
+            cuttingItems.forEach(item => {
+                if (item.CutType === cutType && item.Sizes && item.Sizes[sizeName]) {
+                    total += parseFloat(item.Sizes[sizeName]) || 0;
+                }
+            });
+            return total;
+        }
 
         $(document).ready(function() {
             renderCuttingTable();
@@ -1259,12 +1292,25 @@
             }
 
             const sizes = {};
+            let validationError = "";
             $('.acik-adet-input-row').each(function() {
                 const sizeName = $(this).data('size');
                 const val = parseFloat($(this).val()) || 0;
                 const calculatedValue = val * multiplier;
-                if(calculatedValue > 0) sizes[sizeName] = calculatedValue;
+                if(calculatedValue > 0) {
+                    const targetQty = parseFloat(targetSizes[sizeName]) || 0;
+                    const alreadyCut = getTotalCutForSize(sizeName, 'Açık Adet');
+                    if ((alreadyCut + calculatedValue) > targetQty) {
+                        validationError = `Hata: '${sizeName}' bedeni için sipariş hedefini aşıyorsunuz! (Hedef: ${targetQty}, Toplam Kesilecek: ${alreadyCut + calculatedValue})`;
+                    }
+                    sizes[sizeName] = calculatedValue;
+                }
             });
+            
+            if (validationError) {
+                showToast(validationError, "warning");
+                return;
+            }
             
             _addCutToGlobalAndRender('Açık Adet', date, multiplier, sizes, totalQty, markerLength, unitMeterage);
             
@@ -1288,12 +1334,25 @@
             }
 
             const sizes = {};
+            let validationError = "";
             $('.asorti-input-row').each(function() {
                 const sizeName = $(this).data('size');
                 const asortiValue = parseFloat($(this).data('asortivalue')) || 0;
                 const val = asortiValue * multiplier;
-                if(val > 0) sizes[sizeName] = val;
+                if(val > 0) {
+                    const targetQty = (parseFloat(targetSizesAsorti[sizeName]) || 0) * asortiCount;
+                    const alreadyCut = getTotalCutForSize(sizeName, 'Asorti');
+                    if ((alreadyCut + val) > targetQty) {
+                        validationError = `Hata: '${sizeName}' bedeni için sipariş hedefini aşıyorsunuz! (Hedef: ${targetQty}, Toplam Kesilecek: ${alreadyCut + val})`;
+                    }
+                    sizes[sizeName] = val;
+                }
             });
+            
+            if (validationError) {
+                showToast(validationError, "warning");
+                return;
+            }
             
             _addCutToGlobalAndRender('Asorti', date, multiplier, sizes, totalQty, markerLength, unitMeterage);
             
@@ -1395,7 +1454,7 @@
             $('#grandTotalCut').text(grandTotal.toLocaleString('tr-TR'));
 
             // Sipariş limit kontrolü
-            let orderQty = @(Model.Quantity);
+            let orderQty = @plannedCutQty;
             let remaining = orderQty - grandTotal;
             if (remaining > 0) {
                 $('#divRemainingCut').css('color', '#166534').html(`Kalan İhtiyaç: <strong id="lblRemainingQty">${remaining}</strong> Adet`);

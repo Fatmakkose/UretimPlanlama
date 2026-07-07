@@ -283,12 +283,12 @@
                                     <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-industry" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@atolyeStr</span>
                                 </td>
                                 <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #0f172a;">
-                                    @firstOrder.Quantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                    @firstOrder.CalculatedQuantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
                                 </td>
                                 <td style="text-align: center; padding-right: 24px;">
                                     <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                                        <button class="action-btn btnEditOrder" data-id="@firstOrder.Id" title="Rengi Düzenle"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="action-btn btnDeleteOrder" data-id="@firstOrder.Id" title="Rengi Sil"><i class="fa-solid fa-trash"></i></button>
+                                        <a href="/Order/Edit/@firstOrder.Id" class="action-btn" title="Siparişi Güncelle"><i class="fa-solid fa-pen"></i></a>
+                                        
                                         <button class="action-btn view-order-detail" data-id="@firstOrder.Id" title="Renk Detayları"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
                                     </div>
                                 </td>
@@ -371,12 +371,12 @@
                                         <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-industry" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@childAtolyeStr</span>
                                     </td>
                                     <td style="text-align: right; font-weight: 600; font-size: 0.95rem; color: #0f172a;">
-                                        @order.Quantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                        @order.CalculatedQuantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
                                     </td>
                                     <td style="text-align: center; padding-right: 24px;">
                                         <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                                            <button class="action-btn btnEditOrder" data-id="@order.Id" title="Rengi Düzenle"><i class="fa-solid fa-pen"></i></button>
-                                            <button class="action-btn btnDeleteOrder" data-id="@order.Id" title="Rengi Sil"><i class="fa-solid fa-trash"></i></button>
+                                            <a href="/Order/Edit/@order.Id" class="action-btn" title="Siparişi Güncelle"><i class="fa-solid fa-pen"></i></a>
+                                            
                                             <button class="action-btn view-order-detail" data-id="@order.Id" title="Renk Detayları"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
                                         </div>
                                     </td>
@@ -734,7 +734,7 @@
 @section Scripts {
         <script>
             
-            var stokKartlariList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StokKartlari ?? new List<UretimPlanlama.Models.StokKarti>()));
+            var stokKartlariList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.StokKartlari ?? new List<UretimPlanlama.Models.StokKarti>(), new System.Text.Json.JsonSerializerOptions { ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles }));
 
             function updateEditStockMaterialsJson() {
                 var materials = [];
@@ -1390,63 +1390,6 @@
                             }
                         }
                     });
-                });
-
-                // Tekil Sipariş Rengi Silme İşlemi
-                $(document).on("click", ".btnDeleteOrder", function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var orderId = $(this).data("id");
-                    if (confirm("Bu renk kaydını silmek istediğinizden emin misiniz?")) {
-                        $.ajax({
-                            url: "/Order/Delete",
-                            type: "POST",
-                            data: { id: orderId },
-                            success: function(response) {
-                                if (response.success) {
-                                    showToast("Kayıt başarıyla silindi.", "success");
-                                    setTimeout(function() {
-                                        window.location.reload();
-                                    }, 1000);
-                                } else {
-                                    showToast("Silme hatası: " + response.message, "danger");
-                                }
-                            },
-                            error: function() {
-                                showToast("Kayıt silinirken sunucu hatası oluştu.", "danger");
-                            }
-                        });
-                    }
-                });
-
-                // Sipariş Grubunu (Komple) Silme İşlemi
-                $(document).on("click", ".btnDeleteOrderGroup", function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var idsString = $(this).data("ids");
-                    var idsArray = String(idsString).split(',').map(Number);
-                    
-                    if (confirm("Bu siparişe ait TÜM renk kayıtlarını silmek istediğinizden emin misiniz?")) {
-                        $.ajax({
-                            url: "/Order/DeleteMultiple",
-                            type: "POST",
-                            contentType: "application/json",
-                            data: JSON.stringify(idsArray),
-                            success: function(response) {
-                                if (response.success) {
-                                    showToast("Sipariş grubu başarıyla silindi.", "success");
-                                    setTimeout(function() {
-                                        window.location.reload();
-                                    }, 1000);
-                                } else {
-                                    showToast("Silme hatası: " + response.message, "danger");
-                                }
-                            },
-                            error: function() {
-                                showToast("Silinirken sunucu hatası oluştu.", "danger");
-                            }
-                        });
-                    }
                 });
 
                 // Sipariş Düzenleme Modalı Kapatma

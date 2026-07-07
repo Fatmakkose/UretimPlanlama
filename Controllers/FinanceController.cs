@@ -101,6 +101,34 @@ namespace UretimPlanlama.Controllers
                         if (stok != null)
                         {
                             stok.MevcutMiktar += kalem.Miktar;
+
+                            int? finalVaryantId = kalem.StokVaryantId;
+                            if (!string.IsNullOrEmpty(kalem.VaryantAdi))
+                            {
+                                var varyantName = kalem.VaryantAdi.Trim();
+                                var varyant = _context.StokVaryantlar.FirstOrDefault(v => v.StokKartiId == stok.Id && v.VaryantAdi == varyantName);
+                                if (varyant == null)
+                                {
+                                    varyant = new StokVaryant { StokKartiId = stok.Id, VaryantAdi = varyantName, MevcutMiktar = kalem.Miktar };
+                                    _context.StokVaryantlar.Add(varyant);
+                                    _context.SaveChanges();
+                                    finalVaryantId = varyant.Id;
+                                }
+                                else
+                                {
+                                    varyant.MevcutMiktar += kalem.Miktar;
+                                    _context.StokVaryantlar.Update(varyant);
+                                    finalVaryantId = varyant.Id;
+                                }
+                            }
+                            else if (kalem.StokVaryantId.HasValue && kalem.StokVaryantId > 0)
+                            {
+                                var varyant = _context.StokVaryantlar.Find(kalem.StokVaryantId.Value);
+                                if (varyant != null)
+                                {
+                                    varyant.MevcutMiktar += kalem.Miktar;
+                                }
+                            }
                             
                             // İsterseniz son alış fiyatını güncelleyebilirsiniz:
                             if (kalem.BirimFiyat.HasValue && kalem.BirimFiyat > 0)
@@ -113,6 +141,7 @@ namespace UretimPlanlama.Controllers
                             var stokHareket = new StokHareket
                             {
                                 StokKartiId = stok.Id,
+                                StokVaryantId = finalVaryantId,
                                 IslemTarihi = model.IslemTarihi,
                                 HareketTipi = "Giriş",
                                 Miktar = kalem.Miktar,
@@ -206,11 +235,22 @@ namespace UretimPlanlama.Controllers
                         if (stok != null)
                         {
                             stok.MevcutMiktar -= kalem.Miktar; // Satışta stok düşer
+
+                            if (kalem.StokVaryantId.HasValue && kalem.StokVaryantId > 0)
+                            {
+                                var varyant = _context.StokVaryantlar.Find(kalem.StokVaryantId.Value);
+                                if (varyant != null)
+                                {
+                                    varyant.MevcutMiktar -= kalem.Miktar;
+                                }
+                            }
+
                             _context.StokKartlari.Update(stok);
 
                             var stokHareket = new StokHareket
                             {
                                 StokKartiId = stok.Id,
+                                StokVaryantId = kalem.StokVaryantId > 0 ? kalem.StokVaryantId : null,
                                 IslemTarihi = model.IslemTarihi,
                                 HareketTipi = "Çıkış",
                                 Miktar = kalem.Miktar,

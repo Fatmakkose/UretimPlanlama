@@ -71,6 +71,18 @@ namespace UretimPlanlama.Controllers
                         {
                             foreach (var mat in materials)
                             {
+                                if (!string.IsNullOrEmpty(mat.OzelliklerJson))
+                                {
+                                    var varyantAdi = mat.OzelliklerJson.Trim();
+                                    var varyant = _context.StokVaryantlar.FirstOrDefault(v => v.StokKartiId == mat.StokKartiId && v.VaryantAdi == varyantAdi);
+                                    if (varyant == null)
+                                    {
+                                        varyant = new StokVaryant { StokKartiId = mat.StokKartiId, VaryantAdi = varyantAdi, MevcutMiktar = 0 };
+                                        _context.StokVaryantlar.Add(varyant);
+                                        _context.SaveChanges();
+                                    }
+                                    mat.StokVaryantId = varyant.Id;
+                                }
                                 order.OrderMaterials.Add(mat);
                             }
                         }
@@ -120,6 +132,18 @@ namespace UretimPlanlama.Controllers
                             {
                                 foreach (var mat in materials)
                                 {
+                                    if (!string.IsNullOrEmpty(mat.OzelliklerJson))
+                                    {
+                                        var varyantAdi = mat.OzelliklerJson.Trim();
+                                        var varyant = _context.StokVaryantlar.FirstOrDefault(v => v.StokKartiId == mat.StokKartiId && v.VaryantAdi == varyantAdi);
+                                        if (varyant == null)
+                                        {
+                                            varyant = new StokVaryant { StokKartiId = mat.StokKartiId, VaryantAdi = varyantAdi, MevcutMiktar = 0 };
+                                            _context.StokVaryantlar.Add(varyant);
+                                            _context.SaveChanges();
+                                        }
+                                        mat.StokVaryantId = varyant.Id;
+                                    }
                                     mat.OrderId = order.Id; // Will be set by EF when order is saved, but we add to collection
                                     order.OrderMaterials.Add(mat);
                                 }
@@ -189,6 +213,8 @@ namespace UretimPlanlama.Controllers
             var order = _context.Orders
                 .Include(o => o.OrderMaterials)
                     .ThenInclude(m => m.StokKarti)
+                .Include(o => o.OrderMaterials)
+                    .ThenInclude(m => m.StokVaryant)
                 .FirstOrDefault(o => o.Id == id);
             if (order == null)
             {
@@ -201,6 +227,8 @@ namespace UretimPlanlama.Controllers
                     StokKodu = m.StokKarti?.StokKodu,
                     StokAdi = m.StokKarti?.StokAdi,
                     Kategori = m.StokKarti?.Kategori,
+                    m.StokVaryantId,
+                    VaryantAdi = m.StokVaryant?.VaryantAdi,
                     m.Miktar,
                     m.BirimFiyat,
                     m.Aciklama,
@@ -297,6 +325,53 @@ namespace UretimPlanlama.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            if (!User.HasPermission("View") && !User.HasPermission("Write"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            
+            var order = _context.Orders
+                .Include(o => o.OrderMaterials)
+                    .ThenInclude(m => m.StokKarti)
+                .Include(o => o.OrderMaterials)
+                    .ThenInclude(m => m.StokVaryant)
+                .FirstOrDefault(o => o.Id == id);
+                
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
+            ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
+            ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
+
+            // Setup JSON string for existing materials so frontend can parse it
+            if (order.OrderMaterials != null && order.OrderMaterials.Any())
+            {
+                var materialsData = order.OrderMaterials.Select(m => new
+                {
+                    m.StokKartiId,
+                    m.Miktar,
+                    m.Aciklama,
+                    m.OzelliklerJson
+                }).ToList();
+                order.OrderMaterialsJson = System.Text.Json.JsonSerializer.Serialize(materialsData);
+            }
+            else
+            {
+                order.OrderMaterialsJson = "[]";
+            }
+
+            return View(order);
+        }
+
         [HttpPost]
         public IActionResult Edit([FromBody] Order updatedOrder)
         {
@@ -342,6 +417,7 @@ namespace UretimPlanlama.Controllers
                     }
                 }
 
+                existingOrder.Brand = updatedOrder.Brand;
                 existingOrder.IsJIT = updatedOrder.IsJIT;
                 existingOrder.SalesRegion = updatedOrder.SalesRegion;
                 existingOrder.PlannedPackagingEndDate = updatedOrder.PlannedPackagingEndDate;
@@ -427,6 +503,18 @@ namespace UretimPlanlama.Controllers
                         {
                             foreach (var mat in newMaterials)
                             {
+                                if (!string.IsNullOrEmpty(mat.OzelliklerJson))
+                                {
+                                    var varyantAdi = mat.OzelliklerJson.Trim();
+                                    var varyant = _context.StokVaryantlar.FirstOrDefault(v => v.StokKartiId == mat.StokKartiId && v.VaryantAdi == varyantAdi);
+                                    if (varyant == null)
+                                    {
+                                        varyant = new StokVaryant { StokKartiId = mat.StokKartiId, VaryantAdi = varyantAdi, MevcutMiktar = 0 };
+                                        _context.StokVaryantlar.Add(varyant);
+                                        _context.SaveChanges();
+                                    }
+                                    mat.StokVaryantId = varyant.Id;
+                                }
                                 mat.OrderId = existingOrder.Id;
                                 existingOrder.OrderMaterials.Add(mat);
                             }
@@ -480,6 +568,33 @@ namespace UretimPlanlama.Controllers
                 _context.Orders.RemoveRange(orders);
                 _context.SaveChanges();
                 return Json(new { success = true });
+            }
+            return Json(new { success = false, message = "Sipariş bulunamadı." });
+        }
+
+        [HttpPost]
+        public IActionResult CloneOrder(int id)
+        {
+            if (!User.HasPermission("Write"))
+            {
+                return Json(new { success = false, message = "Yetkiniz yetersiz." });
+            }
+
+            var order = _context.Orders.Include(o => o.OrderMaterials).AsNoTracking().FirstOrDefault(o => o.Id == id);
+            if (order != null)
+            {
+                order.Id = 0;
+                order.Color = (order.Color ?? "Yeni Renk") + " (Kopya)";
+                foreach (var mat in order.OrderMaterials)
+                {
+                    mat.Id = 0;
+                    mat.OrderId = 0;
+                }
+
+                _context.Orders.Add(order);
+                _context.SaveChanges();
+
+                return Json(new { success = true, newId = order.Id });
             }
             return Json(new { success = false, message = "Sipariş bulunamadı." });
         }

@@ -42,6 +42,11 @@ namespace UretimPlanlama.Models
         [ForeignKey("StokKartiId")]
         public StokKarti? StokKarti { get; set; }
 
+        public int? StokVaryantId { get; set; }
+
+        [ForeignKey("StokVaryantId")]
+        public StokVaryant? StokVaryant { get; set; }
+
         [ForeignKey("OrderId")]
         public Order? Order { get; set; }
     }

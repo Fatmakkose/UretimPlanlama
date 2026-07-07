@@ -485,5 +485,25 @@ namespace UretimPlanlama.Controllers
                 }
             }
         }
+    
+        [HttpPost]
+        public IActionResult UpdatePlannedCutting([FromBody] PlannedCuttingRequest request)
+        {
+            if (!User.HasPermission("Write")) return Json(new { success = false, message = "Yetkisiz" });
+
+            var order = _context.Orders.Find(request.Id);
+            if (order == null) return Json(new { success = false, message = "Sipariş bulunamadı" });
+
+            order.PlannedCuttingJson = request.PlannedCuttingJson;
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+    }
+
+    public class PlannedCuttingRequest
+    {
+        public int Id { get; set; }
+        public string PlannedCuttingJson { get; set; } = string.Empty;
     }
 }

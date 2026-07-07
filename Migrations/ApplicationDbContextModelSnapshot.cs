@@ -926,11 +926,16 @@ namespace UretimPlanlama.Migrations
                     b.Property<int>("StokKartiId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("StokVaryantId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
                     b.HasIndex("StokKartiId");
+
+                    b.HasIndex("StokVaryantId");
 
                     b.ToTable("OrderMaterials");
                 });
@@ -956,6 +961,9 @@ namespace UretimPlanlama.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("IslemTarihi")
                         .HasColumnType("datetime2");
 
@@ -971,6 +979,9 @@ namespace UretimPlanlama.Migrations
                     b.Property<int>("StokKartiId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("StokVaryantId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Tedarikci")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -980,6 +991,8 @@ namespace UretimPlanlama.Migrations
                     b.HasIndex("OrderId");
 
                     b.HasIndex("StokKartiId");
+
+                    b.HasIndex("StokVaryantId");
 
                     b.ToTable("StokHareketler");
                 });
@@ -1044,6 +1057,35 @@ namespace UretimPlanlama.Migrations
                         .IsUnique();
 
                     b.ToTable("StokKartlari");
+                });
+
+            modelBuilder.Entity("UretimPlanlama.Models.StokVaryant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Aktif")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("MevcutMiktar")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("StokKartiId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VaryantAdi")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StokKartiId");
+
+                    b.ToTable("StokVaryantlar");
                 });
 
             modelBuilder.Entity("UretimPlanlama.Models.Workshop", b =>
@@ -1176,9 +1218,15 @@ namespace UretimPlanlama.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UretimPlanlama.Models.StokVaryant", "StokVaryant")
+                        .WithMany()
+                        .HasForeignKey("StokVaryantId");
+
                     b.Navigation("Order");
 
                     b.Navigation("StokKarti");
+
+                    b.Navigation("StokVaryant");
                 });
 
             modelBuilder.Entity("UretimPlanlama.Models.StokHareket", b =>
@@ -1194,7 +1242,24 @@ namespace UretimPlanlama.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UretimPlanlama.Models.StokVaryant", "StokVaryant")
+                        .WithMany()
+                        .HasForeignKey("StokVaryantId");
+
                     b.Navigation("Order");
+
+                    b.Navigation("StokKarti");
+
+                    b.Navigation("StokVaryant");
+                });
+
+            modelBuilder.Entity("UretimPlanlama.Models.StokVaryant", b =>
+                {
+                    b.HasOne("UretimPlanlama.Models.StokKarti", "StokKarti")
+                        .WithMany("Varyantlar")
+                        .HasForeignKey("StokKartiId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("StokKarti");
                 });
@@ -1212,6 +1277,8 @@ namespace UretimPlanlama.Migrations
             modelBuilder.Entity("UretimPlanlama.Models.StokKarti", b =>
                 {
                     b.Navigation("Hareketler");
+
+                    b.Navigation("Varyantlar");
                 });
 #pragma warning restore 612, 618
         }

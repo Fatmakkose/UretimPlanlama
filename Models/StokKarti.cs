@@ -46,6 +46,7 @@ namespace UretimPlanlama.Models
         public bool Aktif { get; set; } = true;
 
         // Navigation
+        public ICollection<StokVaryant> Varyantlar { get; set; } = new List<StokVaryant>();
         public ICollection<StokHareket> Hareketler { get; set; } = new List<StokHareket>();
     }
 }

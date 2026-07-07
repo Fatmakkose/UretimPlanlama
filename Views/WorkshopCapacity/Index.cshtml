@@ -2,10 +2,10 @@
 @{
     ViewData["Title"] = "Atölye Takip";
     
-    // Özet İstatistikleri Hesapla (Başlangıçta varsayılan olarak Çarşamba / İndeks 2)
+    // Özet İstatistikleri Hesapla
     int totalTarget = Model.Sum(m => m.DailyTarget);
-    int totalActual = Model.Sum(m => m.DailyData.Count > 2 ? m.DailyData[2].ActualProduction : m.ActualProduction);
-    double overallUsage = totalTarget > 0 ? (double)totalActual / totalTarget * 100 : 0;
+    int totalActual = Model.Sum(m => m.ActualProduction);
+    double overallUsage = Model.Any() ? Model.Average(m => m.CapacityUsage) * 100 : 0;
 }
 
 <style>
@@ -271,7 +271,7 @@
                     <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">
                         <th style="padding: 12px 8px;">Atölye Adı</th>
                         <th style="padding: 12px 8px; text-align: right;">Günlük Hedef</th>
-                        <th style="padding: 12px 8px; text-align: right;">Gerçekleşen</th>
+                        <th style="padding: 12px 8px; text-align: right;">Aktif İş Yükü</th>
                         <th style="padding: 12px 8px; padding-left: 24px;">Kapasite Doluluk</th>
                         <th style="padding: 12px 8px; text-align: center;">Durum</th>
                         <th style="padding: 12px 8px; text-align: center; width: 50px;">İşlem</th>
@@ -367,45 +367,11 @@
             </div>
         </div>
 
-        <!-- Haftalık Kapasite Öngörüsü -->
+        <!-- Atölye Genel Görünüm Notu -->
         <div style="background: white; padding: 20px 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-            <h3 style="font-size: 1rem; font-weight: 700; margin: 0 0 16px 0; color: var(--text-main);">Haftalık Kapasite Öngörüsü</h3>
-            
-            <div class="chart-container">
-                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="0" style="cursor: pointer;">
-                    <div class="chart-bar-bg">
-                        <div class="chart-bar-fill normal" id="bar-day-0" style="height: 60%;"></div>
-                    </div>
-                    <span class="chart-day-label" id="label-day-0">Pzt</span>
-                </div>
-                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="1" style="cursor: pointer;">
-                    <div class="chart-bar-bg">
-                        <div class="chart-bar-fill normal" id="bar-day-1" style="height: 75%;"></div>
-                    </div>
-                    <span class="chart-day-label" id="label-day-1">Sal</span>
-                </div>
-                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="2" style="cursor: pointer;">
-                    <div class="chart-bar-bg">
-                        <div class="chart-bar-fill highlight" id="bar-day-2" style="height: 95%;"></div>
-                    </div>
-                    <span class="chart-day-label" id="label-day-2" style="color: var(--primary-color); font-weight: 700;">Çar</span>
-                </div>
-                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="3" style="cursor: pointer;">
-                    <div class="chart-bar-bg">
-                        <div class="chart-bar-fill normal" id="bar-day-3" style="height: 65%;"></div>
-                    </div>
-                    <span class="chart-day-label" id="label-day-3">Per</span>
-                </div>
-                <div class="chart-bar-wrapper forecast-day-btn" data-day-index="4" style="cursor: pointer;">
-                    <div class="chart-bar-bg">
-                        <div class="chart-bar-fill normal" id="bar-day-4" style="height: 80%;"></div>
-                    </div>
-                    <span class="chart-day-label" id="label-day-4">Cum</span>
-                </div>
-            </div>
-
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-align: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 6px;">
-                Öngörülen Haftalık Ortalama: <span style="color: var(--text-main); font-weight: 700;"><span id="weekly-avg-label">11.8k</span></span>
+            <div style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+                <i class="fa-solid fa-circle-info" style="color: var(--primary-color);"></i>
+                <strong>Bilgi:</strong> Bu ekran, şu an aktif siparişler atanmış olan atölyelerin mevcut iş yüklerini ve toplam haftalık kapasitelerine oranla ne kadar dolu olduklarını göstermektedir.
             </div>
         </div>
     </div>
@@ -441,155 +407,7 @@
         }
     });
 
-    // Haftalık öngörüde gün seçimini ele al
-    document.querySelectorAll('.forecast-day-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const dayIndex = parseInt(this.getAttribute('data-day-index'));
-            selectDay(dayIndex);
-        });
-    });
-
-    function selectDay(dayIndex) {
-        const days = ["Pzt", "Sal", "Çar", "Per", "Cum"];
-        
-        // 1. Grafikte vurgulanan sınıfı ve stilleri güncelle
-        for (let i = 0; i < 5; i++) {
-            const bar = document.getElementById('bar-day-' + i);
-            const label = document.getElementById('label-day-' + i);
-            if (i === dayIndex) {
-                bar.className = 'chart-bar-fill highlight';
-                label.style.color = 'var(--primary-color)';
-                label.style.fontWeight = '700';
-            } else {
-                bar.className = 'chart-bar-fill normal';
-                label.style.color = 'var(--text-muted)';
-                label.style.fontWeight = '600';
-            }
-        }
-
-        // 2. Seçilen gün için istatistikleri hesapla
-        let totalTarget = 0;
-        let totalActual = 0;
-        
-        // 3. Ana tabloyu ve atölye karşılaştırma listesini güncelle
-        workshopsData.forEach(ws => {
-            const daily = ws.dailyData[dayIndex];
-            totalTarget += ws.dailyTarget;
-            totalActual += daily.actualProduction;
-
-            const usagePct = Math.round(daily.capacityUsage * 100);
-            
-            // Tablo Satırını Güncelle
-            const row = document.getElementById('row-ws-' + ws.id);
-            if (row) {
-                // Gerçekleşen üretim sütunu
-                const actualCol = row.querySelector('.ws-actual');
-                if (actualCol) {
-                    actualCol.textContent = daily.actualProduction.toLocaleString('tr-TR');
-                }
-                
-                // İlerleme çubuğu ve yüzdelik metin
-                const fill = row.querySelector('.progress-bar-fill');
-                const pctText = row.querySelector('.progress-bar-container span');
-                if (fill) {
-                    fill.style.width = Math.min(usagePct, 100) + '%';
-                    
-                    // Renk eşleştirme
-                    let barColor = 'var(--primary-color)';
-                    if (daily.status === 'Bakımda') barColor = '#cbd5e1';
-                    else if (daily.status === 'Kapasite Aşımı' || usagePct >= 100) barColor = '#dc2626';
-                    else if (usagePct < 90) barColor = '#475569';
-                    
-                    fill.style.backgroundColor = barColor;
-                }
-                if (pctText) {
-                    pctText.textContent = usagePct + '%';
-                    pctText.style.color = (daily.status === 'Kapasite Aşımı') ? '#dc2626' : 'var(--text-main)';
-                }
-                
-                // Durum etiketi
-                const badge = row.querySelector('.badge');
-                if (badge) {
-                    badge.textContent = daily.status;
-                    badge.className = 'badge';
-                    if (daily.status === 'Bakımda') badge.classList.add('badge-low');
-                    else if (daily.status === 'Kapasite Aşımı' || usagePct >= 100) badge.classList.add('badge-high');
-                    else if (usagePct < 90) badge.classList.add('badge-medium');
-                    else badge.classList.add('badge-progress');
-                }
-            }
-
-            // Sağ taraftaki Atölye Karşılaştırma ilerleme çubuğunu güncelle
-            const compareItem = document.getElementById('compare-item-' + ws.id);
-            if (compareItem) {
-                const compPct = compareItem.querySelector('.compare-pct');
-                const compBar = compareItem.querySelector('.compare-bar');
-                if (compPct) compPct.textContent = usagePct + '%';
-                if (compBar) {
-                    compBar.style.width = Math.min(usagePct, 100) + '%';
-                    
-                    let barColor = 'var(--primary-color)';
-                    if (daily.status === 'Bakımda') barColor = '#cbd5e1';
-                    else if (daily.status === 'Kapasite Aşımı' || usagePct >= 100) barColor = '#dc2626';
-                    else if (usagePct < 90) barColor = '#475569';
-                    
-                    compBar.style.backgroundColor = barColor;
-                }
-            }
-        });
-
-        // 4. En üstteki genel özet istatistik kartlarını güncelle
-        const overallUsage = totalTarget > 0 ? (totalActual / totalTarget * 100) : 0;
-        
-        const cardTarget = document.getElementById('stat-total-target');
-        const cardUsage = document.getElementById('stat-overall-usage');
-        
-        if (cardTarget) {
-            cardTarget.innerHTML = totalTarget.toLocaleString('tr-TR') + ' <span class="stat-box-unit">Adet</span>';
-        }
-        if (cardUsage) {
-            cardUsage.style.color = overallUsage >= 100 ? '#dc2626' : 'var(--text-main)';
-            cardUsage.innerHTML = overallUsage.toFixed(1) + '% <span style="font-size: 1.1rem; color: #16a34a; font-weight: bold; margin-left: 2px;"><i class="fa-solid fa-arrow-trend-up"></i></span>';
-        }
-    }
-
-    // Sayfa yüklemesinde grafik çubuk yüksekliklerini günlük gerçek verilerin ortalamasına göre dinamik ilklendir
-    function initChartHeights() {
-        let weeklyTotalActual = 0;
-        let weeklyTotalTarget = 0;
-
-        for (let d = 0; d < 5; d++) {
-            let dailyTarget = 0;
-            let dailyActual = 0;
-            
-            workshopsData.forEach(ws => {
-                dailyTarget += ws.dailyTarget;
-                dailyActual += ws.dailyData[d].actualProduction;
-            });
-            
-            const usagePct = dailyTarget > 0 ? (dailyActual / dailyTarget * 100) : 0;
-            const bar = document.getElementById('bar-day-' + d);
-            if (bar) {
-                // Çubuk yüksekliğini kapasite kullanımına oranla, %100 ile sınırlayarak ayarla
-                bar.style.height = Math.min(usagePct, 100) + '%';
-            }
-            
-            weeklyTotalActual += dailyActual;
-            weeklyTotalTarget += dailyTarget;
-        }
-
-        // Haftalık ortalamayı hesapla ve metin olarak göster
-        const weeklyAvgActual = weeklyTotalActual / 5;
-        const formattedAvg = (weeklyAvgActual / 1000).toFixed(1) + 'k';
-        const weeklyAvgSpan = document.getElementById('weekly-avg-label');
-        if (weeklyAvgSpan) {
-            weeklyAvgSpan.textContent = formattedAvg;
-        }
-    }
-
-    // Sayfa yüklendiğinde çalıştır
-    initChartHeights();
-    // Arayüz durumlarının düzgün ilklendirilmesi için varsayılan olarak Çarşamba (indeks 2) gününü seç
-    selectDay(2);
+    // İlk render bitti. Günlük script kaldırıldı.
+</script>
 </script>
 }

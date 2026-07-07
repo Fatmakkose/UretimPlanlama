@@ -1,8 +1,6 @@
 @model List<UretimPlanlama.Models.StokKarti>
 @{
-    ViewData["Title"] = "Stok Yönetimi";
-    var orders = ViewBag.Orders as List<UretimPlanlama.Models.Order>;
-    var kritikSayisi = (int)(ViewBag.KritikStokSayisi ?? 0);
+    ViewData["Title"] = "Stok Tanımları";
 }
 
 <style>
@@ -611,8 +609,8 @@
 <!-- SAYFA BAŞLIĞI -->
 <div class="page-header">
     <div>
-        <h1><i class="fa-solid fa-boxes-stacked" style="color: #0d9488;"></i> Stok Yönetimi</h1>
-       
+        <h1><i class="fa-solid fa-box-open" style="color: #0d9488;"></i> Stok Tanımları</h1>
+        
     </div>
     <div class="header-actions">
         <a href="/Stock/ExportToExcel" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Excel'e Aktar</a>
@@ -620,46 +618,7 @@
     </div>
 </div>
 
-<!-- KRİTİK STOK UYARISI -->
-@if(kritikSayisi > 0)
-{
-    <div class="kritik-banner">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <p><strong>@kritikSayisi</strong> stok kalemi kritik seviyenin altında! Acil tedarik planlaması yapılmalıdır.</p>
-    </div>
-}
 
-<!-- ÖZET KARTLARI -->
-<div class="summary-cards">
-    <div class="summary-card">
-        <div class="summary-icon teal"><i class="fa-solid fa-cubes"></i></div>
-        <div>
-            <div class="summary-label">Toplam Stok Kalemi</div>
-            <div class="summary-value">@Model.Count(s => s.Aktif)</div>
-        </div>
-    </div>
-    <div class="summary-card @(kritikSayisi > 0 ? "kritik-card" : "")">
-        <div class="summary-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-        <div>
-            <div class="summary-label">Kritik Stoklar</div>
-            <div class="summary-value" style="color: #dc2626;">@kritikSayisi</div>
-        </div>
-    </div>
-    <div class="summary-card">
-        <div class="summary-icon blue"><i class="fa-solid fa-turkish-lira-sign"></i></div>
-        <div>
-            <div class="summary-label">Toplam Stok Değeri</div>
-            <div class="summary-value">₺@(Model.Where(s => s.Aktif && s.BirimFiyat.HasValue).Sum(s => s.MevcutMiktar * s.BirimFiyat!.Value).ToString("N2"))</div>
-        </div>
-    </div>
-    <div class="summary-card">
-        <div class="summary-icon orange"><i class="fa-solid fa-tags"></i></div>
-        <div>
-            <div class="summary-label">Kategori Sayısı</div>
-            <div class="summary-value">@Model.Where(s => s.Aktif).Select(s => s.Kategori).Distinct().Count()</div>
-        </div>
-    </div>
-</div>
 
 <!-- ANA TABLO -->
 <div class="table-container">
@@ -693,9 +652,7 @@
                     <th>Stok Adı</th>
                     <th>Kategori</th>
                     <th>Birim</th>
-                    <th style="text-align: right;">Mevcut</th>
-                    <th style="text-align: right;">Minimum</th>
-                    <th>Stok Durumu</th>
+                    <th style="text-align: right;">Birim Fiyat</th>
                     <th style="text-align: center;">İşlem</th>
                 </tr>
             </thead>
@@ -720,25 +677,12 @@
                         "Etiket" => "kat-etiket",
                         _ => "kat-diger"
                     };
-                    var isKritik = s.MinimumMiktar > 0 && s.MevcutMiktar <= s.MinimumMiktar;
-                    var isSifir = s.MevcutMiktar == 0;
-                    var barPercent = s.MinimumMiktar > 0 ? Math.Min(100, (int)(s.MevcutMiktar / s.MinimumMiktar * 100)) : (s.MevcutMiktar > 0 ? 100 : 0);
-                    var barClass = isKritik ? "danger" : barPercent < 50 ? "warning" : "safe";
-                    var statusClass = isKritik ? "kritik" : isSifir ? "sifir" : "normal";
-                    var statusText = isKritik ? "⚠ Kritik" : isSifir ? "Stok Yok" : "Normal";
-                    <tr class="stok-row @(isKritik ? "kritik-row" : "")" data-id="@s.Id" data-kategori="@s.Kategori" 
-                        data-mevcut="@s.MevcutMiktar" data-min="@s.MinimumMiktar"
-                        onclick="showDetail(@s.Id)">
+                    <tr class="stok-row" data-id="@s.Id" data-kategori="@s.Kategori" onclick="currentStokId=@s.Id; openEditStokModal();" style="cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
                         <td><span class="stok-kodu">@s.StokKodu</span></td>
                         <td><strong>@s.StokAdi</strong></td>
                         <td><span class="kategori-badge @katClass">@s.Kategori</span></td>
                         <td>@s.Birim</td>
-                        <td style="text-align: right;">
-                            <strong>@s.MevcutMiktar.ToString("N2")</strong>
-                            <div class="stok-bar"><div class="stok-bar-fill @barClass" style="width: @(barPercent)%"></div></div>
-                        </td>
-                        <td style="text-align: right; color: #64748b;">@s.MinimumMiktar.ToString("N2")</td>
-                        <td><span class="stok-status @statusClass">@statusText</span></td>
+                        <td style="text-align: right;">₺@(s.BirimFiyat?.ToString("N2") ?? "0,00")</td>
                         <td style="text-align: center;">
                             <button class="btn-danger-sm" title="Sil" onclick="event.stopPropagation(); deleteStok(@s.Id, '@s.StokAdi')">
                                 <i class="fa-solid fa-trash"></i>

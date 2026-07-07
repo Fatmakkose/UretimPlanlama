@@ -42,10 +42,42 @@ namespace UretimPlanlama.Controllers
             }
             var hareketler = _context.StokHareketler
                 .Include(h => h.StokKarti)
+                .Include(h => h.StokVaryant)
                 .OrderByDescending(h => h.IslemTarihi)
                 .ThenByDescending(h => h.Id)
                 .ToList();
             return View(hareketler);
+        }
+
+        public IActionResult Warehouse()
+        {
+            if (!User.HasPermission("View"))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            
+            var stoklar = _context.StokKartlari.Include(s => s.Varyantlar).OrderBy(s => s.StokAdi).ToList();
+            ViewBag.KritikStokSayisi = stoklar.Count(s => s.Aktif && s.MevcutMiktar <= s.MinimumMiktar && s.MinimumMiktar > 0);
+            ViewBag.StokKartlari = stoklar;
+            
+            // Sadece alış faturasıyla gelenleri veya Giriş olup Tedarikçisi olanları listele
+            var depogirisleri = _context.StokHareketler
+                .Include(h => h.StokKarti)
+                .Include(h => h.StokVaryant)
+                .Where(h => h.HareketTipi == "Giriş" && !string.IsNullOrEmpty(h.BelgeNo))
+                .OrderByDescending(h => h.IslemTarihi)
+                .ToList();
+            return View(depogirisleri);
+        }
+
+        [HttpGet]
+        public IActionResult GetVaryantlar(int stokKartiId)
+        {
+            var varyantlar = _context.StokVaryantlar
+                .Where(v => v.StokKartiId == stokKartiId && v.Aktif)
+                .Select(v => new { v.Id, v.VaryantAdi, v.MevcutMiktar })
+                .ToList();
+            return Json(new { success = true, data = varyantlar });
         }
 
         [HttpGet]
