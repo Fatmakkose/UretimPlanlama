@@ -45,7 +45,7 @@ namespace UretimPlanlama.Controllers
                 .ToList();
 
             ViewBag.StokKartlari = _context.StokKartlari.ToList();
-            ViewBag.Workshops = _context.Workshops.ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
             
             var salesMovements = _context.StokHareketler
                 .Include(sh => sh.StokKarti)
@@ -53,6 +53,11 @@ namespace UretimPlanlama.Controllers
                 .OrderByDescending(sh => sh.IslemTarihi)
                 .ToList();
             ViewBag.SalesMovements = salesMovements;
+
+            var purchaseMovements = _context.StokHareketler
+                .Where(sh => sh.OrderId == id && sh.HareketTipi == "Giriş")
+                .ToList();
+            ViewBag.PurchaseMovements = purchaseMovements;
 
             return View(order);
         }
@@ -127,6 +132,76 @@ namespace UretimPlanlama.Controllers
             order.CuttingProcessJson = request.CuttingProcessJson;
             _context.SaveChanges();
 
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult MarkTimelineCompleted(int orderId, string key, string type)
+        {
+            if (!User.HasPermission("Write")) return Json(new { success = false, message = "Yetkisiz" });
+
+            var order = _context.Orders.Find(orderId);
+            if (order == null) return Json(new { success = false, message = "Sipariş bulunamadı" });
+
+            string targetKey = key + "_actual";
+            string today = DateTime.Now.ToString("yyyy-MM-dd");
+
+            if (type == "sample")
+            {
+                var dict = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(order.SampleTestJson)) {
+                    try { dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.SampleTestJson); } catch {}
+                }
+                dict[targetKey] = today;
+                order.SampleTestJson = System.Text.Json.JsonSerializer.Serialize(dict);
+            }
+            else if (type == "prod")
+            {
+                var dict = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(order.ProductionJson)) {
+                    try { dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.ProductionJson); } catch {}
+                }
+                dict[targetKey] = today;
+                order.ProductionJson = System.Text.Json.JsonSerializer.Serialize(dict);
+            }
+
+            string title = "Süreç Güncellemesi";
+            string typeName = "Genel";
+            string formattedToday = DateTime.Now.ToString("dd.MM.yyyy");
+            string message = $"{order.OrderCode} nolu sipariş için işlem {formattedToday} olarak tamamlandı.";
+
+            switch (key)
+            {
+                case "sample_kumas_ytesti": title = "Numune Kumaş Y-Testi"; typeName = "Kumaş"; message = $"{order.OrderCode} nolu sipariş için Kumaş Y-Testi onayı {formattedToday} olarak verildi."; break;
+                case "sample_tuse_renk": title = "Numune Tuşe/Renk"; typeName = "Kumaş"; message = $"{order.OrderCode} nolu sipariş için Kumaş Tuşe/Renk onayı {formattedToday} olarak verildi."; break;
+                case "sample_dugme_renk": title = "Numune Düğme/Renk"; typeName = "Aksesuar"; message = $"{order.OrderCode} nolu sipariş için Düğme Renk Kalite onayı {formattedToday} olarak verildi."; break;
+                case "sample_pp_onay": title = "PP Onay"; typeName = "Genel"; message = $"{order.OrderCode} nolu sipariş için PP Onay {formattedToday} olarak verildi."; break;
+                
+                case "prod_kesim_baslangic": title = "Kesim Başladı"; typeName = "Kesim"; message = $"{order.OrderCode} nolu sipariş için kesim başlangıcı {formattedToday} olarak girildi."; break;
+                case "prod_kesim_bitis": title = "Kesim Bitti"; typeName = "Kesim"; message = $"{order.OrderCode} nolu sipariş için kesim bitişi {formattedToday} olarak girildi."; break;
+                case "prod_dikim_baslangic": title = "Dikim Başladı"; typeName = "Dikim"; message = $"{order.OrderCode} nolu sipariş için dikim başlangıcı {formattedToday} olarak girildi."; break;
+                case "prod_dikim_bitis": title = "Dikim Bitti"; typeName = "Dikim"; message = $"{order.OrderCode} nolu sipariş için dikim bitişi {formattedToday} olarak girildi."; break;
+                case "prod_paket_baslangic": title = "Paketleme Başladı"; typeName = "Paket"; message = $"{order.OrderCode} nolu sipariş için paketleme başlangıcı {formattedToday} olarak girildi."; break;
+                case "prod_paket_bitis": title = "Paketleme Bitti"; typeName = "Paket"; message = $"{order.OrderCode} nolu sipariş için paketleme bitişi {formattedToday} olarak girildi."; break;
+                
+                case "prod_gs_gidisi": title = "GS Gidişi"; typeName = "Sevkiyat"; message = $"{order.OrderCode} nolu sipariş için GS Gidişi {formattedToday} olarak girildi."; break;
+                case "prod_yola_cikis": title = "Yola Çıkış"; typeName = "Sevkiyat"; message = $"{order.OrderCode} nolu sipariş yola çıktı ({formattedToday})."; break;
+                case "prod_depo_varis": title = "Depo Varış"; typeName = "Sevkiyat"; message = $"{order.OrderCode} nolu sipariş depoya ulaştı ({formattedToday})."; break;
+                
+                case "termin_tarihi": title = "Sipariş Tamamlandı"; typeName = "Genel"; message = $"{order.OrderCode} nolu sipariş termin hedefine ulaştı."; break;
+            }
+
+            _context.Notifications.Add(new Notification
+            {
+                Title = title,
+                Message = message,
+                Type = typeName,
+                OrderCode = order.OrderCode,
+                CreatedAt = DateTime.Now,
+                IsRead = false
+            });
+
+            _context.SaveChanges();
             return Json(new { success = true });
         }
     }

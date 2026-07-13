@@ -6,7 +6,6 @@
 <div class="dashboard-header" style="margin-bottom: 25px;">
     <div class="header-title">
         <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Atölye Tanımı</h1>
-        <p style="color: var(--text-muted); margin-top: 5px;">Üretim atölyelerinin listesi ve yönetim işlemleri</p>
     </div>
     <div class="header-actions">
         <a href="/Definitions/CreateWorkshop" class="btn-planner" style="text-decoration: none;"><i class="fa-solid fa-plus"></i> Yeni Atölye Ekle</a>
@@ -25,11 +24,10 @@
         <div class="section-header">
             <div>
                 <h2>Mevcut Atölyeler</h2>
-                <p>Sistemde tanımlı fason ve dahili üretim atölyeleri</p>
             </div>
             <div class="search-box" style="width: 300px; margin-top: -10px;">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" placeholder="Atölye ara..." />
+                <input type="text" id="searchInput" placeholder="Atölye ara..." />
             </div>
         </div>
 
@@ -63,7 +61,7 @@
                         <tbody>
                             @foreach (var w in Model)
                             {
-                                <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;">
+                                <tr class="searchable-item" style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;">
                                     <td style="padding: 16px;">
                                         <a href="#" class="view-workshop-detail" data-id="@w.Id" style="color: var(--primary-color); font-weight: 600; text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                                             <i class="fa-solid fa-industry" style="font-size: 0.9rem; opacity: 0.8;"></i>
@@ -81,9 +79,23 @@
                                     <td style="padding: 16px; text-align: right; color: var(--text-main); font-weight: 600;">@w.AnnualCapacity.ToString("N0")</td>
                                     <td style="padding: 16px; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@w.Address</td>
                                     <td style="padding: 16px; text-align: center;">
-                                        <a href="/Definitions/EditWorkshop/@w.Id" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                            <i class="fa-solid fa-pen-to-square"></i> Düzenle
-                                        </a>
+                                        <div style="display: flex; gap: 12px; justify-content: center; align-items: center;">
+                                            @if (w.IsActive)
+                                            {
+                                                <span class="badge badge-progress" style="font-size: 0.7rem; width: 45px; text-align: center;" id="ws-badge-@w.Id">Aktif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-high" style="font-size: 0.7rem; width: 45px; text-align: center;" id="ws-badge-@w.Id">Pasif</span>
+                                            }
+                                            <label class="switch" style="margin: 0;" title="Durumu Değiştir">
+                                                <input type="checkbox" class="toggle-ws-checkbox" data-id="@w.Id" @(w.IsActive ? "checked" : "")>
+                                                <span class="slider round"></span>
+                                            </label>
+                                            <a href="/Definitions/EditWorkshop/@w.Id" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="fa-solid fa-pen-to-square"></i> Düzenle
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -228,6 +240,50 @@
 </div>
 
 <style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+    .switch input { 
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: .3s;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .3s;
+    }
+    input:checked + .slider {
+        background-color: #10b981;
+    }
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+    .slider.round {
+        border-radius: 20px;
+    }
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
     .modal-overlay {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -256,6 +312,13 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            $('#searchInput').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('.searchable-item').filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
             // Detay Modalı Açma
             $('.view-workshop-detail').click(function(e) {
                 e.preventDefault();
@@ -302,16 +365,16 @@
                                     if (!isNaN(oDate.getTime())) {
                                         var oYear = oDate.getFullYear();
                                         var oMonth = oDate.getMonth();
-                                        var oDateStr = oYear + '-' + String(oMonth + 1).padStart(2, '0') + '-' + String(oDate.getDate()).padStart(2, '0');
+                                        var oDay = oDate.getDate();
 
-                                        if (oDateStr === todayStr) {
-                                            dailyUsage += o.quantity;
+                                        if (oYear === currentYear && oMonth === currentMonth && oDay === currentDay) {
+                                            dailyUsage += o.calculatedQuantity || 0;
                                         }
                                         if (oYear === currentYear && oMonth === currentMonth) {
-                                            monthlyUsage += o.quantity;
+                                            monthlyUsage += o.calculatedQuantity || 0;
                                         }
                                         if (oYear === currentYear) {
-                                            annualUsage += o.quantity;
+                                            annualUsage += o.calculatedQuantity || 0;
                                         }
                                     }
                                 }
@@ -362,7 +425,7 @@
                                         '<td style="padding: 12px 8px; font-weight: 700; color: var(--text-main);">' + (o.orderCode || '-') + '</td>' +
                                         '<td style="padding: 12px 8px; color: var(--text-muted); font-weight:500;">' + (o.modelName || '-') + '</td>' +
                                         '<td style="padding: 12px 8px; color: #0284c7; font-weight:600;">' + (o.color || '-') + '</td>' +
-                                        '<td style="padding: 12px 8px; text-align: right; font-weight:700; color: var(--text-main);">' + (o.quantity || 0).toLocaleString('tr-TR') + ' Adet</td>' +
+                                        '<td style="padding: 12px 8px; text-align: right; font-weight:700; color: var(--text-main);">' + (o.calculatedQuantity || 0).toLocaleString('tr-TR') + ' Adet</td>' +
                                         '<td style="padding: 12px 8px; text-align: center; font-weight: 500;">' + sewingDates + '</td>' +
                                         '<td style="padding: 12px 8px; text-align: center;"><span class="badge ' + badgeClass + '">' + status + '</span></td>' +
                                         '</tr>';
@@ -408,6 +471,37 @@
                 var year = d.getFullYear();
                 return day + '.' + month + '.' + year;
             }
+
+            $('.toggle-ws-checkbox').change(function(e) {
+                var checkbox = $(this);
+                var id = checkbox.data('id');
+                var isChecked = checkbox.is(':checked');
+                
+                $.ajax({
+                    url: '/Definitions/ToggleWorkshopStatus',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(res) {
+                        if (res.success) {
+                            var badge = $('#ws-badge-' + id);
+                            if (res.isActive) {
+                                badge.removeClass('badge-high').addClass('badge-progress').text('Aktif');
+                                checkbox.prop('checked', true);
+                            } else {
+                                badge.removeClass('badge-progress').addClass('badge-high').text('Pasif');
+                                checkbox.prop('checked', false);
+                            }
+                        } else {
+                            alert('Bir hata oluştu.');
+                            checkbox.prop('checked', !isChecked);
+                        }
+                    },
+                    error: function() {
+                        alert('Bir hata oluştu.');
+                        checkbox.prop('checked', !isChecked);
+                    }
+                });
+            });
         });
     </script>
 }

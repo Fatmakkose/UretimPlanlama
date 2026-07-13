@@ -41,6 +41,7 @@ namespace UretimPlanlama.Controllers
 
             ViewBag.CariHesaplar = _context.CariHesaplar.Where(c => c.Aktif).OrderBy(c => c.HesapAdi).ToList();
             ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
+            ViewBag.Orders = _context.Orders.Where(o => o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderByDescending(o => o.OrderDate).ToList();
 
             // Yeni belge no üretimi (YYYYMM_001 formatında)
             var today = DateTime.Today;
@@ -81,15 +82,29 @@ namespace UretimPlanlama.Controllers
                 cari.Bakiye += model.Tutar;
                 _context.CariHesaplar.Update(cari);
 
+                string finalAciklama = model.Aciklama ?? $"{model.BelgeNo} nolu alış işlemi";
+                if (model.OrderId.HasValue)
+                {
+                    var order = _context.Orders.Find(model.OrderId.Value);
+                    if (order != null)
+                    {
+                        var orderInfo = $"[Sipariş: {order.OrderCode} - {order.ModelName}]";
+                        finalAciklama = string.IsNullOrEmpty(model.Aciklama) 
+                            ? orderInfo 
+                            : $"{model.Aciklama} {orderInfo}";
+                    }
+                }
+
                 var cariHareket = new CariHareket
                 {
                     CariHesapId = model.CariHesapId,
                     IslemTarihi = model.IslemTarihi,
                     IslemTipi = "Alış",
-                    Aciklama = model.Aciklama ?? $"{model.BelgeNo} nolu alış işlemi",
+                    Aciklama = finalAciklama,
                     BelgeNo = model.BelgeNo,
                     Tutar = model.Tutar,
-                    KalanBakiye = cari.Bakiye
+                    KalanBakiye = cari.Bakiye,
+                    OrderId = model.OrderId
                 };
                 _context.CariHareketler.Add(cariHareket);
 
@@ -146,9 +161,10 @@ namespace UretimPlanlama.Controllers
                                 HareketTipi = "Giriş",
                                 Miktar = kalem.Miktar,
                                 KalanMiktar = stok.MevcutMiktar,
-                                Aciklama = $"{model.BelgeNo} nolu belge ile alış girişi",
+                                Aciklama = finalAciklama,
                                 BelgeNo = model.BelgeNo,
-                                Tedarikci = cari.HesapAdi
+                                Tedarikci = cari.HesapAdi,
+                                OrderId = model.OrderId
                             };
                             _context.StokHareketler.Add(stokHareket);
                         }
@@ -214,12 +230,25 @@ namespace UretimPlanlama.Controllers
                 cari.Bakiye -= model.Tutar;
                 _context.CariHesaplar.Update(cari);
 
+                string finalAciklama = model.Aciklama ?? $"{model.BelgeNo} nolu satış işlemi";
+                if (model.OrderId.HasValue && model.OrderId.Value > 0)
+                {
+                    var order = _context.Orders.Find(model.OrderId.Value);
+                    if (order != null)
+                    {
+                        var orderInfo = $"[Sipariş: {order.OrderCode} - {order.ModelName}]";
+                        finalAciklama = string.IsNullOrEmpty(model.Aciklama) 
+                            ? orderInfo 
+                            : $"{model.Aciklama} {orderInfo}";
+                    }
+                }
+
                 var cariHareket = new CariHareket
                 {
                     CariHesapId = model.CariHesapId,
                     IslemTarihi = model.IslemTarihi,
                     IslemTipi = "Satış",
-                    Aciklama = model.Aciklama ?? $"{model.BelgeNo} nolu satış işlemi",
+                    Aciklama = finalAciklama,
                     BelgeNo = model.BelgeNo,
                     Tutar = model.Tutar,
                     KalanBakiye = cari.Bakiye,

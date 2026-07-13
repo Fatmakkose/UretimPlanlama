@@ -45,26 +45,44 @@ namespace UretimPlanlama.Controllers
 
             var allOrders = _context.Orders.ToList();
             
-            // Get active orders assigned to this workshop
+            // Get all orders assigned to this workshop (including completed ones so they don't disappear)
             var activeOrders = allOrders
-                .Where(o => o.Status != "Tamamlandı" && o.Status != "İptal Edildi" &&
+                .Where(o => o.Status != "İptal Edildi" &&
                             (o.SewingWorkshop == workshop.Name || 
                              o.ProductionPlace == workshop.Name || 
-                             (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_dikim_atolyesi\":\"{workshop.Name}\"")) ||
-                             (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_kesim_atolyesi\":\"{workshop.Name}\"")) ||
-                             (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_paketleme_atolyesi\":\"{workshop.Name}\""))))
-                .OrderByDescending(o => o.OrderDate)
+                             CheckWorkshopInJson(o.ProductionJson, workshop.Name)))
+                .OrderBy(o => o.Status == "Tamamlandı" ? 1 : 0) // Aktifler üstte, tamamlananlar altta
+                .ThenByDescending(o => o.OrderDate)
                 .ToList();
+
+            // Aktif olanları say (Sadece bilgi amaçlı, ama listeye hepsini yolluyoruz)
+            var purelyActive = activeOrders.Where(o => o.Status != "Tamamlandı").ToList();
 
             var viewModel = new WorkshopDetailsViewModel
             {
                 Workshop = workshop,
-                ActiveOrders = activeOrders,
-                TotalActiveOrderCount = activeOrders.Count,
-                TotalActivePieces = activeOrders.Sum(o => o.Quantity)
+                ActiveOrders = activeOrders, // Listeye tamamlananlar da gidecek
+                TotalActiveOrderCount = purelyActive.Count,
+                TotalActivePieces = purelyActive.Sum(o => o.Quantity)
             };
 
             return View(viewModel);
+        }
+
+        private bool CheckWorkshopInJson(string? json, string workshopName)
+        {
+            if (string.IsNullOrEmpty(json)) return false;
+            try
+            {
+                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                if (dict == null) return false;
+                
+                if (dict.TryGetValue("prod_dikim_atolyesi", out var dikim) && dikim == workshopName) return true;
+                if (dict.TryGetValue("prod_kesim_atolyesi", out var kesim) && kesim == workshopName) return true;
+                if (dict.TryGetValue("prod_paketleme_atolyesi", out var paket) && paket == workshopName) return true;
+            }
+            catch {}
+            return false;
         }
 
         [HttpGet]
@@ -152,8 +170,8 @@ namespace UretimPlanlama.Controllers
                 int assignedWork = activeOrders.Where(o => 
                     o.SewingWorkshop == wName || 
                     o.ProductionPlace == wName || 
-                    (!string.IsNullOrEmpty(o.ProductionJson) && (o.ProductionJson.Contains($"\"prod_dikim_atolyesi\":\"{wName}\"") || o.ProductionJson.Contains($"\"prod_kesim_atolyesi\":\"{wName}\"") || o.ProductionJson.Contains($"\"prod_paketleme_atolyesi\":\"{wName}\"")))
-                ).Sum(o => o.Quantity);
+                    CheckWorkshopInJson(o.ProductionJson, wName)
+                ).Sum(o => o.CalculatedQuantity);
 
                 // Haftalık kapasiteye oranlayalım (5 gün)
                 double weeklyCapacity = dailyTarget * 5.0;
@@ -216,8 +234,8 @@ namespace UretimPlanlama.Controllers
                         .Where(o => o.CuttingEndDate.HasValue && 
                                     (o.CuttingEndDate.Value.Date == targetDate || 
                                      (d == 4 && (o.CuttingEndDate.Value.Date == targetDate.AddDays(1) || o.CuttingEndDate.Value.Date == targetDate.AddDays(2)))) &&
-                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_kesim_atolyesi\":\"{workshopName}\""))))
-                        .Sum(o => o.Quantity);
+                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || CheckWorkshopInJson(o.ProductionJson, workshopName)))
+                        .Sum(o => o.CalculatedQuantity);
                 }
                 else if (workshopType.Contains("Paket", StringComparison.OrdinalIgnoreCase) || 
                          workshopType.Contains("Lojistik", StringComparison.OrdinalIgnoreCase))
@@ -226,8 +244,8 @@ namespace UretimPlanlama.Controllers
                         .Where(o => o.PackagingEndDate.HasValue && 
                                     (o.PackagingEndDate.Value.Date == targetDate || 
                                      (d == 4 && (o.PackagingEndDate.Value.Date == targetDate.AddDays(1) || o.PackagingEndDate.Value.Date == targetDate.AddDays(2)))) &&
-                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_paketleme_atolyesi\":\"{workshopName}\""))))
-                        .Sum(o => o.Quantity);
+                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || CheckWorkshopInJson(o.ProductionJson, workshopName)))
+                        .Sum(o => o.CalculatedQuantity);
                 }
                 else // Dikim veya Diğer
                 {
@@ -235,8 +253,8 @@ namespace UretimPlanlama.Controllers
                         .Where(o => o.SewingEndDate.HasValue && 
                                     (o.SewingEndDate.Value.Date == targetDate || 
                                      (d == 4 && (o.SewingEndDate.Value.Date == targetDate.AddDays(1) || o.SewingEndDate.Value.Date == targetDate.AddDays(2)))) &&
-                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_dikim_atolyesi\":\"{workshopName}\""))))
-                        .Sum(o => o.Quantity);
+                                    (o.SewingWorkshop == workshopName || o.ProductionPlace == workshopName || CheckWorkshopInJson(o.ProductionJson, workshopName)))
+                        .Sum(o => o.CalculatedQuantity);
                 }
 
                 string status = "Çalışıyor";

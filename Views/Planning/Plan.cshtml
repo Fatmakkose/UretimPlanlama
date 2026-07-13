@@ -241,7 +241,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #475569; font-weight: 600;">
                             <span style="color: #94a3b8; font-weight: 500;">MÜŞTERİ: @o.Customer</span>
-                            <span>ADET: @o.Quantity.ToString("N0")</span>
+                            <span>ADET: @o.CalculatedQuantity.ToString("N0")</span>
                         </div>
                         <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 4px;">
                             TARİH: @o.OrderDate.ToString("dd.MM.yyyy")
@@ -292,13 +292,14 @@
                     <div style="font-weight: 600; color: #701a75; font-size: 0.8rem;">
                         @{
                             var atolyeInfo = GetProdVal("prod_dikim_atolyesi");
+                            if (string.IsNullOrEmpty(atolyeInfo)) { atolyeInfo = Model.SewingWorkshop ?? Model.ProductionPlace; }
                             <text>@(string.IsNullOrEmpty(atolyeInfo) ? "-" : atolyeInfo)</text>
                         }
                     </div>
                 </div>
                 <div style="background: #f8fafc; padding: 8px 10px; border-radius: 6px;">
                     <div style="font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">ADET</div>
-                    <div style="font-weight: 600; color: #0f172a; font-size: 0.8rem;">@Model.Quantity.ToString("N0")</div>
+                    <div style="font-weight: 600; color: #0f172a; font-size: 0.8rem;">@Model.CalculatedQuantity.ToString("N0")</div>
                 </div>
                 <div style="background: #f0f9ff; padding: 8px 10px; border-radius: 6px; border: 1px solid #e0f2fe;">
                     <div style="font-size: 0.65rem; color: #0284c7; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">TERMİN TARİHİ</div>
@@ -873,9 +874,10 @@
                                     @if (ViewBag.Workshops != null)
                                     {
                                         var prodDikim = GetProdVal("prod_dikim_atolyesi");
+                                        if (string.IsNullOrEmpty(prodDikim)) { prodDikim = Model.SewingWorkshop ?? Model.ProductionPlace; }
                                         foreach (var w in (System.Collections.Generic.List<UretimPlanlama.Models.Workshop>)ViewBag.Workshops)
                                         {
-                                            if (prodDikim == w.Name)
+                                            if (!string.IsNullOrEmpty(prodDikim) && prodDikim.Equals(w.Name, StringComparison.OrdinalIgnoreCase))
                                             {
                                                 <option value="@w.Name" selected>@w.Name</option>
                                             }
@@ -889,16 +891,16 @@
                             </div>
                             <div>
                                 <div class="data-label">ÜRETİLECEK MİKTAR</div>
-                                <input type="text" class="input-field" value="@Model.Quantity.ToString("N0")" disabled style="background:#f1f5f9; font-weight:600; color:#475569;" />
+                                <input type="text" class="input-field" value="@Model.CalculatedQuantity.ToString("N0")" disabled style="background:#f1f5f9; font-weight:600; color:#475569;" />
                             </div>
                             <div>
                                 <div class="data-label" style="display:flex; justify-content:space-between; align-items:center;">
                                     <span>DİKİLECEK MİKTAR</span>
                                     <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; color:#0f172a; cursor:pointer; text-transform:none; margin:0;">
-                                        <input type="checkbox" onchange="if(this.checked) { document.getElementById('prodDikimMiktari').value = '@Model.Quantity'; } else { document.getElementById('prodDikimMiktari').value = ''; }" /> Tamamı
+                                        <input type="checkbox" onchange="if(this.checked) { document.getElementById('prodDikimMiktari').value = '@Model.CalculatedQuantity'; } else { document.getElementById('prodDikimMiktari').value = ''; }" /> Tamamı
                                     </label>
                                 </div>
-                                <input type="number" id="prodDikimMiktari" name="prod_dikim_miktari" class="input-field" value="@GetProdVal("prod_dikim_miktari")" placeholder="Örn: @Model.Quantity" />
+                                <input type="number" id="prodDikimMiktari" name="prod_dikim_miktari" class="input-field" value="@GetProdVal("prod_dikim_miktari")" placeholder="Örn: @Model.CalculatedQuantity" />
                             </div>
                             <div>
                                 <div class="data-label">KESİM BAŞLANGIÇ</div>
@@ -1668,7 +1670,7 @@ const orderId = @Model.Id;
 let planCuttingItems = @Html.Raw(string.IsNullOrEmpty(Model.PlannedCuttingJson) ? "[]" : Model.PlannedCuttingJson);
 let planTargetSizes = @Html.Raw(string.IsNullOrEmpty(Model.SizeDistributionJson) ? "{}" : Model.SizeDistributionJson);
 let planTargetSizesAsorti = @Html.Raw(string.IsNullOrEmpty(Model.AsortiDistributionJson) ? "{}" : Model.AsortiDistributionJson);
-const planAsortiCount = @(Model.AsortiCount ?? 0);
+const planAsortiCount = @Model.AsortiCount;
 
 function planGetTotalCutForSize(sizeName, cutType) {
     let total = 0;
@@ -1759,7 +1761,25 @@ function planGetTotalCutForSize(sizeName, cutType) {
             });
             
             if (validationError) {
-                showBeautifulAlert(validationError, "warning");
+                Swal.fire({
+                    title: 'Uyarı',
+                    text: validationError + "\n\nYine de kaydetmek istiyor musunuz?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Evet, Kaydet',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        _planAddCutToGlobalAndRender('Açık Adet', date, multiplier, sizes, totalQty, markerLength, unitMeterage);
+                        // Reset
+                        $('.acik-adet-input-row').val('0');
+                        $('#planTxtAcikMultiplier').val('1');
+                        $('#planCuttingEntryAcik').hide();
+                        planCalculateAcik();
+                    }
+                });
                 return;
             }
             
@@ -1801,7 +1821,24 @@ function planGetTotalCutForSize(sizeName, cutType) {
             });
             
             if (validationError) {
-                showBeautifulAlert(validationError, "warning");
+                Swal.fire({
+                    title: 'Uyarı',
+                    text: validationError + "\n\nYine de kaydetmek istiyor musunuz?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Evet, Kaydet',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        _planAddCutToGlobalAndRender('Asorti', date, multiplier, sizes, totalQty, markerLength, unitMeterage);
+                        // Reset
+                        $('#planTxtAsortiMultiplier').val('1');
+                        $('#planCuttingEntryAsorti').hide();
+                        planCalculateAsorti();
+                    }
+                });
                 return;
             }
             

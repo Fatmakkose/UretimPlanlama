@@ -100,6 +100,19 @@
     .type-badge.Alış { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
     .type-badge.Satış { background: #f0fdf4; color: #22c55e; border: 1px solid #bbf7d0; }
     
+    .badge-order {
+        display: inline-block;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        margin-left: 4px;
+        white-space: nowrap;
+    }
+    
     .filter-section {
         background: #fff;
         padding: 16px 20px;
@@ -183,7 +196,23 @@
                     <td><strong>@item.CariHesap?.HesapAdi</strong></td>
                     <td>@(item.BelgeNo ?? "—")</td>
                     <td><span class="type-badge @item.IslemTipi">@item.IslemTipi</span></td>
-                    <td style="color: #64748b; font-size: 0.9rem;">@(item.Aciklama ?? "—")</td>
+                    <td style="color: #64748b; font-size: 0.9rem;">
+                        @{
+                            var aciklamaStr = item.Aciklama ?? "—";
+                            var siparisPattern = @"\[Sipariş: (.*?)\]";
+                            var siparisMatch = System.Text.RegularExpressions.Regex.Match(aciklamaStr, siparisPattern);
+                            if (siparisMatch.Success)
+                            {
+                                var siparisText = siparisMatch.Value;
+                                var newAciklama = aciklamaStr.Replace(siparisText, $"<span class=\"badge-order\"><i class=\"fa-solid fa-link\"></i> Sipariş: {siparisMatch.Groups[1].Value}</span>");
+                                @Html.Raw(newAciklama)
+                            }
+                            else
+                            {
+                                @aciklamaStr
+                            }
+                        }
+                    </td>
                     <td style="text-align: right; font-weight: 600;">@item.Tutar.ToString("N2")</td>
                     <td style="text-align: right;">@item.KalanBakiye.ToString("N2")</td>
                 </tr>

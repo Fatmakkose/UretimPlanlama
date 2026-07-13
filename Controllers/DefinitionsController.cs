@@ -30,7 +30,10 @@ namespace UretimPlanlama.Controllers
             {
                 return Json(new { success = false, message = "Atölye bulunamadı." });
             }
-            var orders = _context.Orders.Where(o => o.SewingWorkshop == workshop.Name).OrderByDescending(o => o.OrderDate).ToList();
+            var orders = _context.Orders
+                .Where(o => o.SewingWorkshop == workshop.Name || (o.ProductionJson != null && o.ProductionJson.Contains(workshop.Name)))
+                .OrderByDescending(o => o.OrderDate)
+                .ToList();
             return Json(new { success = true, workshop = workshop, orders = orders });
         }
 
@@ -206,6 +209,32 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction("Brands");
             }
             return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult ToggleWorkshopStatus(int id)
+        {
+            var workshop = _context.Workshops.Find(id);
+            if (workshop != null)
+            {
+                workshop.IsActive = !workshop.IsActive;
+                _context.SaveChanges();
+                return Json(new { success = true, isActive = workshop.IsActive });
+            }
+            return Json(new { success = false });
+        }
+
+        [HttpPost]
+        public IActionResult ToggleFabricatorStatus(int id)
+        {
+            var fabricator = _context.Fabricators.Find(id);
+            if (fabricator != null)
+            {
+                fabricator.IsActive = !fabricator.IsActive;
+                _context.SaveChanges();
+                return Json(new { success = true, isActive = fabricator.IsActive });
+            }
+            return Json(new { success = false });
         }
     }
 }

@@ -24,5 +24,6 @@ namespace UretimPlanlama.Models
         public int DailyCapacity { get; set; }
         public int MonthlyCapacity { get; set; }
         public int AnnualCapacity { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

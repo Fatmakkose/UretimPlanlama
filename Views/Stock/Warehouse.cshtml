@@ -100,6 +100,7 @@
     .stok-status.kritik { background: #fee2e2; color: #dc2626; }
     .stok-status.normal { background: #dcfce7; color: #16a34a; }
     .stok-status.sifir { background: #f1f5f9; color: #64748b; }
+    .stok-status.eksik { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
 
     .page-header {
         display: flex;
@@ -282,20 +283,20 @@
                     <th>Stok Kodu</th>
                     <th>Stok Adı</th>
                     <th style="text-align: right;">Mevcut</th>
-                    <th style="text-align: right;">Minimum</th>
                     <th>Stok Durumu</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var s in stokKartlari)
                 {
-                    var activeVariants = s.Varyantlar != null ? s.Varyantlar.Where(v => v.Aktif).ToList() : new List<UretimPlanlama.Models.StokVaryant>();
-                    var isKritik = s.MinimumMiktar > 0 && s.MevcutMiktar <= s.MinimumMiktar;
+                    var activeVariants = s.Varyantlar != null ? s.Varyantlar.Where(v => v.Aktif && !v.VaryantAdi.Contains("BİRİM KULLANIM") && !v.VaryantAdi.Contains("FİRE") && v.MevcutMiktar > 0).ToList() : new List<UretimPlanlama.Models.StokVaryant>();
+                    var isKritik = s.MinimumMiktar > 0 && s.MevcutMiktar > 0 && s.MevcutMiktar <= s.MinimumMiktar;
                     var isSifir = s.MevcutMiktar == 0;
-                    var barPercent = s.MinimumMiktar > 0 ? Math.Min(100, (int)(s.MevcutMiktar / s.MinimumMiktar * 100)) : (s.MevcutMiktar > 0 ? 100 : 0);
-                    var barClass = isKritik ? "danger" : barPercent < 50 ? "warning" : "safe";
-                    var statusClass = isKritik ? "kritik" : isSifir ? "sifir" : "normal";
-                    var statusText = isKritik ? "⚠ Kritik" : isSifir ? "Stok Yok" : "Normal";
+                    var isEksik = s.MevcutMiktar < 0;
+                    var barPercent = s.MinimumMiktar > 0 && s.MevcutMiktar > 0 ? Math.Min(100, (int)(s.MevcutMiktar / s.MinimumMiktar * 100)) : (s.MevcutMiktar > 0 ? 100 : 0);
+                    var barClass = isEksik ? "danger" : isKritik ? "danger" : barPercent < 50 ? "warning" : "safe";
+                    var statusClass = isEksik ? "eksik" : isKritik ? "kritik" : isSifir ? "sifir" : "normal";
+                    var statusText = isEksik ? "Stok Eksik" : isKritik ? "⚠ Kritik" : isSifir ? "Stok Yok" : "Normal";
                     
                     <tr @if(activeVariants.Any()){<text>onclick="toggleVariants('var_@s.Id', this)" style="cursor: pointer;" class="expandable-row"</text>}>
                         <td><span style="font-weight: 600; color: #475569;">@s.StokKodu</span></td>
@@ -317,7 +318,6 @@
                                 <div class="stok-bar"><div class="stok-bar-fill @barClass" style="width: @(barPercent)%"></div></div>
                             </div>
                         </td>
-                        <td style="text-align: right; color: #64748b;">@s.MinimumMiktar.ToString("N2")</td>
                         <td><span class="stok-status @statusClass">@statusText</span></td>
                     </tr>
                     @if(activeVariants.Any())

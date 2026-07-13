@@ -9,5 +9,7 @@ namespace UretimPlanlama.Models
         [Required(ErrorMessage = "Kumaşçı adı zorunludur.")]
         [MaxLength(150)]
         public string Name { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; } = true;
     }
 }

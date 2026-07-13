@@ -25,8 +25,8 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction("AccessDenied", "Account");
             }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
@@ -40,8 +40,8 @@ namespace UretimPlanlama.Controllers
             {
                 return RedirectToAction("AccessDenied", "Account");
             }
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
             ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
@@ -98,8 +98,8 @@ namespace UretimPlanlama.Controllers
                 TempData["SuccessMessage"] = "Sipariş oluşturuldu";
                 return RedirectToAction(nameof(Index)); // Doğrudan sipariş yönetimi sayfasına yönlendir
             }
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();
             ViewBag.StokKartlari = _context.StokKartlari.OrderBy(s => s.StokAdi).ToList();
@@ -345,8 +345,8 @@ namespace UretimPlanlama.Controllers
                 return NotFound();
             }
 
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
             ViewBag.Customers = _context.Customers.OrderBy(c => c.Name).ToList();
             ViewBag.Colors = _context.ColorDefs.OrderBy(c => c.Name).ToList();
             ViewBag.Brands = _context.Brands.OrderBy(b => b.Name).ToList();

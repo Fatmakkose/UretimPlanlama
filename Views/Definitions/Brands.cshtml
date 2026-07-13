@@ -7,7 +7,6 @@
 <div class="dashboard-header" style="margin-bottom: 25px;">
     <div class="header-title">
         <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Marka Tanımı</h1>
-        <p style="color: var(--text-muted); margin-top: 5px;">Sistemde kullanılacak marka tanımlamaları</p>
     </div>
     <div class="header-actions">
         <a href="/Definitions/CreateBrand" class="btn-planner" style="text-decoration: none;"><i class="fa-solid fa-plus"></i> Yeni Marka Ekle</a>
@@ -26,11 +25,10 @@
         <div class="section-header">
             <div>
                 <h2>Mevcut Markalar</h2>
-                <p>Sistemde tanımlı olan markalar</p>
             </div>
             <div class="search-box" style="width: 300px; margin-top: -10px;">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" placeholder="Marka ara..." />
+                <input type="text" id="searchInput" placeholder="Marka ara..." />
             </div>
         </div>
 
@@ -39,7 +37,7 @@
             {
                 foreach (var brand in Model)
                 {
-                    <div class="schedule-item">
+                    <div class="schedule-item searchable-item">
                         <div class="time-slot">
                             <span style="color: var(--primary-color);"><i class="fa-solid fa-tags fa-lg"></i></span>
                         </div>
@@ -67,3 +65,16 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#searchInput').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('.searchable-item').filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
+}

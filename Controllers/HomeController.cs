@@ -34,6 +34,7 @@ public class HomeController : Controller
         public double AnnualOccupancyRate { get; set; }
         public string StatusLabel { get; set; } = string.Empty;
         public string StatusClass { get; set; } = string.Empty;
+        public int ActiveOrderCount { get; set; }
     }
 
     public IActionResult Index()
@@ -41,11 +42,55 @@ public class HomeController : Controller
         var orders = _context.Orders.Where(o => o.ModelName != "Test Model").OrderByDescending(o => o.OrderDate).ToList();
         var workshops = _context.Workshops.ToList();
 
-        // Yeni Dashboard İstatistikleri
-        ViewBag.TotalOrdersQty = orders.Sum(o => o.Quantity);
-        ViewBag.CuttingQty = orders.Where(o => o.Status == "Kesim" || (o.CuttingStartDate != null && o.CuttingEndDate == null)).Sum(o => o.Quantity);
-        ViewBag.SewingQty = orders.Where(o => o.Status == "Dikim" || (o.SewingStartDate != null && o.SewingEndDate == null)).Sum(o => o.Quantity);
-        ViewBag.ReadyToShipQty = orders.Where(o => o.Status == "Paket" || o.Status == "Sevkiyata Hazır" || (o.PackagingStartDate != null)).Sum(o => o.Quantity);
+        // Yeni Dashboard İstatistikleri ve Aşama Dağılımı
+        int waitingQty = 0;
+        int cuttingQty = 0;
+        int completedQty = 0;
+
+        int stageYeniKayit = 0;
+        int stageKesim = 0;
+        int stageDikim = 0;
+        int stagePaket = 0;
+
+        foreach (var o in orders)
+        {
+            var pDict = new Dictionary<string, string>();
+            if (!string.IsNullOrEmpty(o.ProductionJson)) { try { pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(o.ProductionJson); } catch {} }
+
+            bool HasP(string key) => pDict != null && pDict.ContainsKey(key) && !string.IsNullOrEmpty(pDict[key]);
+
+            bool isPaketBitis = o.PackagingEndDate.HasValue || HasP("prod_paket_bitis_actual");
+            bool isPaket = o.PackagingStartDate.HasValue || HasP("prod_paket_baslangic_actual") || isPaketBitis;
+            bool isDikimBitis = o.SewingEndDate.HasValue || HasP("prod_dikim_bitis_actual");
+            bool isDikim = o.SewingStartDate.HasValue || HasP("prod_dikim_baslangic_actual") || isDikimBitis || isPaket;
+            bool isKesimBitis = o.CuttingEndDate.HasValue || HasP("prod_kesim_bitis_actual") || isDikim;
+            bool isKesim = o.CuttingStartDate.HasValue || HasP("prod_kesim_baslangic_actual") || isKesimBitis;
+
+            // Kesim KPI Hesaplamaları
+            if (isKesimBitis) {
+                completedQty += o.CalculatedQuantity;
+            } else if (isKesim) {
+                cuttingQty += o.CalculatedQuantity;
+            } else {
+                waitingQty += o.CalculatedQuantity;
+            }
+
+            // Pasta Grafik Dağılımı
+            if (isPaket) {
+                stagePaket++;
+            } else if (isDikim) {
+                stageDikim++;
+            } else if (isKesim) {
+                stageKesim++;
+            } else {
+                stageYeniKayit++;
+            }
+        }
+
+        ViewBag.TotalOrdersQty = orders.Sum(o => o.CalculatedQuantity);
+        ViewBag.WaitingQty = waitingQty;
+        ViewBag.CuttingQty = cuttingQty;
+        ViewBag.CompletedQty = completedQty;
 
         // Kritik Siparişler (Gecikenler)
         var criticalOrders = orders.Where(o => o.EffectiveTerminDate < DateTime.Today && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.EffectiveTerminDate).ToList();
@@ -55,11 +100,6 @@ public class HomeController : Controller
         var upcomingDeadlines = orders.Where(o => o.EffectiveTerminDate >= DateTime.Today && o.EffectiveTerminDate <= DateTime.Today.AddDays(15) && o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderBy(o => o.EffectiveTerminDate).ToList();
         ViewBag.UpcomingDeadlines = upcomingDeadlines;
 
-        // Aşama Dağılımı (Pasta Grafik İçin)
-        var stageYeniKayit = orders.Count(o => string.IsNullOrEmpty(o.Status) || o.Status == "Yeni Kayıt");
-        var stageKesim = orders.Count(o => o.Status == "Kesim" || (o.CuttingStartDate != null && o.CuttingEndDate == null));
-        var stageDikim = orders.Count(o => o.Status == "Dikim" || (o.SewingStartDate != null && o.SewingEndDate == null));
-        var stagePaket = orders.Count(o => o.Status == "Paket" || o.Status == "Sevkiyata Hazır" || (o.PackagingStartDate != null));
         ViewBag.StageDistribution = new[] { stageYeniKayit, stageKesim, stageDikim, stagePaket };
 
         // Son Hareketler (Bildirimler)
@@ -87,12 +127,42 @@ public class HomeController : Controller
         foreach (var w in workshops)
         {
             var wOrders = orders
-                .Where(o => (o.SewingWorkshop == w.Name || o.ProductionPlace == w.Name || (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains($"\"prod_dikim_atolyesi\":\"{w.Name}\""))) && o.Status != "İptal Edildi")
+                .Where(o => {
+                    if (o.Status == "İptal Edildi") return false;
+                    if (o.SewingWorkshop == w.Name || o.ProductionPlace == w.Name) return true;
+                    if (!string.IsNullOrEmpty(o.ProductionJson)) {
+                        try {
+                            var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(o.ProductionJson);
+                            if (dict != null && dict.TryGetValue("prod_dikim_atolyesi", out var dikim) && dikim == w.Name) return true;
+                        } catch {}
+                    }
+                    return false;
+                })
                 .ToList();
 
-            var dailyUsage = wOrders.Where(o => o.OrderDate.Date == today).Sum(o => o.Quantity);
-            var monthlyUsage = wOrders.Where(o => o.OrderDate.Year == currentYear && o.OrderDate.Month == currentMonth).Sum(o => o.Quantity);
-            var annualUsage = wOrders.Where(o => o.OrderDate.Year == currentYear).Sum(o => o.Quantity);
+            int dailyUsage = 0;
+            int monthlyUsage = 0;
+            int annualUsage = 0;
+
+            foreach (var o in wOrders)
+            {
+                DateTime refDate = o.SewingStartDate ?? o.PlannedSewingStartDate ?? o.OrderDate;
+                int qty = o.CalculatedQuantity > 0 ? o.CalculatedQuantity : o.Quantity;
+                
+                if (!string.IsNullOrEmpty(o.ProductionJson) && o.ProductionJson.Contains("\"prod_dikim_miktari\""))
+                {
+                    try {
+                        var pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(o.ProductionJson);
+                        if (pDict != null && pDict.ContainsKey("prod_dikim_miktari") && int.TryParse(pDict["prod_dikim_miktari"], out int pdm)) {
+                            qty = pdm;
+                        }
+                    } catch {}
+                }
+
+                if (refDate.Date == today) dailyUsage += qty;
+                if (refDate.Year == currentYear && refDate.Month == currentMonth) monthlyUsage += qty;
+                if (refDate.Year == currentYear) annualUsage += qty;
+            }
 
             var dailyRate = w.DailyCapacity > 0 ? ((double)dailyUsage / w.DailyCapacity) * 100 : 0;
             var monthlyRate = w.MonthlyCapacity > 0 ? ((double)monthlyUsage / w.MonthlyCapacity) * 100 : 0;
@@ -125,12 +195,13 @@ public class HomeController : Controller
                 MonthlyOccupancyRate = Math.Round(monthlyRate, 1),
                 AnnualOccupancyRate = Math.Round(annualRate, 1),
                 StatusLabel = statusLabel,
-                StatusClass = statusClass
+                StatusClass = statusClass,
+                ActiveOrderCount = wOrders.Count
             });
         }
-        // Sadece dolu olan (en az 1 adet siparişi olan) atölyeleri filtrele ve doluluk oranına göre sırala
+        // Sadece üzerinde siparişi olan atölyeleri göster
         ViewBag.WorkshopCapacities = capacityStatuses
-            .Where(c => c.DailyUsage > 0 || c.MonthlyUsage > 0 || c.AnnualUsage > 0)
+            .Where(c => c.ActiveOrderCount > 0)
             .OrderByDescending(c => c.MonthlyOccupancyRate)
             .ToList();
         return View(orders);

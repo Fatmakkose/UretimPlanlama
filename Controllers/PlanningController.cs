@@ -32,8 +32,8 @@ namespace UretimPlanlama.Controllers
             }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
             ViewBag.AllOrders = orders;
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
             return View("Plan", new Order());
         }
 
@@ -50,8 +50,8 @@ namespace UretimPlanlama.Controllers
             if (order == null) return NotFound();
 
             ViewBag.AllOrders = orders;
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
             ViewBag.StokKartlari = _context.StokKartlari.ToList();
             return View(order);
         }
@@ -234,8 +234,8 @@ namespace UretimPlanlama.Controllers
             ViewBag.TotalCompleted = totalCompleted;
             ViewBag.OnTimeCompleted = onTimeCompleted;
 
-            ViewBag.Workshops = _context.Workshops.OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.OrderBy(f => f.Name).ToList();
+            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
+            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
             ViewBag.SelectedId = selectedId;
             return View(orders);
         }

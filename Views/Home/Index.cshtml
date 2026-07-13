@@ -243,39 +243,39 @@
         </div>
     </div>
     
+    <!-- Üretim Bekleyen -->
+    <div class="stat-card">
+        <div class="stat-content">
+            <div class="stat-title">ÜRETİM BEKLEYEN</div>
+            <div class="stat-value">@((ViewBag.WaitingQty ?? 0).ToString("N0"))</div>
+            <div class="stat-desc">Kesime başlamayı bekleyen adet</div>
+        </div>
+        <div class="stat-icon" style="background: #e0f2fe; color: #0284c7; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-hourglass-start"></i>
+        </div>
+    </div>
+
     <!-- Kesimdeki Adet -->
     <div class="stat-card">
         <div class="stat-content">
-            <div class="stat-title">KESİMDEKİ ADET</div>
+            <div class="stat-title">AKTİF KESİMDE</div>
             <div class="stat-value">@((ViewBag.CuttingQty ?? 0).ToString("N0"))</div>
-            <div class="stat-desc text-info">Atölyelerde kesim sürecinde olanlar</div>
+            <div class="stat-desc">Atölyelerde kesim sürecinde olanlar</div>
         </div>
-        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0284c7;">
+        <div class="stat-icon" style="background: #e0f2fe; color: #0ea5e9; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
             <i class="fa-solid fa-scissors"></i>
         </div>
     </div>
     
-    <!-- Dikimdeki Adet -->
+    <!-- Tamamlanan -->
     <div class="stat-card">
         <div class="stat-content">
-            <div class="stat-title">DİKİMDEKİ ADET</div>
-            <div class="stat-value">@((ViewBag.SewingQty ?? 0).ToString("N0"))</div>
-            <div class="stat-desc text-success">Atölyelerde dikim sürecinde olanlar</div>
+            <div class="stat-title">TAMAMLANAN</div>
+            <div class="stat-value">@((ViewBag.CompletedQty ?? 0).ToString("N0"))</div>
+            <div class="stat-desc">Kesim süreci başarıyla biten adet</div>
         </div>
         <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #10b981;">
-            <i class="fa-solid fa-shirt"></i>
-        </div>
-    </div>
-    
-    <!-- Sevkiyata Hazır -->
-    <div class="stat-card">
-        <div class="stat-content">
-            <div class="stat-title">SEVKİYATA HAZIR</div>
-            <div class="stat-value">@((ViewBag.ReadyToShipQty ?? 0).ToString("N0"))</div>
-            <div class="stat-desc" style="color: #6366f1;">Paketleme & Sevkiyat aşamasındakiler</div>
-        </div>
-        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #8b5cf6;">
-            <i class="fa-solid fa-box-open"></i>
+            <i class="fa-solid fa-circle-check"></i>
         </div>
     </div>
 </div>
@@ -382,8 +382,7 @@
                 <tbody>
                     @{
                         var activeOrdersList = Model.Where(o => 
-                            (o.Status != "Yeni Kayıt" && o.Status != "Tamamlandı" && o.Status != "İptal Edildi" && !string.IsNullOrEmpty(o.Status)) ||
-                            (string.IsNullOrEmpty(o.Status) && (o.FabricArrivalActualDate.HasValue || o.CuttingStartDate.HasValue || o.SewingStartDate.HasValue || o.PackagingStartDate.HasValue))
+                            o.Status != "Tamamlandı" && o.Status != "İptal Edildi"
                         ).ToList();
                     }
                     @foreach (var order in activeOrdersList.Take(6))
@@ -418,26 +417,30 @@
                             areaBorder = "#fecaca";
                         }
 
-                        var progress = 0.0;
-                        if (order.WarehouseArrivalDate.HasValue) {
-                            progress = 100.0;
-                        } else if (order.PackagingEndDate.HasValue) {
-                            progress = 90.0;
-                        } else if (order.PackagingStartDate.HasValue) {
-                            progress = 75.0;
-                        } else if (order.SewingEndDate.HasValue) {
-                            progress = 60.0;
-                        } else if (order.SewingStartDate.HasValue) {
-                            progress = 45.0;
-                        } else if (order.CuttingEndDate.HasValue) {
-                            progress = 30.0;
-                        } else if (order.CuttingStartDate.HasValue) {
-                            progress = 20.0;
-                        } else if (order.FabricArrivalActualDate.HasValue) {
-                            progress = 10.0;
-                        } else {
-                            progress = 5.0;
-                        } 
+                        var progress = 5.0; // Varsayılan: Yeni Kayıt
+                        
+                        var pDict = new Dictionary<string, string>();
+                        if (!string.IsNullOrEmpty(order.ProductionJson)) { try { pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.ProductionJson); } catch {} }
+                        
+                        var sDict = new Dictionary<string, string>();
+                        if (!string.IsNullOrEmpty(order.SampleTestJson)) { try { sDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.SampleTestJson); } catch {} }
+
+                        bool HasP(string key) => pDict != null && pDict.ContainsKey(key) && !string.IsNullOrEmpty(pDict[key]);
+                        bool HasS(string key) => sDict != null && sDict.ContainsKey(key) && !string.IsNullOrEmpty(sDict[key]);
+
+                        if (order.WarehouseArrivalDate.HasValue || HasP("prod_depo_varis_actual")) { progress = 100.0; }
+                        else if (HasP("prod_yola_cikis_actual") || HasP("prod_gs_gidisi_actual")) { progress = 95.0; }
+                        else if (order.PackagingEndDate.HasValue || HasP("prod_paket_bitis_actual")) { progress = 90.0; }
+                        else if (order.PackagingStartDate.HasValue || HasP("prod_paket_baslangic_actual")) { progress = 80.0; }
+                        else if (order.SewingEndDate.HasValue || HasP("prod_dikim_bitis_actual")) { progress = 70.0; }
+                        else if (order.SewingStartDate.HasValue || HasP("prod_dikim_baslangic_actual")) { progress = 50.0; }
+                        else if (order.CuttingEndDate.HasValue || HasP("prod_kesim_bitis_actual")) { progress = 40.0; }
+                        else if (order.CuttingStartDate.HasValue || HasP("prod_kesim_baslangic_actual")) { progress = 30.0; }
+                        else if (HasS("sample_pp_onay_actual")) { progress = 25.0; }
+                        else if (HasS("sample_dugme_renk_actual") || HasS("sample_tuse_renk_actual")) { progress = 20.0; }
+                        else if (HasS("sample_kumas_ytesti_actual")) { progress = 15.0; }
+                        else if (order.FabricArrivalActualDate.HasValue) { progress = 10.0; }
+                        else { progress = 5.0; }
                         
                         var isPaused = areaName == "Bekleniyor";
                         var progressColor = isPaused ? "#ef4444" : "#0d9488";

@@ -338,6 +338,7 @@ body, input, select, textarea, button {
     color: #64748b;
     cursor: pointer;
     position: relative;
+    overflow: visible;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -364,22 +365,22 @@ body, input, select, textarea, button {
 
 .notification-badge {
     position: absolute;
-    top: -2px;
-    right: -2px;
-    background: linear-gradient(135deg, #ef4444, #f43f5e);
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
     color: white;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    border-radius: 999px;
-    min-width: 18px;
-    height: 18px;
+    border-radius: 20px;
+    min-width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 5px;
-    border: 2px solid white;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
-    transition: transform 0.2s ease;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.35);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bell-btn:hover .notification-badge {

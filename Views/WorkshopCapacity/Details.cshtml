@@ -65,7 +65,7 @@
     <!-- Aktif Siparişler Listesi -->
     <div style="background: white; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); overflow: hidden;">
         <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
-            <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-main);">Atölyedeki Aktif Siparişler</h2>
+            <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text-main);">Atölyedeki Siparişler (Aktif ve Tamamlanan)</h2>
         </div>
         
         <div style="overflow-x: auto;">
@@ -94,7 +94,7 @@
                                     <div style="font-size: 0.75rem;">@order.Brand</div>
                                 </td>
                                 <td style="padding: 16px 24px; text-align: right; font-weight: 700; color: #0f172a;">
-                                    @order.Quantity.ToString("N0")
+                                    @order.CalculatedQuantity.ToString("N0")
                                 </td>
                                 <td style="padding: 16px 24px; text-align: center; color: #64748b;">
                                     @order.OrderDate.ToString("dd.MM.yyyy")
@@ -125,10 +125,10 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" style="padding: 32px; text-align: center; color: #94a3b8;">
-                                <i class="fa-solid fa-clipboard-list" style="font-size: 2rem; margin-bottom: 12px; color: #cbd5e1; display: block;"></i>
-                                Bu atölyeye atanmış aktif bir sipariş bulunmuyor.
-                            </td>
+                            <div style="padding: 40px; text-align: center; color: #64748b;">
+                                <i class="fa-solid fa-clipboard-list" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 16px;"></i>
+                                <p style="margin: 0; font-size: 1.05rem;">Bu atölyeye atanmış herhangi bir sipariş bulunmuyor.</p>
+                            </div>
                         </tr>
                     }
                 </tbody>
