@@ -362,9 +362,13 @@
                 var extraOzellikler = [];
 
                 if (cat === "TELA") {
-                    calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.010,0.015,0.020,0.025,0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080,0.090,0.100,0.120,0.150,0.200" });
-                    calcFields.push({ Key: "GRAM", Type: "select", Def: "10,15,20,25,30,35,40,45,50,55,60,65,70,80,90,100,115,120,130,140,150" });
-                    calcFields.push({ Key: "RENK", Type: "text", Def: "" });
+                    calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.000,0.010,0.020,0.030,0.033,0.045,0.046,0.047" });
+                    calcFields.push({ Key: "GRAM", Type: "select", Def: "55,80,115,175,KAĞIT" });
+                    calcFields.push({ Key: "RENK", Type: "select", Def: "BEYAZ,SİYAH" });
+                }
+                
+                if (stok.stokAdi && stok.stokAdi.toUpperCase().includes("KUMAŞ")) {
+                    calcFields.push({ Key: "BİRİM METRAJ", Type: "text", Def: "" });
                 }
 
                 if (stok.ozelliklerJson) {

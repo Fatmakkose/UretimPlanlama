@@ -289,7 +289,9 @@
             <tbody>
                 @foreach (var s in stokKartlari)
                 {
-                    var activeVariants = s.Varyantlar != null ? s.Varyantlar.Where(v => v.Aktif && !v.VaryantAdi.Contains("BİRİM KULLANIM") && !v.VaryantAdi.Contains("FİRE") && v.MevcutMiktar > 0).ToList() : new List<UretimPlanlama.Models.StokVaryant>();
+                    var isKumas = (s.Kategori != null && s.Kategori.IndexOf("KUMAŞ", StringComparison.OrdinalIgnoreCase) >= 0) || 
+                                  (s.StokAdi != null && s.StokAdi.IndexOf("KUMAŞ", StringComparison.OrdinalIgnoreCase) >= 0);
+                    var activeVariants = s.Varyantlar != null && !isKumas ? s.Varyantlar.Where(v => v.Aktif && !v.VaryantAdi.Contains("BİRİM KULLANIM") && !v.VaryantAdi.Contains("FİRE")).ToList() : new List<UretimPlanlama.Models.StokVaryant>();
                     var isKritik = s.MinimumMiktar > 0 && s.MevcutMiktar > 0 && s.MevcutMiktar <= s.MinimumMiktar;
                     var isSifir = s.MevcutMiktar == 0;
                     var isEksik = s.MevcutMiktar < 0;
@@ -297,8 +299,7 @@
                     var barClass = isEksik ? "danger" : isKritik ? "danger" : barPercent < 50 ? "warning" : "safe";
                     var statusClass = isEksik ? "eksik" : isKritik ? "kritik" : isSifir ? "sifir" : "normal";
                     var statusText = isEksik ? "Stok Eksik" : isKritik ? "⚠ Kritik" : isSifir ? "Stok Yok" : "Normal";
-                    
-                    <tr @if(activeVariants.Any()){<text>onclick="toggleVariants('var_@s.Id', this)" style="cursor: pointer;" class="expandable-row"</text>}>
+                    <tr @Html.Raw(activeVariants.Any() ? $"onclick=\"toggleVariants('var_{s.Id}', this)\" style=\"cursor: pointer;\" class=\"expandable-row\"" : "")>
                         <td><span style="font-weight: 600; color: #475569;">@s.StokKodu</span></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">

@@ -270,7 +270,7 @@
                         if (orderGroup.Count() == 1)
                         {
                             // Tek renkli sipariş - düz satır (açılır kapanır değil)
-                            <tr class="order-row main-order-row" style="border-bottom: 1px solid #f1f5f9; background: #fff;">
+                            <tr class="order-row main-order-row hover-row" style="border-bottom: 1px solid #f1f5f9; background: #fff; cursor: pointer;" onclick="window.location.href='/Planning/Plan/@firstOrder.Id'">
                                 <td style="padding-left: 24px;">
                                     <span style="color: #0369a1; font-weight: 700;">@firstOrder.OrderCode</span>
                                 </td>
@@ -314,9 +314,10 @@
                                 </td>
                                 <td style="text-align: center; padding-right: 24px;">
                                     <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                                        <a href="/Order/Edit/@firstOrder.Id" class="action-btn" title="Siparişi Güncelle"><i class="fa-solid fa-pen"></i></a>
+                                        <a href="/Order/Edit/@firstOrder.Id" class="action-btn" title="Siparişi Güncelle" onclick="event.stopPropagation();"><i class="fa-solid fa-pen"></i></a>
                                         
-                                        <button class="action-btn view-order-detail" data-id="@firstOrder.Id" title="Renk Detayları"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
+                                        <button class="action-btn view-order-detail" data-id="@firstOrder.Id" title="Renk Detayları" onclick="event.stopPropagation();"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
+                                        <button class="action-btn btnDeleteOrder" data-id="@firstOrder.Id" title="Siparişi Sil" onclick="event.stopPropagation();"><i class="fa-solid fa-trash" style="color: #ef4444;"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -365,7 +366,7 @@
 
                             foreach (var order in orderGroup)
                             {
-                                <tr class="order-row @groupClass" style="display: none; background: #f8fafc; border-bottom: 1px dashed #cbd5e1;">
+                                <tr class="order-row @groupClass hover-row" style="display: none; background: #f8fafc; border-bottom: 1px dashed #cbd5e1; cursor: pointer;" onclick="window.location.href='/Planning/Plan/@order.Id'">
                                     <td style="padding-left: 50px;">
                                         <span style="font-size:0.8rem; color:#94a3b8;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i></span>
                                     </td>
@@ -402,9 +403,10 @@
                                     </td>
                                     <td style="text-align: center; padding-right: 24px;">
                                         <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                                            <a href="/Order/Edit/@order.Id" class="action-btn" title="Siparişi Güncelle"><i class="fa-solid fa-pen"></i></a>
+                                            <a href="/Order/Edit/@order.Id" class="action-btn" title="Siparişi Güncelle" onclick="event.stopPropagation();"><i class="fa-solid fa-pen"></i></a>
                                             
-                                            <button class="action-btn view-order-detail" data-id="@order.Id" title="Renk Detayları"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
+                                            <button class="action-btn view-order-detail" data-id="@order.Id" title="Renk Detayları" onclick="event.stopPropagation();"><i class="fa-solid fa-ellipsis-vertical" style="padding: 0 4px;"></i></button>
+                                            <button class="action-btn btnDeleteOrder" data-id="@order.Id" title="Siparişi Sil" onclick="event.stopPropagation();"><i class="fa-solid fa-trash" style="color: #ef4444;"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -417,6 +419,23 @@
     </div>
 </div>
 
+
+<!-- Sipariş Silme Onay Modalı -->
+<div id="deleteConfirmModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1100; justify-content: center; align-items: center; transition: all 0.3s ease;">
+    <div class="modal-content" style="background: white; width: 90%; max-width: 440px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; transform: scale(0.95); transition: transform 0.3s ease; padding: 32px; text-align: center;">
+        <div style="margin-bottom: 20px;">
+            <div style="width: 56px; height: 56px; background: #fef2f2; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem; color: #ef4444;"></i>
+            </div>
+            <h3 style="margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 700; color: #0f172a;">Siparişi Silmek İstediğinize Emin Misiniz?</h3>
+            <p style="margin: 0; font-size: 0.9rem; color: #64748b; line-height: 1.5;">Bu işlem geri alınamaz. Siparişe ait tüm veriler kalıcı olarak silinecektir.</p>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="btnCancelDelete" style="padding: 10px 24px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #334155; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;">İptal</button>
+            <button id="btnConfirmDelete" style="padding: 10px 24px; border-radius: 8px; border: none; background: #ef4444; color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);">Evet, Sil</button>
+        </div>
+    </div>
+</div>
 
 <!-- Sipariş Detay Modal -->
 <div id="orderDetailModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; transition: all 0.3s ease;">
@@ -913,9 +932,9 @@
                         calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
                     } else if (cat === "TELA") {
                         isCalculable = true;
-                        calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.010,0.015,0.020,0.025,0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080,0.090,0.100,0.120,0.150,0.200" });
-                        calcFields.push({ Key: "GRAM", Type: "select", Def: "10,15,20,25,30,35,40,45,50,55,60,65,70,80,90,100,115,120,130,140,150" });
-                        calcFields.push({ Key: "RENK", Type: "text", Def: "" });
+                        calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.000,0.010,0.020,0.030,0.033,0.045,0.046,0.047" });
+                        calcFields.push({ Key: "GRAM", Type: "select", Def: "55,80,115,175,KAĞIT" });
+                        calcFields.push({ Key: "RENK", Type: "select", Def: "BEYAZ,SİYAH" });
                     }
 
                     var extraOzellikler = [];
@@ -1417,6 +1436,93 @@
                             }
                         }
                     });
+                });
+
+                // === SİPARİŞ SİLME İŞLEMLERİ ===
+                var deleteOrderIds = [];
+
+                // Tek sipariş silme butonu
+                $(document).on("click", ".btnDeleteOrder", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var orderId = $(this).data("id");
+                    deleteOrderIds = [orderId];
+                    $("#deleteConfirmModal").css("display", "flex").hide().fadeIn(200, function() {
+                        $(this).addClass("active");
+                    });
+                });
+
+                // Çoklu sipariş grubu silme butonu
+                $(document).on("click", ".btnDeleteOrderGroup", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var idsStr = $(this).data("ids").toString();
+                    deleteOrderIds = idsStr.split(",").map(function(id) { return parseInt(id.trim()); });
+                    $("#deleteConfirmModal").css("display", "flex").hide().fadeIn(200, function() {
+                        $(this).addClass("active");
+                    });
+                });
+
+                // Silme onay butonu
+                $(document).on("click", "#btnConfirmDelete", function() {
+                    if (deleteOrderIds.length === 0) return;
+
+                    if (deleteOrderIds.length === 1) {
+                        // Tek sipariş sil
+                        $.ajax({
+                            url: "/Order/Delete",
+                            type: "POST",
+                            data: { id: deleteOrderIds[0] },
+                            success: function(response) {
+                                if (response.success) {
+                                    showToast("Sipariş başarıyla silindi.", "success");
+                                    setTimeout(function() { window.location.reload(); }, 800);
+                                } else {
+                                    showToast("Hata: " + response.message, "danger");
+                                }
+                            },
+                            error: function() {
+                                showToast("Sipariş silinirken sunucu hatası oluştu.", "danger");
+                            }
+                        });
+                    } else {
+                        // Çoklu sipariş sil
+                        $.ajax({
+                            url: "/Order/DeleteMultiple",
+                            type: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(deleteOrderIds),
+                            success: function(response) {
+                                if (response.success) {
+                                    showToast("Siparişler başarıyla silindi.", "success");
+                                    setTimeout(function() { window.location.reload(); }, 800);
+                                } else {
+                                    showToast("Hata: " + response.message, "danger");
+                                }
+                            },
+                            error: function() {
+                                showToast("Siparişler silinirken sunucu hatası oluştu.", "danger");
+                            }
+                        });
+                    }
+
+                    closeDeleteModal();
+                });
+
+                // Silme iptal butonu ve modal kapatma
+                function closeDeleteModal() {
+                    $("#deleteConfirmModal").removeClass("active").fadeOut(200);
+                    deleteOrderIds = [];
+                }
+
+                $(document).on("click", "#btnCancelDelete, #btnCloseDeleteModal", function() {
+                    closeDeleteModal();
+                });
+
+                $(document).on("click", "#deleteConfirmModal", function(e) {
+                    if (e.target === this) {
+                        closeDeleteModal();
+                    }
                 });
 
                 // Sipariş Düzenleme Modalı Kapatma

@@ -7,7 +7,7 @@ using ClosedXML.Excel;
 
 namespace UretimPlanlama.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "DepoAccess")]
     public class StockController : Controller
     {
         private readonly ApplicationDbContext _context;

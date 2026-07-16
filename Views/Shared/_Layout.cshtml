@@ -1,6 +1,8 @@
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
 @using UretimPlanlama.Models
 @inject UserManager<ApplicationUser> UserManager
+@inject IAuthorizationService AuthorizationService
 @{
     var currentUser = await UserManager.GetUserAsync(User);
     var fullName = currentUser?.FullName ?? "Misafir";
@@ -25,30 +27,46 @@
             </div>
             
             <ul class="navbar-menu">
-                <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">Siparişler</a></li>
-                <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && (ViewContext.RouteData.Values["Action"]?.ToString() == "Index" || ViewContext.RouteData.Values["Action"]?.ToString() == "Plan") ? "active" : "")">Planlama</a></li>
+                @if ((await AuthorizationService.AuthorizeAsync(User, "SiparisAccess")).Succeeded)
+                {
+                    <li><a href="/Order" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">Siparişler</a></li>
+                }
                 
-                <li><a href="/ProcessTracking" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ProcessTracking" ? "active" : "")">Süreç Takibi</a></li>
-                <li><a href="/WorkshopCapacity" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "WorkshopCapacity" ? "active" : "")">Atölye Takibi</a></li>
+                @if ((await AuthorizationService.AuthorizeAsync(User, "PlanlamaAccess")).Succeeded)
+                {
+                    <li><a href="/Planning" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Planning" && (ViewContext.RouteData.Values["Action"]?.ToString() == "Index" || ViewContext.RouteData.Values["Action"]?.ToString() == "Plan") ? "active" : "")">Planlama</a></li>
+                }
 
-                <li>
-                    <a href="#" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Finance" ? "active" : "")">Cari Yönetimi <i class="fa-solid fa-chevron-down"></i></a>
-                    <ul class="submenu" style="width: 250px;">
-                        <li><a href="/Finance/Definitions"><i class="fa-solid fa-address-book"></i> Cari Tanımı</a></li>
-                        <li><a href="/Finance/Purchase"><i class="fa-solid fa-cart-arrow-down"></i> Alış İşlemleri</a></li>
-                        <li><a href="/Finance/Sales"><i class="fa-solid fa-money-bill-trend-up"></i> Satış İşlemleri</a></li>
-                        <li><a href="/Finance/Reports"><i class="fa-solid fa-list-check"></i> Cari Hareketleri (Raporlar)</a></li>
-                    </ul>
-                </li>
+                @if ((await AuthorizationService.AuthorizeAsync(User, "SurecAccess")).Succeeded)
+                {
+                    <li><a href="/ProcessTracking" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "ProcessTracking" ? "active" : "")">Süreç Takibi</a></li>
+                    <li><a href="/WorkshopCapacity" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "WorkshopCapacity" ? "active" : "")">Atölye Takibi</a></li>
+                }
+
+                @if ((await AuthorizationService.AuthorizeAsync(User, "RaporAccess")).Succeeded)
+                {
+                    <li>
+                        <a href="#" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Finance" ? "active" : "")">Cari Yönetimi <i class="fa-solid fa-chevron-down"></i></a>
+                        <ul class="submenu" style="width: 250px;">
+                            <li><a href="/Finance/Definitions"><i class="fa-solid fa-address-book"></i> Cari Tanımı</a></li>
+                            <li><a href="/Finance/Purchase"><i class="fa-solid fa-cart-arrow-down"></i> Alış İşlemleri</a></li>
+                            <li><a href="/Finance/Sales"><i class="fa-solid fa-money-bill-trend-up"></i> Satış İşlemleri</a></li>
+                            <li><a href="/Finance/Reports"><i class="fa-solid fa-list-check"></i> Cari Hareketleri (Raporlar)</a></li>
+                        </ul>
+                    </li>
+                }
                 
-                <li>
-                    <a href="#" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Stock" ? "active" : "")">Stok Yönetimi <i class="fa-solid fa-chevron-down"></i></a>
-                    <ul class="submenu" style="width: 200px;">
-                        <li><a href="/Stock/Definitions"><i class="fa-solid fa-box-open"></i> Stok Tanımı</a></li>
-                        <li><a href="/Stock/Movements"><i class="fa-solid fa-arrow-right-arrow-left"></i> Stok Hareketleri</a></li>
-                        <li><a href="/Stock/Warehouse"><i class="fa-solid fa-warehouse"></i> Depo</a></li>
-                    </ul>
-                </li>
+                @if ((await AuthorizationService.AuthorizeAsync(User, "DepoAccess")).Succeeded)
+                {
+                    <li>
+                        <a href="#" class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Stock" ? "active" : "")">Stok Yönetimi <i class="fa-solid fa-chevron-down"></i></a>
+                        <ul class="submenu" style="width: 200px;">
+                            <li><a href="/Stock/Definitions"><i class="fa-solid fa-box-open"></i> Stok Tanımı</a></li>
+                            <li><a href="/Stock/Movements"><i class="fa-solid fa-arrow-right-arrow-left"></i> Stok Hareketleri</a></li>
+                            <li><a href="/Stock/Warehouse"><i class="fa-solid fa-warehouse"></i> Depo</a></li>
+                        </ul>
+                    </li>
+                }
                 
                 @if (User.IsInRole("Admin"))
                 {

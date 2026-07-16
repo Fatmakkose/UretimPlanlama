@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UretimPlanlama.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "SurecAccess")]
     public class WorkshopCapacityController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -66,6 +66,8 @@ namespace UretimPlanlama.Controllers
                 TotalActivePieces = purelyActive.Sum(o => o.Quantity)
             };
 
+            ViewBag.TimelineStatuses = activeOrders.ToDictionary(o => o.Id, o => GetTimelineStatus(o));
+
             return View(viewModel);
         }
 
@@ -85,6 +87,38 @@ namespace UretimPlanlama.Controllers
             return false;
         }
 
+        private string GetTimelineStatus(Order order)
+        {
+            if (order.Status == "Tamamlandı" || order.Status == "İptal Edildi") return order.Status;
+
+            var pDict = new Dictionary<string, string>();
+            if (!string.IsNullOrEmpty(order.ProductionJson)) { try { pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.ProductionJson); } catch {} }
+            
+            var sDict = new Dictionary<string, string>();
+            if (!string.IsNullOrEmpty(order.SampleTestJson)) { try { sDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.SampleTestJson); } catch {} }
+
+            string GetA(Dictionary<string,string> d, string k) => d != null && d.ContainsKey(k + "_actual") ? d[k + "_actual"] : "";
+
+            if (!string.IsNullOrEmpty(GetA(pDict, "termin_tarihi"))) return "Sipariş Tamamlandı";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_depo_varis"))) return "Depo Varış";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_yola_cikis"))) return "Yola Çıkış";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_gs_gidisi"))) return "GS Gidişi";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_paket_bitis"))) return "Paket Bitiş";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_paket_baslangic"))) return "Paket Başlangıç";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_dikim_bitis"))) return "Dikim Bitiş";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_dikim_baslangic"))) return "Dikim Başlangıç";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_kesim_bitis"))) return "Kesim Bitiş";
+            if (!string.IsNullOrEmpty(GetA(pDict, "prod_kesim_baslangic"))) return "Kesim Başlangıç";
+            
+            if (!string.IsNullOrEmpty(GetA(sDict, "sample_pp_onay"))) return "PP Onay";
+            if (!string.IsNullOrEmpty(GetA(sDict, "sample_dugme_renk"))) return "Düğme Renk Kalite";
+            if (!string.IsNullOrEmpty(GetA(sDict, "sample_tuse_renk"))) return "K-Tuşe Renk Onayı";
+            if (!string.IsNullOrEmpty(GetA(sDict, "sample_kumas_ytesti"))) return "Kumaş Y-Testi Onayı";
+
+            return order.Status;
+        }
+
+        [HttpPost]
         [HttpGet]
         public IActionResult ExportToExcel()
         {

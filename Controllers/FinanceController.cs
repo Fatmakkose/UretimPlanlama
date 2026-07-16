@@ -7,7 +7,7 @@ using ClosedXML.Excel;
 
 namespace UretimPlanlama.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "RaporAccess")]
     public class FinanceController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -533,51 +533,79 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteHareket(int id)
+        public IActionResult DeleteTransaction(int id)
         {
             if (!User.HasPermission("Write"))
                 return Json(new { success = false, message = "Yetkiniz yetersiz." });
 
+            using var transaction = _context.Database.BeginTransaction();
             try
             {
-                var hareket = _context.CariHareketler.Find(id);
-                if (hareket == null)
-                    return Json(new { success = false, message = "Hareket bulunamadı." });
+                var cariHareket = _context.CariHareketler.Find(id);
+                if (cariHareket == null)
+                    return Json(new { success = false, message = "Cari hareket bulunamadı." });
 
-                var hesap = _context.CariHesaplar.Find(hareket.CariHesapId);
-                if (hesap != null)
+                // 1. Cari Bakiye Geri Al
+                var cariHesap = _context.CariHesaplar.Find(cariHareket.CariHesapId);
+                if (cariHesap != null)
                 {
-                    // Hareketi geri al
-                    if (hareket.IslemTipi == "Alacak")
-                        hesap.Bakiye -= hareket.Tutar;
-                    else
-                        hesap.Bakiye += hareket.Tutar;
+                    if (cariHareket.IslemTipi == "Alış")
+                        cariHesap.Bakiye -= cariHareket.Tutar;
+                    else if (cariHareket.IslemTipi == "Satış")
+                        cariHesap.Bakiye += cariHareket.Tutar;
+                    else if (cariHareket.IslemTipi == "Alacak")
+                        cariHesap.Bakiye -= cariHareket.Tutar;
+                    else if (cariHareket.IslemTipi == "Borç")
+                        cariHesap.Bakiye += cariHareket.Tutar;
+                    
+                    _context.CariHesaplar.Update(cariHesap);
                 }
 
-                // Eğer bu hareket bir Alış Faturası ise stokları da geri al
-                if (hareket.IslemTipi == "Alış Faturası" && hareket.StokKartiId.HasValue && hareket.Miktar.HasValue)
+                // 2. İlgili Stok Hareketlerini Bul ve Stokları Geri Al
+                if (!string.IsNullOrEmpty(cariHareket.BelgeNo))
                 {
-                    var stokKarti = _context.StokKartlari.Find(hareket.StokKartiId.Value);
-                    if (stokKarti != null)
+                    var stokHareketler = _context.StokHareketler.Where(sh => sh.BelgeNo == cariHareket.BelgeNo).ToList();
+                    foreach (var sh in stokHareketler)
                     {
-                        stokKarti.MevcutMiktar -= hareket.Miktar.Value;
-                        
-                        // İlgili Stok Hareketini de sil (aynı tarih, belge no, miktar, stok kartı eşleşen ilk kayıt)
-                        var ilgiliStokHareketi = _context.StokHareketler.FirstOrDefault(sh => sh.StokKartiId == stokKarti.Id && sh.BelgeNo == hareket.BelgeNo && sh.Miktar == hareket.Miktar.Value && sh.HareketTipi == "Giriş");
-                        if (ilgiliStokHareketi != null)
+                        var stok = _context.StokKartlari.Find(sh.StokKartiId);
+                        if (stok != null)
                         {
-                            _context.StokHareketler.Remove(ilgiliStokHareketi);
+                            if (sh.HareketTipi == "Giriş")
+                                stok.MevcutMiktar -= sh.Miktar;
+                            else if (sh.HareketTipi == "Çıkış")
+                                stok.MevcutMiktar += sh.Miktar;
+                                
+                            _context.StokKartlari.Update(stok);
                         }
+
+                        if (sh.StokVaryantId.HasValue)
+                        {
+                            var varyant = _context.StokVaryantlar.Find(sh.StokVaryantId.Value);
+                            if (varyant != null)
+                            {
+                                if (sh.HareketTipi == "Giriş")
+                                    varyant.MevcutMiktar -= sh.Miktar;
+                                else if (sh.HareketTipi == "Çıkış")
+                                    varyant.MevcutMiktar += sh.Miktar;
+                                
+                                _context.StokVaryantlar.Update(varyant);
+                            }
+                        }
+
+                        _context.StokHareketler.Remove(sh);
                     }
                 }
 
-                _context.CariHareketler.Remove(hareket);
+                _context.CariHareketler.Remove(cariHareket);
                 _context.SaveChanges();
-                return Json(new { success = true, message = "Hareket silindi." });
+                transaction.Commit();
+
+                return Json(new { success = true, message = "Cari hareket ve bağlı stok hareketleri başarıyla silindi." });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                transaction.Rollback();
+                return Json(new { success = false, message = "Hata: " + ex.Message });
             }
         }
 

@@ -116,6 +116,7 @@
     .toggle-container {
         display: flex;
         gap: 15px;
+        flex-wrap: wrap;
     }
 
     .toggle-item {
@@ -367,7 +368,12 @@
                                                     new { Key = "View", Label = "Görüntüleme", Icon = "fa-eye" },
                                                     new { Key = "Write", Label = "Yazma", Icon = "fa-pen-to-square" },
                                                     new { Key = "Delete", Label = "Silme", Icon = "fa-trash-can" },
-                                                    new { Key = "Admin", Label = "Yönetici", Icon = "fa-shield-halved" }
+                                                    new { Key = "Admin", Label = "Yönetici", Icon = "fa-shield-halved" },
+                                                    new { Key = "Page_Planlama", Label = "Planlama", Icon = "fa-chart-pie" },
+                                                    new { Key = "Page_Depo", Label = "Depo", Icon = "fa-boxes-stacked" },
+                                                    new { Key = "Page_Surec", Label = "Süreç Takip", Icon = "fa-truck-fast" },
+                                                    new { Key = "Page_Siparis", Label = "Siparişler", Icon = "fa-cart-shopping" },
+                                                    new { Key = "Page_Rapor", Label = "Raporlar", Icon = "fa-chart-line" }
                                                 };
                                             }
                                             @foreach (var p in permissions)
@@ -452,7 +458,12 @@
                                                     new { Key = "View", Label = "Görüntüleme (Read)", Icon = "fa-eye" },
                                                     new { Key = "Write", Label = "Yazma / Kayıt (Write)", Icon = "fa-pen-to-square" },
                                                     new { Key = "Delete", Label = "Veri Silme (Delete)", Icon = "fa-trash-can" },
-                                                    new { Key = "Admin", Label = "Sistem Yönetimi (Admin)", Icon = "fa-shield-halved" }
+                                                    new { Key = "Admin", Label = "Sistem Yönetimi (Admin)", Icon = "fa-shield-halved" },
+                                                    new { Key = "Page_Planlama", Label = "Planlama Sayfası", Icon = "fa-chart-pie" },
+                                                    new { Key = "Page_Depo", Label = "Depo Sayfası", Icon = "fa-boxes-stacked" },
+                                                    new { Key = "Page_Surec", Label = "Süreç Takip Sayfası", Icon = "fa-truck-fast" },
+                                                    new { Key = "Page_Siparis", Label = "Siparişler Sayfası", Icon = "fa-cart-shopping" },
+                                                    new { Key = "Page_Rapor", Label = "Raporlar Sayfası", Icon = "fa-chart-line" }
                                                 };
                                             }
                                             @foreach (var p in rolePermissions)

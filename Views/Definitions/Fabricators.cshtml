@@ -67,11 +67,29 @@
                                     <input type="checkbox" class="toggle-fab-checkbox" data-id="@f.Id" @(f.IsActive ? "checked" : "")>
                                     <span class="slider round"></span>
                                 </label>
+                                <button class="btnDeleteFab" data-id="@f.Id" data-name="@f.Name" title="Kumaşçıyı Sil" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: all 0.2s; font-size: 0.9rem;"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     </div>
                 }
             }
+        </div>
+    </div>
+</div>
+
+<!-- Kumaşçı Silme Onay Modalı -->
+<div id="deleteFabModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1100; justify-content: center; align-items: center; transition: all 0.3s ease;">
+    <div style="background: white; width: 90%; max-width: 440px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 32px; text-align: center;">
+        <div style="margin-bottom: 20px;">
+            <div style="width: 56px; height: 56px; background: #fef2f2; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem; color: #ef4444;"></i>
+            </div>
+            <h3 style="margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 700; color: #0f172a;">Kumaşçıyı Silmek İstediğinize Emin Misiniz?</h3>
+            <p style="margin: 0; font-size: 0.9rem; color: #64748b; line-height: 1.5;"><strong id="deleteFabName"></strong> kalıcı olarak silinecektir.</p>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="btnCancelDeleteFab" style="padding: 10px 24px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #334155; font-weight: 600; font-size: 0.9rem; cursor: pointer;">İptal</button>
+            <button id="btnConfirmDeleteFab" style="padding: 10px 24px; border-radius: 8px; border: none; background: #ef4444; color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);">Evet, Sil</button>
         </div>
     </div>
 </div>
@@ -160,6 +178,44 @@
                         checkbox.prop('checked', !isChecked); // revert
                     }
                 });
+            });
+
+            // Kumaşçı Silme
+            var deleteFabId = 0;
+
+            $(document).on('click', '.btnDeleteFab', function(e) {
+                e.preventDefault();
+                deleteFabId = $(this).data('id');
+                var name = $(this).data('name');
+                $('#deleteFabName').text(name);
+                $('#deleteFabModal').css('display', 'flex').hide().fadeIn(200);
+            });
+
+            $('#btnConfirmDeleteFab').click(function() {
+                if (deleteFabId === 0) return;
+                $.ajax({
+                    url: '/Definitions/DeleteFabricator',
+                    type: 'POST',
+                    data: { id: deleteFabId },
+                    success: function(res) {
+                        if (res.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Hata: ' + (res.message || 'Silinemedi.'));
+                        }
+                    },
+                    error: function() {
+                        alert('Sunucu hatası oluştu.');
+                    }
+                });
+                $('#deleteFabModal').fadeOut(200);
+            });
+
+            $('#btnCancelDeleteFab, #deleteFabModal').click(function(e) {
+                if (e.target === this || $(e.target).closest('#btnCancelDeleteFab').length > 0) {
+                    $('#deleteFabModal').fadeOut(200);
+                    deleteFabId = 0;
+                }
             });
         });
     </script>

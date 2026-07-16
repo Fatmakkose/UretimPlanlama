@@ -219,7 +219,7 @@
             @foreach(var co in ((List<UretimPlanlama.Models.Order>)ViewBag.CriticalOrders).Take(5))
             {
                 var delayDays = (DateTime.Today - co.PlannedPackagingEndDate.Value.Date).Days;
-                <tr style="border-bottom: 1px solid #fecaca;">
+                <tr style="border-bottom: 1px solid #fecaca; cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/ProcessTracking/Track/@co.Id'" onmouseover="this.style.backgroundColor='#fee2e2'" onmouseout="this.style.backgroundColor='transparent'">
                     <td style="padding: 10px 16px; font-size: 0.85rem; font-family: monospace;">@co.OrderCode</td>
                     <td style="padding: 10px 16px; font-size: 0.85rem; font-weight: 500;">@co.ModelName</td>
                     <td style="padding: 10px 16px; font-size: 0.85rem; color: #475569;">@co.Customer</td>
@@ -304,7 +304,7 @@
                     {
                         var daysLeft = (u.EffectiveTerminDate.Value.Date - DateTime.Today).Days;
                         var badgeColor = daysLeft <= 3 ? "#dc2626" : (daysLeft <= 7 ? "#eab308" : "#16a34a");
-                        <li class="workshop-item" style="display: flex; justify-content: space-between; align-items: center;">
+                        <li class="workshop-item" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/ProcessTracking/Track/@u.Id'" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
                             <div>
                                 <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">@u.OrderCode</div>
                                 <div style="font-size: 0.75rem; color: #64748b;">@u.ModelName</div>
@@ -326,9 +326,14 @@
     
     <!-- Son Hareketler / Bildirimler -->
     <div class="list-card">
-        <div class="card-header">
-            <h2 class="card-title">Son Hareketler</h2>
-            <i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i>
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <h2 class="card-title" style="margin: 0;">Son Hareketler</h2>
+                <i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i>
+            </div>
+            <button id="btnClearNotifications" title="Tüm Hareketleri Temizle" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px; transition: all 0.2s;">
+                <i class="fa-solid fa-trash"></i>
+            </button>
         </div>
         <ul class="workshop-list" style="max-height: 320px; overflow-y: auto;">
             @if (ViewBag.RecentNotifications != null)
@@ -445,7 +450,7 @@
                         var isPaused = areaName == "Bekleniyor";
                         var progressColor = isPaused ? "#ef4444" : "#0d9488";
 
-                        <tr>
+                        <tr style="cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/ProcessTracking/Track/@order.Id'" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
                             <td class="order-code-td">@order.OrderCode</td>
                             <td class="order-model-td">@order.ModelName @(!string.IsNullOrEmpty(order.Color) ? $"({order.Color})" : "")</td>
                             <td>
@@ -570,6 +575,27 @@
                         }
                     }
                 }
+            }
+        });
+
+        // Bildirimleri Temizle Butonu
+        document.getElementById('btnClearNotifications')?.addEventListener('click', function() {
+            if (confirm('Tüm hareket geçmişini silmek istediğinize emin misiniz?')) {
+                fetch('/Home/ClearNotifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Hata: ' + (data.message || 'Silinemedi.'));
+                    }
+                })
+                .catch(err => {
+                    alert('Bir hata oluştu.');
+                });
             }
         });
     });

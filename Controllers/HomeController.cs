@@ -207,6 +207,21 @@ public class HomeController : Controller
         return View(orders);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ClearNotifications()
+    {
+        try
+        {
+            _context.Notifications.RemoveRange(_context.Notifications);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+        catch (System.Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
     public IActionResult Privacy()
     {
         return View();

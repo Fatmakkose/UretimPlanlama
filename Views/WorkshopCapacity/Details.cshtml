@@ -104,19 +104,32 @@
                                 </td>
                                 <td style="padding: 16px 24px; text-align: center;">
                                     @{
-                                        var statusBg = "#f1f5f9";
-                                        var statusColor = "#475569";
-                                        if (order.Status == "Dikim" || order.Status == "Kesim" || order.Status == "Planlama")
+                                        string currentStatus = ViewBag.TimelineStatuses != null && ViewBag.TimelineStatuses.ContainsKey(order.Id) 
+                                            ? ViewBag.TimelineStatuses[order.Id] 
+                                            : order.Status;
+
+                                        string statusBg = "#f1f5f9";
+                                        string statusColor = "#475569";
+
+                                        if (currentStatus == "Yeni Kayıt")
+                                        {
+                                            statusBg = "#f1f5f9"; statusColor = "#64748b";
+                                        }
+                                        else if (currentStatus == "Üretimde" || currentStatus.Contains("Başlangıç") || currentStatus.Contains("Gidişi") || currentStatus.Contains("Çıkış"))
                                         {
                                             statusBg = "#e0e7ff"; statusColor = "#4338ca";
                                         }
-                                        else if (order.Status == "Paket" || order.Status == "Kalite")
+                                        else if (currentStatus == "Tamamlandı" || currentStatus == "Sipariş Tamamlandı" || currentStatus.Contains("Bitiş") || currentStatus.Contains("Varış") || currentStatus.Contains("Onay"))
+                                        {
+                                            statusBg = "#dcfce7"; statusColor = "#15803d";
+                                        }
+                                        else
                                         {
                                             statusBg = "#fef3c7"; statusColor = "#b45309";
                                         }
                                     }
                                     <span style="background: @statusBg; color: @statusColor; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                                        @order.Status
+                                        @currentStatus
                                     </span>
                                 </td>
                             </tr>

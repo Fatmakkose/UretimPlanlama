@@ -180,13 +180,14 @@
                 <th>Açıklama</th>
                 <th style="width: 150px; text-align: right;">Tutar (₺)</th>
                 <th style="width: 150px; text-align: right;">Cari Bakiye (₺)</th>
+                <th style="width: 80px; text-align: center;">İşlem</th>
             </tr>
         </thead>
         <tbody>
             @if(Model.Count == 0)
             {
                 <tr>
-                    <td colspan="7" style="text-align: center; color: #64748b; padding: 30px;">Henüz bir cari hareket bulunmuyor.</td>
+                    <td colspan="8" style="text-align: center; color: #64748b; padding: 30px;">Henüz bir cari hareket bulunmuyor.</td>
                 </tr>
             }
             @foreach(var item in Model)
@@ -215,6 +216,11 @@
                     </td>
                     <td style="text-align: right; font-weight: 600;">@item.Tutar.ToString("N2")</td>
                     <td style="text-align: right;">@item.KalanBakiye.ToString("N2")</td>
+                    <td style="text-align: center;">
+                        <button class="btn-delete" title="İşlemi Sil" onclick="deleteTransaction(@item.Id)" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -242,6 +248,21 @@
                 } else {
                     $(this).hide();
                 }
+            });
+        }
+
+        function deleteTransaction(id) {
+            if (!confirm('Bu cari hareketi ve bağlı stok hareketlerini tamamen silmek istediğinize emin misiniz? (İlgili stoklar ve cari bakiye geri alınacaktır)')) {
+                return;
+            }
+            $.post('/Finance/DeleteTransaction', { id: id }, function (res) {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            }).fail(function () {
+                alert("Sunucu hatası oluştu.");
             });
         }
     </script>

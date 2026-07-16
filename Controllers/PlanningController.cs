@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace UretimPlanlama.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "PlanlamaAccess")]
     public class PlanningController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -57,7 +57,7 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdatePlan(Order orderData)
+        public IActionResult UpdatePlan(Order orderData, Microsoft.AspNetCore.Http.IFormCollection form)
         {
             if (!User.HasPermission("Write"))
             {
@@ -66,22 +66,22 @@ namespace UretimPlanlama.Controllers
             var order = _context.Orders.Find(orderData.Id);
             if (order != null)
             {
-                order.FabricSupplier = orderData.FabricSupplier;
-                order.FabricArrivalAgreedDate = orderData.FabricArrivalAgreedDate;
+                if (form.ContainsKey("FabricSupplier")) order.FabricSupplier = orderData.FabricSupplier;
+                if (form.ContainsKey("FabricArrivalAgreedDate")) order.FabricArrivalAgreedDate = orderData.FabricArrivalAgreedDate;
                 
-                order.PlannedCuttingStartDate = orderData.PlannedCuttingStartDate;
-                order.PlannedCuttingEndDate = orderData.PlannedCuttingEndDate;
+                if (form.ContainsKey("PlannedCuttingStartDate")) order.PlannedCuttingStartDate = orderData.PlannedCuttingStartDate;
+                if (form.ContainsKey("PlannedCuttingEndDate")) order.PlannedCuttingEndDate = orderData.PlannedCuttingEndDate;
 
-                order.SewingWorkshop = orderData.SewingWorkshop;
-                order.PlannedSewingStartDate = orderData.PlannedSewingStartDate;
-                order.PlannedSewingEndDate = orderData.PlannedSewingEndDate;
+                if (form.ContainsKey("SewingWorkshop")) order.SewingWorkshop = orderData.SewingWorkshop;
+                if (form.ContainsKey("PlannedSewingStartDate")) order.PlannedSewingStartDate = orderData.PlannedSewingStartDate;
+                if (form.ContainsKey("PlannedSewingEndDate")) order.PlannedSewingEndDate = orderData.PlannedSewingEndDate;
 
-                order.PlannedPackagingStartDate = orderData.PlannedPackagingStartDate;
-                order.PlannedPackagingEndDate = orderData.PlannedPackagingEndDate;
-                order.PlannedLastInspectionDate = orderData.PlannedLastInspectionDate;
+                if (form.ContainsKey("PlannedPackagingStartDate")) order.PlannedPackagingStartDate = orderData.PlannedPackagingStartDate;
+                if (form.ContainsKey("PlannedPackagingEndDate")) order.PlannedPackagingEndDate = orderData.PlannedPackagingEndDate;
+                if (form.ContainsKey("PlannedLastInspectionDate")) order.PlannedLastInspectionDate = orderData.PlannedLastInspectionDate;
 
-                order.UnitCost = orderData.UnitCost;
-                order.UnitPrice = orderData.UnitPrice;
+                if (form.ContainsKey("UnitCost")) order.UnitCost = orderData.UnitCost;
+                if (form.ContainsKey("UnitPrice")) order.UnitPrice = orderData.UnitPrice;
 
                 _context.SaveChanges();
 
@@ -101,12 +101,11 @@ namespace UretimPlanlama.Controllers
             var order = _context.Orders.Find(orderData.Id);
             if (order != null)
             {
-                order.ActualFabricMeterage = orderData.ActualFabricMeterage;
-                order.ActualFabricQty = orderData.ActualFabricQty;
+                if (form.ContainsKey("ActualFabricMeterage")) order.ActualFabricMeterage = orderData.ActualFabricMeterage;
+                if (form.ContainsKey("ActualFabricQty")) order.ActualFabricQty = orderData.ActualFabricQty;
                 
-                order.FabricSupplier = orderData.FabricSupplier;
-                order.FabricArrivalAgreedDate = orderData.FabricArrivalAgreedDate;
-                order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
+                if (form.ContainsKey("FabricArrivalAgreedDate")) order.FabricArrivalAgreedDate = orderData.FabricArrivalAgreedDate;
+                if (form.ContainsKey("FabricArrivalActualDate")) order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
 
                 // Extra fields in PurchasingMaterialsJson
                 var dict = new Dictionary<string, string>();
@@ -117,10 +116,20 @@ namespace UretimPlanlama.Controllers
                     } catch {}
                 }
 
+                string globalFabricSupplier = null;
                 foreach (var k in form.Keys) {
                     if (k.StartsWith("pur_")) {
                         dict[k] = form[k].ToString();
+                        if (k.EndsWith("_kumasci") && !string.IsNullOrEmpty(form[k].ToString())) {
+                            globalFabricSupplier = form[k].ToString();
+                        }
                     }
+                }
+                
+                if (!string.IsNullOrEmpty(globalFabricSupplier)) {
+                    order.FabricSupplier = globalFabricSupplier;
+                } else if (form.ContainsKey("FabricSupplier")) {
+                    order.FabricSupplier = orderData.FabricSupplier;
                 }
                 
                 order.PurchasingMaterialsJson = System.Text.Json.JsonSerializer.Serialize(dict);
@@ -294,22 +303,22 @@ namespace UretimPlanlama.Controllers
                 if (form.ContainsKey("actual_sample_dugme_test")) dictSample["actual_sample_dugme_test"] = form["actual_sample_dugme_test"].ToString();
                 if (form.ContainsKey("actual_sample_pp_onay")) dictSample["actual_sample_pp_onay"] = form["actual_sample_pp_onay"].ToString();
                 order.SampleTestJson = System.Text.Json.JsonSerializer.Serialize(dictSample);
-                order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
-                order.FabricMeterage = orderData.FabricMeterage;
-                order.ActualFabricQty = orderData.ActualFabricQty;
+                if (form.ContainsKey("FabricArrivalActualDate")) order.FabricArrivalActualDate = orderData.FabricArrivalActualDate;
+                if (form.ContainsKey("FabricMeterage")) order.FabricMeterage = orderData.FabricMeterage;
+                if (form.ContainsKey("ActualFabricQty")) order.ActualFabricQty = orderData.ActualFabricQty;
 
-                order.CuttingStartDate = orderData.CuttingStartDate;
-                order.CuttingEndDate = orderData.CuttingEndDate;
+                if (form.ContainsKey("CuttingStartDate")) order.CuttingStartDate = orderData.CuttingStartDate;
+                if (form.ContainsKey("CuttingEndDate")) order.CuttingEndDate = orderData.CuttingEndDate;
 
-                order.SewingStartDate = orderData.SewingStartDate;
-                order.SewingEndDate = orderData.SewingEndDate;
+                if (form.ContainsKey("SewingStartDate")) order.SewingStartDate = orderData.SewingStartDate;
+                if (form.ContainsKey("SewingEndDate")) order.SewingEndDate = orderData.SewingEndDate;
 
-                order.PackagingStartDate = orderData.PackagingStartDate;
-                order.PackagingEndDate = orderData.PackagingEndDate;
-                order.LastInspectionDate = orderData.LastInspectionDate;
+                if (form.ContainsKey("PackagingStartDate")) order.PackagingStartDate = orderData.PackagingStartDate;
+                if (form.ContainsKey("PackagingEndDate")) order.PackagingEndDate = orderData.PackagingEndDate;
+                if (form.ContainsKey("LastInspectionDate")) order.LastInspectionDate = orderData.LastInspectionDate;
 
-                order.DepartureDate = orderData.DepartureDate;
-                order.WarehouseArrivalDate = orderData.WarehouseArrivalDate;
+                if (form.ContainsKey("DepartureDate")) order.DepartureDate = orderData.DepartureDate;
+                if (form.ContainsKey("WarehouseArrivalDate")) order.WarehouseArrivalDate = orderData.WarehouseArrivalDate;
 
                 _context.SaveChanges();
 

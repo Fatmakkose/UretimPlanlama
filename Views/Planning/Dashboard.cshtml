@@ -212,7 +212,13 @@
                         <span class="order-code">@order.OrderCode</span>
                         <span class="order-status">AKTİF</span>
                     </div>
-                    <div class="order-desc">@order.ModelName - @order.Color</div>
+                    <div class="order-desc" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <span>@order.ModelName</span>
+                        @if (!string.IsNullOrEmpty(order.Color))
+                        {
+                            <span style="color: #0369a1; background: #e0f2fe; padding: 2px 8px; border-radius: 6px; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">@order.Color</span>
+                        }
+                    </div>
                     <div class="order-meta">
                         <span style="color: #94a3b8; font-weight: 500;">MÜŞTERİ: @order.Customer</span>
                         <span style="color: #475569; font-weight: 600;">ADET: @order.Quantity.ToString("N0")</span>

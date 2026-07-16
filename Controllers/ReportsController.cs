@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace UretimPlanlama.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "RaporAccess")]
     public class ReportsController : Controller
     {
         private readonly ApplicationDbContext _context;

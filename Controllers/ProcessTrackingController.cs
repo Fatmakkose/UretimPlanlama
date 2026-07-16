@@ -3,15 +3,20 @@ using Microsoft.EntityFrameworkCore;
 using UretimPlanlama.Data;
 using UretimPlanlama.Models;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace UretimPlanlama.Controllers
 {
+    [Authorize(Policy = "SurecAccess")]
     public class ProcessTrackingController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UretimPlanlama.Services.IEmailService _emailService;
 
-        public ProcessTrackingController(ApplicationDbContext context)
+        public ProcessTrackingController(ApplicationDbContext context, UretimPlanlama.Services.IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         public IActionResult Index()
@@ -77,14 +82,76 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateMaterialApproval(int materialId, decimal actualQuantity, bool isApproved)
+        public IActionResult UpdateMaterialApproval(int materialId, string plannedQuantityStr, bool isApproved)
         {
             if (!User.HasPermission("Write")) return Json(new { success = false, message = "Yetkisiz" });
 
-            var material = _context.OrderMaterials.Find(materialId);
+            var material = _context.OrderMaterials
+                .Include(m => m.StokKarti)
+                .Include(m => m.StokVaryant)
+                .FirstOrDefault(m => m.Id == materialId);
             if (material == null) return Json(new { success = false, message = "Malzeme bulunamadı" });
 
-            material.ActualQuantity = actualQuantity;
+            decimal plannedQuantity = 0;
+            if (!string.IsNullOrEmpty(plannedQuantityStr)) {
+                plannedQuantityStr = plannedQuantityStr.Replace(",", ".");
+                decimal.TryParse(plannedQuantityStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out plannedQuantity);
+            }
+
+            if (material.IsApproved != isApproved)
+            {
+                if (isApproved)
+                {
+                    material.ActualQuantity = plannedQuantity;
+                    if (material.StokVaryant != null)
+                    {
+                        material.StokVaryant.MevcutMiktar -= plannedQuantity;
+                    }
+                    if (material.StokKarti != null)
+                    {
+                        material.StokKarti.MevcutMiktar -= plannedQuantity;
+                    }
+
+                    _context.StokHareketler.Add(new StokHareket
+                    {
+                        StokKartiId = material.StokKartiId,
+                        StokVaryantId = material.StokVaryantId,
+                        IslemTarihi = DateTime.Now,
+                        HareketTipi = "Çıkış",
+                        Miktar = plannedQuantity,
+                        KalanMiktar = material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : (material.StokKarti != null ? material.StokKarti.MevcutMiktar : 0),
+                        Aciklama = "Süreç Takip: Satın Alma Onayı (Kullanım)",
+                        OrderId = material.OrderId,
+                        IsApproved = true
+                    });
+                }
+                else
+                {
+                    if (material.StokVaryant != null)
+                    {
+                        material.StokVaryant.MevcutMiktar += plannedQuantity;
+                    }
+                    if (material.StokKarti != null)
+                    {
+                        material.StokKarti.MevcutMiktar += plannedQuantity;
+                    }
+                    material.ActualQuantity = 0;
+
+                    _context.StokHareketler.Add(new StokHareket
+                    {
+                        StokKartiId = material.StokKartiId,
+                        StokVaryantId = material.StokVaryantId,
+                        IslemTarihi = DateTime.Now,
+                        HareketTipi = "Giriş",
+                        Miktar = plannedQuantity,
+                        KalanMiktar = material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : (material.StokKarti != null ? material.StokKarti.MevcutMiktar : 0),
+                        Aciklama = "Süreç Takip: Satın Alma Onay İptali (İade)",
+                        OrderId = material.OrderId,
+                        IsApproved = true
+                    });
+                }
+            }
+
             material.IsApproved = isApproved;
             
             // Check if all materials are approved to automatically update the global Order status
@@ -104,7 +171,7 @@ namespace UretimPlanlama.Controllers
                 }
             }
 
-            return Json(new { success = true });
+            return Json(new { success = true, newStock = material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : material.StokKarti?.MevcutMiktar });
         }
 
         [HttpPost]
@@ -202,7 +269,41 @@ namespace UretimPlanlama.Controllers
             });
 
             _context.SaveChanges();
+
+            // Send notification email asynchronously
+            var users = _context.Users.Where(u => !string.IsNullOrEmpty(u.Email) && u.ReceiveEmailNotifications).Select(u => u.Email).ToList();
+            if (users.Any())
+            {
+                string targetEmails = string.Join(",", users);
+                string subject = $"Süreç Bildirimi: {order.OrderCode} - {title}";
+                string body = $@"
+                    <div style='font-family: Arial, sans-serif; padding: 20px;'>
+                        <h3 style='color: #0f766e;'>{title}</h3>
+                        <p>{message}</p>
+                        <p style='color: #64748b; font-size: 0.9em; margin-top: 20px;'>Bu e-posta sistem tarafından otomatik gönderilmiştir.</p>
+                    </div>";
+                
+                // Fire and forget so it doesn't block the UI response
+                _ = _emailService.SendEmailAsync(targetEmails, subject, body);
+            }
+
             return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult UpdateFileClosing([FromBody] FileClosingRequest request)
+        {
+            if (!User.HasPermission("Edit"))
+                return Json(new { success = false, message = "Yetkiniz yok" });
+
+            var order = _context.Orders.FirstOrDefault(o => o.Id == request.Id);
+            if (order == null)
+                return Json(new { success = false, message = "Sipariş bulunamadı" });
+
+            order.FileClosingJson = request.FileClosingJson;
+            _context.SaveChanges();
+            
+            return Json(new { success = true, message = "Dosya Kapama verileri kaydedildi" });
         }
     }
 
@@ -216,5 +317,11 @@ namespace UretimPlanlama.Controllers
     {
         public int Id { get; set; }
         public string CuttingProcessJson { get; set; } = string.Empty;
+    }
+
+    public class FileClosingRequest
+    {
+        public int Id { get; set; }
+        public string FileClosingJson { get; set; } = string.Empty;
     }
 }

@@ -349,9 +349,27 @@
                         string itemKey = "stk_" + mat.StokKartiId;
                         string cat = (mat.StokKarti?.Kategori ?? "").Trim().ToUpperInvariant();
                         
+                        Func<string, double> parseTr = (string v) => {
+                            if (string.IsNullOrWhiteSpace(v)) return 0;
+                            v = v.Trim();
+                            if (v.Contains(",") && v.Contains(".")) v = v.Replace(".", "").Replace(",", ".");
+                            else if (v.Contains(",")) v = v.Replace(",", ".");
+                            else if (v.Contains(".") && v.IndexOf(".") == v.Length - 4) v = v.Replace(".", "");
+                            double.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r);
+                            return r;
+                        };
+
                         foreach(var c in trackColors) {
                             string sipAdetiStr = purDataTrack.ContainsKey($"pur_color_{c}_siparis_adeti") ? purDataTrack[$"pur_color_{c}_siparis_adeti"] : Model.Quantity.ToString();
-                            double siparisAdeti = 0; double.TryParse(sipAdetiStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out siparisAdeti);
+                            double siparisAdeti = parseTr(sipAdetiStr);
+
+                            string bedenMiktarStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : "0";
+                            double bedenMiktar = parseTr(bedenMiktarStr);
+
+                            string bedenCikacakStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_cikacak") ? purDataTrack[$"pur_color_{c}_beden_cikacak"] : "0";
+                            double bedenCikacak = parseTr(bedenCikacakStr);
+
+                            double jobQty = bedenMiktar > 0 ? bedenCikacak : siparisAdeti;
                             
                             if (cat == "KUMAŞ" || cat == "KUMAS") {
                                 string kumasIstenenStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : null;
@@ -372,20 +390,20 @@
                                 } else {
                                     string metrajStr = ExtractFromOzellikler(mat.OzelliklerJson, "METRAJ") ?? mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
                                     double metraj = 0; double.TryParse(metrajStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out metraj);
-                                    totalIstenen += Math.Round(siparisAdeti * metraj);
+                                    totalIstenen += Math.Round(jobQty * metraj);
                                 }
                             } else if (cat == "TELA") {
                                 string dynBirim = ExtractFromOzellikler(mat.OzelliklerJson, "TELA BİRİM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM");
                                 string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
                                 string birimStr = purDataTrack.ContainsKey($"pur_color_{c}_tela_birim_{itemKey}") ? purDataTrack[$"pur_color_{c}_tela_birim_{itemKey}"] : defBirim;
                                 double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
-                                totalIstenen += Math.Round(siparisAdeti * birim);
+                                totalIstenen += Math.Ceiling(jobQty * birim);
                             } else if (cat == "ETİKET" || cat == "ETIKET") {
                                 string dynFire = ExtractFromOzellikler(mat.OzelliklerJson, "FİRE (%)") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FIRE") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FİRE");
                                 string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : "0";
                                 string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_label_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_label_fire_{itemKey}"] : defFire;
                                 double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
-                                double tmp = siparisAdeti * 1; 
+                                double tmp = jobQty * 1; 
                                 totalIstenen += Math.Round(tmp + Math.Round(tmp * (fire / 100.0)));
                             } else {
                                 string dynBirim = ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM KULLANIM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BIRIM");
@@ -398,7 +416,7 @@
                                 string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_fire_{itemKey}"] : defFire;
                                 double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
                                 
-                                double toplam = siparisAdeti * birim;
+                                double toplam = jobQty * birim;
                                 double fazla = Math.Round(toplam * (fire / 100.0));
                                 totalIstenen += Math.Round(toplam + fazla);
                             }
@@ -416,7 +434,7 @@
                             <td style="padding: 16px; width: 250px; background: #f0f9ff; border-right: 1px solid #f1f5f9;">
                                 <div style="display: flex; align-items: center; justify-content: center;">
                                     @{
-                                        decimal displayQty = mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0;
+                                        decimal displayQty = mat.StokVaryant != null ? mat.StokVaryant.MevcutMiktar : (mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0);
                                     }
                                     <input type="number" step="0.01" style="width: 120px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right; font-weight: 600; color: #475569; background-color: #f1f5f9; outline: none; box-shadow: none; cursor: not-allowed;" id="actual_qty_@mat.Id" value="@displayQty.ToString("F2").Replace(',', '.')" readonly oninput="updateComparison(@mat.Id, @(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture)))" />
                                 </div>
@@ -426,7 +444,7 @@
                             </td>
                             <td style="padding: 16px; text-align: center;">
                                 <div id="div_mat_@mat.Id" style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: @(mat.IsApproved ? "#dcfce7" : "#fffbeb"); border-radius: 50%; border: 1px solid @(mat.IsApproved ? "#bbf7d0" : "#fef08a");">
-                                    <input type="checkbox" id="chk_mat_@mat.Id" @(mat.IsApproved ? "checked" : "") onchange="updateMaterialApproval(@mat.Id)" style="width: 22px; height: 22px; cursor: pointer; accent-color: #16a34a; margin: 0;">
+                                    <input type="checkbox" id="chk_mat_@mat.Id" data-planned="@(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture))" @(mat.IsApproved ? "checked" : "") onchange="updateMaterialApproval(@mat.Id)" style="width: 22px; height: 22px; cursor: pointer; accent-color: #16a34a; margin: 0;">
                                 </div>
                             </td>
                         </tr>
@@ -952,9 +970,27 @@
                     string itemKey = "stk_" + mat.StokKartiId;
                     string cat = (mat.StokKarti?.Kategori ?? "").Trim().ToUpperInvariant();
                     
+                    Func<string, double> parseTrRep = (string v) => {
+                        if (string.IsNullOrWhiteSpace(v)) return 0;
+                        v = v.Trim();
+                        if (v.Contains(",") && v.Contains(".")) v = v.Replace(".", "").Replace(",", ".");
+                        else if (v.Contains(",")) v = v.Replace(",", ".");
+                        else if (v.Contains(".") && v.IndexOf(".") == v.Length - 4) v = v.Replace(".", "");
+                        double.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r);
+                        return r;
+                    };
+
                     foreach(var c in colorsRep) {
                         string sipAdetiStr = purDataRep.ContainsKey($"pur_color_{c}_siparis_adeti") ? purDataRep[$"pur_color_{c}_siparis_adeti"] : Model.Quantity.ToString();
-                        double siparisAdeti = 0; double.TryParse(sipAdetiStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out siparisAdeti);
+                        double siparisAdeti = parseTrRep(sipAdetiStr);
+                        
+                        string bedenMiktarStr = purDataRep.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataRep[$"pur_color_{c}_beden_miktar"] : "0";
+                        double bedenMiktar = parseTrRep(bedenMiktarStr);
+
+                        string bedenCikacakStr = purDataRep.ContainsKey($"pur_color_{c}_beden_cikacak") ? purDataRep[$"pur_color_{c}_beden_cikacak"] : "0";
+                        double bedenCikacak = parseTrRep(bedenCikacakStr);
+
+                        double jobQty = bedenMiktar > 0 ? bedenCikacak : siparisAdeti;
                         
                         if (cat == "KUMAŞ" || cat == "KUMAS") {
                             string kumasIstenenStr = purDataRep.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataRep[$"pur_color_{c}_beden_miktar"] : null;
@@ -975,20 +1011,20 @@
                             } else {
                                 string metrajStr = ExtractFromOzelliklerRep(mat.OzelliklerJson, "METRAJ") ?? mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
                                 double metraj = 0; double.TryParse(metrajStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out metraj);
-                                totalIstenen += Math.Round(siparisAdeti * metraj);
+                                totalIstenen += Math.Round(jobQty * metraj);
                             }
                         } else if (cat == "TELA") {
                             string dynBirim = ExtractFromOzelliklerRep(mat.OzelliklerJson, "TELA BİRİM") ?? ExtractFromOzelliklerRep(mat.OzelliklerJson, "BİRİM");
                             string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
                             string birimStr = purDataRep.ContainsKey($"pur_color_{c}_tela_birim_{itemKey}") ? purDataRep[$"pur_color_{c}_tela_birim_{itemKey}"] : defBirim;
                             double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
-                            totalIstenen += Math.Round(siparisAdeti * birim);
+                            totalIstenen += Math.Ceiling(jobQty * birim);
                         } else if (cat == "ETİKET" || cat == "ETIKET") {
                             string dynFire = ExtractFromOzelliklerRep(mat.OzelliklerJson, "FİRE (%)") ?? ExtractFromOzelliklerRep(mat.OzelliklerJson, "FIRE") ?? ExtractFromOzelliklerRep(mat.OzelliklerJson, "FİRE");
                             string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : "0";
                             string fireStr = purDataRep.ContainsKey($"pur_color_{c}_label_fire_{itemKey}") ? purDataRep[$"pur_color_{c}_label_fire_{itemKey}"] : defFire;
                             double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
-                            double tmp = siparisAdeti * 1; 
+                            double tmp = jobQty * 1; 
                             totalIstenen += Math.Round(tmp + Math.Round(tmp * (fire / 100.0)));
                         } else {
                             string dynBirim = ExtractFromOzelliklerRep(mat.OzelliklerJson, "BİRİM KULLANIM") ?? ExtractFromOzelliklerRep(mat.OzelliklerJson, "BİRİM") ?? ExtractFromOzelliklerRep(mat.OzelliklerJson, "BIRIM");
@@ -1001,7 +1037,7 @@
                             string fireStr = purDataRep.ContainsKey($"pur_color_{c}_fire_{itemKey}") ? purDataRep[$"pur_color_{c}_fire_{itemKey}"] : defFire;
                             double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
                             
-                            double toplam = siparisAdeti * birim;
+                            double toplam = jobQty * birim;
                             double fazla = Math.Round(toplam * (fire / 100.0));
                             totalIstenen += Math.Round(toplam + fazla);
                         }
@@ -1374,7 +1410,7 @@
         // --- TAB 1: SATIN ALMA ONAYI ---
         function updateMaterialApproval(materialId) {
             const isChecked = $('#chk_mat_' + materialId).is(':checked');
-            const actualQty = parseFloat($('#actual_qty_' + materialId).val()) || 0;
+            const plannedQtyStr = $('#chk_mat_' + materialId).attr('data-planned') || "0";
             
             // Update wrapper div styling
             $('#div_mat_' + materialId)
@@ -1384,11 +1420,20 @@
             // Update row background color dynamically
             $('#chk_mat_' + materialId).closest('tr').css('background', isChecked ? "#f0fdf4" : "transparent");
             
-            $.post('/ProcessTracking/UpdateMaterialApproval', { materialId: materialId, actualQuantity: actualQty, isApproved: isChecked }, function(res) {
+            $.post('/ProcessTracking/UpdateMaterialApproval', { materialId: materialId, plannedQuantityStr: plannedQtyStr, isApproved: isChecked }, function(res) {
                 if(res.success) {
-                    showToast("Malzeme onayı güncellendi.", "success");
+                    showToast("Malzeme onayı ve stok güncellendi.", "success");
+                    if (res.newStock !== undefined && res.newStock !== null) {
+                        $('#actual_qty_' + materialId).val(res.newStock.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        updateComparison(materialId, parseFloat(plannedQtyStr));
+                    }
                 } else {
                     showToast("Hata: " + res.message, "danger");
+                    $('#chk_mat_' + materialId).prop('checked', !isChecked);
+                    $('#div_mat_' + materialId)
+                        .css('background', !isChecked ? "#dcfce7" : "#fffbeb")
+                        .css('border-color', !isChecked ? "#bbf7d0" : "#fef08a");
+                    $('#chk_mat_' + materialId).closest('tr').css('background', !isChecked ? "#f0fdf4" : "transparent");
                 }
             });
         }

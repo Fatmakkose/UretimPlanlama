@@ -17,7 +17,8 @@
     .planning-layout {
         display: flex;
         gap: 20px;
-        align-items: flex-start;
+        align-items: stretch;
+        min-height: calc(100vh - 80px);
     }
     
     .sidebar-orders {
@@ -27,6 +28,11 @@
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         overflow: hidden;
         flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 10px;
+        max-height: calc(100vh - 20px);
     }
     
     .sidebar-header {
@@ -61,6 +67,7 @@
     
     .main-planning {
         flex-grow: 1;
+        min-width: 0;
         background: #fff;
         border-radius: 8px;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
@@ -220,7 +227,7 @@
                 <input type="checkbox" id="showAllOrders" /> Tümünü Gör
             </label>
         </div>
-        <div class="order-list" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="order-list" style="flex: 1; overflow-y: auto;">
             @if(allOrders != null)
             {
                 foreach (var o in allOrders)
@@ -236,8 +243,12 @@
                                 <span style="font-size: 0.7rem; font-weight: 700; color: #64748b;">PASİF</span>
                             }
                         </div>
-                        <div style="font-size: 0.85rem; color: #334155; font-weight: 500; margin-bottom: 8px;">
-                            @o.ModelName - @o.Color
+                        <div style="font-size: 0.85rem; color: #334155; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <span>@o.ModelName</span>
+                            @if (!string.IsNullOrEmpty(o.Color))
+                            {
+                                <span style="color: #0369a1; background: #e0f2fe; padding: 2px 8px; border-radius: 6px; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">@o.Color</span>
+                            }
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #475569; font-weight: 600;">
                             <span style="color: #94a3b8; font-weight: 500;">MÜŞTERİ: @o.Customer</span>
@@ -624,8 +635,7 @@
                                             }
                                         </select>
                                     </div>
-                                    <div><div class="data-label">KUMAŞ SEVK (ANLAŞILAN)</div><input type="date" name="pur_color_@(c)_kumas_sevk" class="input-field" value="@GetPurVal($"pur_color_{c}_kumas_sevk")" /></div>
-                                    <div><div class="data-label">KUMAŞ GELİŞ (GERÇEKLEŞEN)</div><input type="date" name="pur_color_@(c)_kumas_gelis" class="input-field" value="@GetPurVal($"pur_color_{c}_kumas_gelis")" /></div>
+                                    <div style="grid-column: span 2;"><div class="data-label">KUMAŞ SEVK (ANLAŞILAN)</div><input type="date" name="pur_color_@(c)_kumas_sevk" class="input-field" value="@GetPurVal($"pur_color_{c}_kumas_sevk")" /></div>
                                 </div>
                             </div>
 
@@ -860,7 +870,7 @@
                 <input type="hidden" name="Id" value="@Model.Id" />
                 <h3 style="font-size: 1.1rem; margin-bottom: 16px; color: #1e293b;">Üretim Planlama Detayları</h3>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                     <!-- Kesim ve Dikim Kartı -->
                     <div class="content-section">
                         <div class="section-title">
@@ -983,7 +993,7 @@
                 </div>
 
                 <!-- KESİM SÜRECİ TAB -->
-        <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px; max-width: 100%; overflow: hidden;">
             @{
                 var sizesObj = new Dictionary<string, string>();
                 if (!string.IsNullOrEmpty(Model.SizeDistributionJson)) {
@@ -1082,60 +1092,71 @@
                 </div>
                 <button type="button" class="btn btn-sm" onclick="planToggleCutForm('AcikAdet')" style="background: linear-gradient(135deg, #1d4ed8, #2563eb); color: white; border: none; padding: 6px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 6px rgba(37,99,235,0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 10px rgba(37,99,235,0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 6px rgba(37,99,235,0.3)'"><i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Açık Adet Kesim Ekle</button>
             </div>
-            <table class="table table-bordered w-100" id="planTblCuttingAcik" style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; font-size: 0.88rem;">
-                <thead style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); text-align: center;">
-                    <tr>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Kesim No</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 80px;">Kat Sayısı</th>
-                        <th colspan="@Math.Max(1, sizesObj.Count)" style="padding: 10px 12px; color: #334155; font-weight: 700;">Bedenler</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Çıkan Adet</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Pastal Boyu</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Birim Metraj</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 130px;">Tarih</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">İşlem</th>
-                    </tr>
-                    <tr>
-                        @if (sizesObj.Count > 0) {
-                            foreach (var k in sizesObj.Keys) {
-                                <th style="padding: 8px 10px; color: #475569; font-weight: 600; min-width: 70px;">@k</th>
+            <div class="table-responsive" style="width: 100%; overflow-x: auto;">
+                <table class="table table-bordered w-100" id="planTblCuttingAcik" style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; font-size: 0.88rem;">
+                    <thead style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); text-align: center;">
+                        <tr>
+                            <th rowspan="2" class="sticky-kesim" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px; position: sticky; left: 0; background: #f8fafc; z-index: 3; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);">Kesim No</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 80px;">Kat Sayısı</th>
+                            <th colspan="@Math.Max(1, sizesObj.Count)" style="padding: 10px 12px; color: #334155; font-weight: 700;">Bedenler</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Çıkan Adet</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Pastal Boyu</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Birim Metraj</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 130px;">Tarih</th>
+                            <th rowspan="2" class="sticky-islem" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px; position: sticky; right: 0; background: #f8fafc; z-index: 3; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);">İşlem</th>
+                        </tr>
+                        <tr>
+                            @if (sizesObj.Count > 0) {
+                                foreach (var k in sizesObj.Keys) {
+                                    <th style="padding: 8px 10px; color: #475569; font-weight: 600; min-width: 70px;">@k</th>
+                                }
+                            } else {
+                                <th style="padding: 8px 10px;">-</th>
                             }
-                        } else {
-                            <th style="padding: 8px 10px;">-</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody id="planCuttingBodyAcik">
-                </tbody>
-                <tbody id="planCuttingEntryAcik" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
-                    <tr>
-                        <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAcikMultiplier" class="form-control form-control-sm" value="1" oninput="planCalculateAcik()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
-                        @if (sizesObj.Count > 0) {
-                            foreach (var k in sizesObj.Keys) {
-                                <td style="vertical-align: middle;"><input type="number" id="planTxtAcikSize_@k" class="form-control form-control-sm acik-adet-input-row" data-size="@k" value="0" oninput="planCalculateAcik()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
+                        </tr>
+                    </thead>
+                    <tbody id="planCuttingBodyAcik">
+                    </tbody>
+                    <tbody id="planCuttingEntryAcik" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                        <tr>
+                            <td class="sticky-kesim" style="vertical-align: middle; text-align: center; position: sticky; left: 0; background: #f0fdf4; z-index: 2; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAcikMultiplier" class="form-control form-control-sm" value="1" oninput="planCalculateAcik()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
+                            @if (sizesObj.Count > 0) {
+                                foreach (var k in sizesObj.Keys) {
+                                    <td style="vertical-align: middle;"><input type="number" id="planTxtAcikSize_@k" class="form-control form-control-sm acik-adet-input-row" data-size="@k" value="0" oninput="planCalculateAcik()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
+                                }
+                            } else {
+                                <td style="vertical-align: middle;">-</td>
                             }
-                        } else {
-                            <td style="vertical-align: middle;">-</td>
-                        }
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAcikTotal" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAcikMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="planCalculateAcik()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAcikUnitMeterage" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle;"><input type="date" id="planTxtAcikDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="width: 100%; font-weight: bold; padding: 6px 4px; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle; text-align: center;">
-                            <div style="display: flex; gap: 4px; justify-content: center;">
-                                <button type="button" class="btn btn-success btn-sm" onclick="planSaveAcikRow()" title="Kaydet" style="border-radius: 6px;"><i class="fa-solid fa-check"></i></button>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="$('#planCuttingEntryAcik').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-                <tfoot style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); font-weight: bold;">
-                    <tr>
-                        <td colspan="@(6 + Math.Max(1, sizesObj.Count))" style="text-align: right; vertical-align: middle; color: #475569; padding: 12px 20px; font-size: 0.9rem;">AÇIK ADET TOPLAMI:</td>
-                        <td id="planAcikTotalCut" style="font-size: 1.15rem; color: #0f172a; vertical-align: middle; text-align: center; padding: 12px 8px;">0</td>
-                    </tr>
-                </tfoot>
-            </table>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAcikTotal" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAcikMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="planCalculateAcik()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAcikUnitMeterage" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
+                            <td style="vertical-align: middle;"><input type="date" id="planTxtAcikDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="width: 100%; font-weight: bold; padding: 6px 4px; border-radius: 6px;" /></td>
+                            <td class="sticky-islem" style="vertical-align: middle; text-align: center; position: sticky; right: 0; background: #f0fdf4; z-index: 2; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);">
+                                <div style="display: flex; gap: 4px; justify-content: center;">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="planSaveAcikRow()" title="Kaydet" style="border-radius: 6px;"><i class="fa-solid fa-check"></i></button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="$('#planCuttingEntryAcik').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); font-weight: bold;">
+                        <tr>
+                            <td colspan="2" class="sticky-kesim" style="text-align: right; vertical-align: middle; color: #475569; padding: 12px 20px; font-size: 0.9rem; position: sticky; left: 0; background: #f1f5f9; z-index: 3; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);">AÇIK ADET TOPLAMI:</td>
+                            @if (sizesObj.Count > 0) {
+                                foreach (var k in sizesObj.Keys) {
+                                    <td id="planAcikTotalCutSize_@k" style="font-size: 1.05rem; color: #1e40af; vertical-align: middle; text-align: center; padding: 12px 8px;">0</td>
+                                }
+                            } else {
+                                <td>-</td>
+                            }
+                            <td id="planAcikTotalCut" style="font-size: 1.15rem; color: #0f172a; vertical-align: middle; text-align: center; padding: 12px 8px;">0</td>
+                            <td colspan="3"></td>
+                            <td class="sticky-islem" style="position: sticky; right: 0; background: #f1f5f9; z-index: 3; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 32px; margin-bottom: 12px; flex-wrap: wrap; gap: 12px;">
                 <div>
@@ -1147,7 +1168,12 @@
                                 <span style="display: inline-block; background: #dcfce7; padding: 3px 10px; border-radius: 12px; margin-right: 4px; font-weight: 600; border: 1px solid #bbf7d0; font-size: 0.8rem;">@kvp.Key: @kvp.Value</span>
                             }
                             <span style="display: inline-block; margin-left: 8px; padding-left: 12px; border-left: 1px solid #bbf7d0; font-weight: 700; color: #166534;">
-                                1 Asorti: @asortiTotal Adet | Lot Sayısı: @Model.AsortiCount | Toplam: @(asortiTotal * Model.AsortiCount) Adet
+                                @{
+                                    int dynamicLot = asortiTotal > 0 ? (int)Math.Floor((double)Model.CalculatedQuantity / asortiTotal) : 0;
+                                    int dynamicTotal = dynamicLot * asortiTotal;
+                                    int tekleme = Model.CalculatedQuantity - dynamicTotal;
+                                }
+                                1 Asorti: @asortiTotal Adet | Lot Sayısı: @dynamicLot | Asorti Toplam: @dynamicTotal Adet @(tekleme > 0 ? $" | Kalan (Tekleme): {tekleme} Adet" : "")
                             </span>
                         } else {
                             <span style="font-style: italic;">Yok</span>
@@ -1156,60 +1182,71 @@
                 </div>
                 <button type="button" class="btn btn-sm" onclick="planToggleCutForm('Asorti')" style="background: linear-gradient(135deg, #1d4ed8, #2563eb); color: white; border: none; padding: 6px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 6px rgba(37,99,235,0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 10px rgba(37,99,235,0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 6px rgba(37,99,235,0.3)'"><i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Asorti Kesim Ekle</button>
             </div>
-            <table class="table table-bordered w-100" id="planTblCuttingAsorti" style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; font-size: 0.88rem;">
-                <thead style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); text-align: center;">
-                    <tr>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Kesim No</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 80px;">Kat Sayısı</th>
-                        <th colspan="@Math.Max(1, asortiObj.Count)" style="padding: 10px 12px; color: #334155; font-weight: 700;">Bedenler</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Çıkan Adet</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Pastal Boyu</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Birim Metraj</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 130px;">Tarih</th>
-                        <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">İşlem</th>
-                    </tr>
-                    <tr>
-                        @if (asortiObj.Count > 0) {
-                            foreach (var k in asortiObj.Keys) {
-                                <th style="padding: 8px 10px; color: #475569; font-weight: 600; min-width: 70px;">@k</th>
+            <div class="table-responsive" style="width: 100%; overflow-x: auto;">
+                <table class="table table-bordered w-100" id="planTblCuttingAsorti" style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; font-size: 0.88rem;">
+                    <thead style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); text-align: center;">
+                        <tr>
+                            <th rowspan="2" class="sticky-kesim" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px; position: sticky; left: 0; background: #f8fafc; z-index: 3; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);">Kesim No</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 80px;">Kat Sayısı</th>
+                            <th colspan="@Math.Max(1, asortiObj.Count)" style="padding: 10px 12px; color: #334155; font-weight: 700;">Bedenler</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Çıkan Adet</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Pastal Boyu</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px;">Birim Metraj</th>
+                            <th rowspan="2" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 130px;">Tarih</th>
+                            <th rowspan="2" class="sticky-islem" style="vertical-align: middle; padding: 10px 12px; color: #334155; font-weight: 700; white-space: nowrap; min-width: 90px; position: sticky; right: 0; background: #f8fafc; z-index: 3; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);">İşlem</th>
+                        </tr>
+                        <tr>
+                            @if (asortiObj.Count > 0) {
+                                foreach (var k in asortiObj.Keys) {
+                                    <th style="padding: 8px 10px; color: #475569; font-weight: 600; min-width: 70px;">@k</th>
+                                }
+                            } else {
+                                <th style="padding: 8px 10px;">-</th>
                             }
-                        } else {
-                            <th style="padding: 8px 10px;">-</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody id="planCuttingBodyAsorti">
-                </tbody>
-                <tbody id="planCuttingEntryAsorti" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
-                    <tr>
-                        <td style="vertical-align: middle; text-align: center;"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiMultiplier" class="form-control form-control-sm" value="1" oninput="planCalculateAsorti()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
-                        @if (asortiObj.Count > 0) {
-                            foreach (var kvp in asortiObj) {
-                                <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiSize_@kvp.Key" class="form-control form-control-sm asorti-input-row" data-size="@kvp.Key" data-asortivalue="@kvp.Value" value="@kvp.Value" readonly style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; background: #f1f5f9; cursor: not-allowed; border-radius: 6px;" /></td>
+                        </tr>
+                    </thead>
+                    <tbody id="planCuttingBodyAsorti">
+                    </tbody>
+                    <tbody id="planCuttingEntryAsorti" style="display: none; background: #f0fdf4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                        <tr>
+                            <td class="sticky-kesim" style="vertical-align: middle; text-align: center; position: sticky; left: 0; background: #f0fdf4; z-index: 2; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);"><span style="font-size: 0.75rem; color: #166534; font-weight: 800; text-transform: uppercase;">YENİ KAYIT</span></td>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiMultiplier" class="form-control form-control-sm" value="1" oninput="planCalculateAsorti()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
+                            @if (asortiObj.Count > 0) {
+                                foreach (var kvp in asortiObj) {
+                                    <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiSize_@kvp.Key" class="form-control form-control-sm asorti-input-row" data-size="@kvp.Key" data-asortivalue="@kvp.Value" value="@kvp.Value" readonly style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; background: #f1f5f9; cursor: not-allowed; border-radius: 6px;" /></td>
+                                }
+                            } else {
+                                <td style="vertical-align: middle;">-</td>
                             }
-                        } else {
-                            <td style="vertical-align: middle;">-</td>
-                        }
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiTotal" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="planCalculateAsorti()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiUnitMeterage" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle;"><input type="date" id="planTxtAsortiDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="width: 100%; font-weight: bold; padding: 6px 4px; border-radius: 6px;" /></td>
-                        <td style="vertical-align: middle; text-align: center;">
-                            <div style="display: flex; gap: 4px; justify-content: center;">
-                                <button type="button" class="btn btn-success btn-sm" onclick="planSaveAsortiRow()" title="Kaydet" style="border-radius: 6px;"><i class="fa-solid fa-check"></i></button>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="$('#planCuttingEntryAsorti').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-                <tfoot style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); font-weight: bold;">
-                    <tr>
-                        <td colspan="@(6 + Math.Max(1, asortiObj.Count))" style="text-align: right; vertical-align: middle; color: #475569; padding: 12px 20px; font-size: 0.9rem;">ASORTİ TOPLAMI:</td>
-                        <td id="planAsortiTotalCut" style="font-size: 1.15rem; color: #0f172a; vertical-align: middle; text-align: center; padding: 12px 8px;">0</td>
-                    </tr>
-                </tfoot>
-            </table>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiTotal" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiMarkerLength" class="form-control form-control-sm" value="0" step="0.01" oninput="planCalculateAsorti()" style="width: 100%; padding: 6px 4px; text-align: center; font-weight: bold; border-radius: 6px;" /></td>
+                            <td style="vertical-align: middle;"><input type="number" id="planTxtAsortiUnitMeterage" class="form-control form-control-sm" readonly style="width: 100%; padding: 6px 4px; text-align: center; background: #dcfce7; font-weight: bold; color: #166534; border-radius: 6px;" /></td>
+                            <td style="vertical-align: middle;"><input type="date" id="planTxtAsortiDate" class="form-control form-control-sm" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="width: 100%; font-weight: bold; padding: 6px 4px; border-radius: 6px;" /></td>
+                            <td class="sticky-islem" style="vertical-align: middle; text-align: center; position: sticky; right: 0; background: #f0fdf4; z-index: 2; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);">
+                                <div style="display: flex; gap: 4px; justify-content: center;">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="planSaveAsortiRow()" title="Kaydet" style="border-radius: 6px;"><i class="fa-solid fa-check"></i></button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="$('#planCuttingEntryAsorti').hide();" title="İptal"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0); font-weight: bold;">
+                        <tr>
+                            <td colspan="2" class="sticky-kesim" style="text-align: right; vertical-align: middle; color: #475569; padding: 12px 20px; font-size: 0.9rem; position: sticky; left: 0; background: #f1f5f9; z-index: 3; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);">ASORTİ TOPLAMI:</td>
+                            @if (asortiObj.Count > 0) {
+                                foreach (var k in asortiObj.Keys) {
+                                    <td id="planAsortiTotalCutSize_@k" style="font-size: 1.05rem; color: #1e40af; vertical-align: middle; text-align: center; padding: 12px 8px;">0</td>
+                                }
+                            } else {
+                                <td>-</td>
+                            }
+                            <td id="planAsortiTotalCut" style="font-size: 1.15rem; color: #0f172a; vertical-align: middle; text-align: center; padding: 12px 8px;">0</td>
+                            <td colspan="3"></td>
+                            <td class="sticky-islem" style="position: sticky; right: 0; background: #f1f5f9; z-index: 3; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
             <div style="background: linear-gradient(135deg, #e2e8f0, #cbd5e1); padding: 16px 24px; border-radius: 10px; margin-bottom: 24px; margin-top: 24px; display: flex; justify-content: flex-end; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
                 <span style="font-size: 1rem; color: #334155; font-weight: 700;">GENEL TOPLAM KESİM ADEDİ:</span>
@@ -1299,11 +1336,14 @@
             // Ancak kullanıcı "1.23" yazarsa bu 123 olur! 
             // O yüzden nokta varsa ve virgül yoksa, noktanın sonuncu olduğu duruma bakalım.
             var lastDot = s.lastIndexOf('.');
-            if (lastDot > -1 && s.length - lastDot <= 3) {
-                // Muhtemelen ondalık noktası
-            } else {
-                // Binlik ayracı
-                s = s.replace(/\./g, '');
+            if (lastDot > -1) {
+                // Eğer 0. ile başlıyorsa kesin ondalıktır, veya noktadan sonra 1-2 hane varsa ondalıktır
+                if (s.startsWith('0.') || s.startsWith('-0.') || s.length - lastDot <= 3) {
+                    // Ondalık olarak bırak
+                } else {
+                    // Binlik ayracı olarak kabul et ve sil
+                    s = s.replace(/\./g, '');
+                }
             }
         }
         return parseFloat(s) || 0;
@@ -1379,7 +1419,7 @@ function calculateMRP() {
 
             if(isMiktariEl) isMiktariEl.innerText = Math.round(jobQty).toLocaleString('tr-TR');
 
-            var ihtiyac = Math.round(jobQty * birim);
+            var ihtiyac = Math.ceil(jobQty * birim);
             if(ihtiyacEl) ihtiyacEl.innerText = ihtiyac.toLocaleString('tr-TR');
         });
 
@@ -1403,8 +1443,8 @@ function calculateMRP() {
             if(labelTable.querySelector('.label-acik-adet-toplam')) labelTable.querySelector('.label-acik-adet-toplam').innerText = totalAcikAdet.toLocaleString('tr-TR');
             
             var birimAsorti = totalAsortiOran > 0 ? totalAsortiOran : 1;
-            var kalanAdet = siparisAdeti - totalAcikAdet;
-            var asortiMultiplier = kalanAdet / birimAsorti;
+            var kalanAdet = jobQty - totalAcikAdet;
+            var asortiMultiplier = Math.round(kalanAdet / birimAsorti);
             if (asortiMultiplier < 0) asortiMultiplier = 0;
             
             if(labelTable.querySelector('.label-kalan-adet-val')) labelTable.querySelector('.label-kalan-adet-val').innerText = kalanAdet.toLocaleString('tr-TR');
@@ -1413,19 +1453,23 @@ function calculateMRP() {
             var sizeBaseTotals = {};
             var genelToplam = 0;
             
-            toplamBedenTds.forEach(td => {
-                var size = td.getAttribute('data-size');
-                var asortiO = 0;
-                var acikQ = 0;
-                asortiOranInputs.forEach(inp => { if(inp.getAttribute('data-size') === size) asortiO = parseTurkishFloat(inp.value || "0"); });
-                acikAdetInputs.forEach(inp => { if(inp.getAttribute('data-size') === size) acikQ = parseTurkishFloat(inp.value || "0"); });
-                
-                var totalForSize = (asortiO * asortiMultiplier) + acikQ;
-                sizeBaseTotals[size] = totalForSize;
-                genelToplam += totalForSize;
-                
-                td.innerText = Math.round(totalForSize).toLocaleString('tr-TR');
-            });
+            if (toplamBedenTds.length > 0) {
+                toplamBedenTds.forEach(td => {
+                    var size = td.getAttribute('data-size');
+                    var asortiO = 0;
+                    var acikQ = 0;
+                    asortiOranInputs.forEach(inp => { if(inp.getAttribute('data-size') === size) asortiO = parseTurkishFloat(inp.value || "0"); });
+                    acikAdetInputs.forEach(inp => { if(inp.getAttribute('data-size') === size) acikQ = parseTurkishFloat(inp.value || "0"); });
+                    
+                    var totalForSize = (asortiO * asortiMultiplier) + acikQ;
+                    sizeBaseTotals[size] = totalForSize;
+                    genelToplam += totalForSize;
+                    
+                    td.innerText = Math.round(totalForSize).toLocaleString('tr-TR');
+                });
+            } else {
+                genelToplam = jobQty;
+            }
             
             if(labelTable.querySelector('.label-genel-toplam')) labelTable.querySelector('.label-genel-toplam').innerText = Math.round(genelToplam).toLocaleString('tr-TR');
 
@@ -1434,16 +1478,23 @@ function calculateMRP() {
                 var labelFire = parseTurkishFloat(labelFireInput ? labelFireInput.value : "0");
                 
                 var rowTotal = 0;
-                row.querySelectorAll('.row-label-size-qty').forEach(function(td) {
-                    var size = td.getAttribute('data-size');
-                    var baseTotal = sizeBaseTotals[size] || 0;
-                    
-                    var finalSizeTotal = baseTotal + (baseTotal * (labelFire / 100));
-                    var roundedTotal = Math.round(finalSizeTotal);
-                    
-                    td.innerText = roundedTotal.toLocaleString('tr-TR');
-                    rowTotal += roundedTotal;
-                });
+                var sizeTds = row.querySelectorAll('.row-label-size-qty');
+                
+                if (sizeTds.length > 0) {
+                    sizeTds.forEach(function(td) {
+                        var size = td.getAttribute('data-size');
+                        var baseTotal = sizeBaseTotals[size] || 0;
+                        
+                        var finalSizeTotal = baseTotal + (baseTotal * (labelFire / 100));
+                        var roundedTotal = Math.round(finalSizeTotal);
+                        
+                        td.innerText = roundedTotal.toLocaleString('tr-TR');
+                        rowTotal += roundedTotal;
+                    });
+                } else {
+                    var finalTotal = genelToplam + (genelToplam * (labelFire / 100));
+                    rowTotal = Math.round(finalTotal);
+                }
                 
                 var toplamEl = row.querySelector('.row-label-toplam');
                 if(toplamEl) toplamEl.innerText = rowTotal.toLocaleString('tr-TR');
@@ -1876,6 +1927,7 @@ function planGetTotalCutForSize(sizeName, cutType) {
             });
             
             planRenderCuttingTable();
+            planSaveCuttingData();
         }
 
         function planRenderCuttingTable() {
@@ -1884,6 +1936,9 @@ function planGetTotalCutForSize(sizeName, cutType) {
             let acikTotal = 0;
             let asortiTotal = 0;
             let grandTotal = 0;
+            
+            let acikSizeTotals = {};
+            let asortiSizeTotals = {};
             
             planCuttingItems.forEach((item, index) => {
                 let cutName = item.CutName || `Kesim ${index + 1}`;
@@ -1894,7 +1949,13 @@ function planGetTotalCutForSize(sizeName, cutType) {
                 let sizesHtml = '';
                 if (sizesArr && sizesArr.length > 0) {
                     sizesArr.forEach(s => {
-                        let val = item.Sizes && item.Sizes[s] ? item.Sizes[s] : 0;
+                        let val = parseFloat(item.Sizes && item.Sizes[s] ? item.Sizes[s] : 0) || 0;
+                        if (isAsorti) {
+                            asortiSizeTotals[s] = (asortiSizeTotals[s] || 0) + val;
+                        } else {
+                            acikSizeTotals[s] = (acikSizeTotals[s] || 0) + val;
+                        }
+                        
                         let displayVal = val;
                         if (item.Multiplier && item.Multiplier > 0) {
                             displayVal = val / item.Multiplier;
@@ -1913,14 +1974,14 @@ function planGetTotalCutForSize(sizeName, cutType) {
                 
                 let rowHtml = `
                     <tr style="background: white; text-align: center;">
-                        <td style="font-weight: 700; color: #1e293b; vertical-align: middle;">${cutName}</td>
+                        <td class="sticky-kesim" style="font-weight: 700; color: #1e293b; vertical-align: middle; position: sticky; left: 0; background: white; z-index: 2; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);">${cutName}</td>
                         <td style="vertical-align: middle;">${item.Multiplier}</td>
                         ${sizesHtml}
                         <td style="vertical-align: middle;"><strong style="color: #0f172a; font-size: 1.1rem;">${qty}</strong></td>
                         <td style="vertical-align: middle;">${item.MarkerLength}</td>
                         <td style="vertical-align: middle;">${item.UnitMeterage}</td>
                         <td style="vertical-align: middle;">${item.Date}</td>
-                        <td style="vertical-align: middle;"><button class="btn btn-sm btn-danger" onclick="planRemoveCuttingItem(${index})"><i class="fa-solid fa-trash"></i></button></td>
+                        <td class="sticky-islem" style="vertical-align: middle; position: sticky; right: 0; background: white; z-index: 2; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1);"><button class="btn btn-sm btn-danger" onclick="planRemoveCuttingItem(${index})"><i class="fa-solid fa-trash"></i></button></td>
                     </tr>
                 `;
                 
@@ -1936,8 +1997,26 @@ function planGetTotalCutForSize(sizeName, cutType) {
             $('#planCuttingBodyAcik').html(htmlAcik);
             $('#planAcikTotalCut').text(acikTotal.toLocaleString('tr-TR'));
             
+            // Açık Adet Beden Toplamlarını Güncelle
+            if (typeof acikSizesArr !== 'undefined') {
+                acikSizesArr.forEach(s => {
+                    let totalVal = acikSizeTotals[s] || 0;
+                    let displayTotal = totalVal % 1 !== 0 ? totalVal.toFixed(2) : totalVal;
+                    $('#planAcikTotalCutSize_' + s).text(displayTotal);
+                });
+            }
+            
             $('#planCuttingBodyAsorti').html(htmlAsorti);
             $('#planAsortiTotalCut').text(asortiTotal.toLocaleString('tr-TR'));
+            
+            // Asorti Beden Toplamlarını Güncelle
+            if (typeof asortiSizesArr !== 'undefined') {
+                asortiSizesArr.forEach(s => {
+                    let totalVal = asortiSizeTotals[s] || 0;
+                    let displayTotal = totalVal % 1 !== 0 ? totalVal.toFixed(2) : totalVal;
+                    $('#planAsortiTotalCutSize_' + s).text(displayTotal);
+                });
+            }
             
             $('#planGrandTotalCut').text(grandTotal.toLocaleString('tr-TR'));
 

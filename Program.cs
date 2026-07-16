@@ -14,6 +14,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.Configure<UretimPlanlama.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<UretimPlanlama.Services.IEmailService, UretimPlanlama.Services.EmailService>();
+builder.Services.AddHostedService<UretimPlanlama.Services.DailySummaryHostedService>();
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -22,6 +26,15 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("PlanlamaAccess", policy => policy.RequireAssertion(context => context.User.IsInRole("Admin") || context.User.HasClaim("Permission", "Page_Planlama")));
+    options.AddPolicy("DepoAccess", policy => policy.RequireAssertion(context => context.User.IsInRole("Admin") || context.User.HasClaim("Permission", "Page_Depo")));
+    options.AddPolicy("SurecAccess", policy => policy.RequireAssertion(context => context.User.IsInRole("Admin") || context.User.HasClaim("Permission", "Page_Surec")));
+    options.AddPolicy("SiparisAccess", policy => policy.RequireAssertion(context => context.User.IsInRole("Admin") || context.User.HasClaim("Permission", "Page_Siparis")));
+    options.AddPolicy("RaporAccess", policy => policy.RequireAssertion(context => context.User.IsInRole("Admin") || context.User.HasClaim("Permission", "Page_Rapor")));
 });
 
 var app = builder.Build();

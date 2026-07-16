@@ -236,5 +236,17 @@ namespace UretimPlanlama.Controllers
             }
             return Json(new { success = false });
         }
+        [HttpPost]
+        public IActionResult DeleteFabricator(int id)
+        {
+            var fabricator = _context.Fabricators.Find(id);
+            if (fabricator != null)
+            {
+                _context.Fabricators.Remove(fabricator);
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            return Json(new { success = false, message = "Kumaşçı bulunamadı." });
+        }
     }
 }

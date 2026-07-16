@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace UretimPlanlama.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "SiparisAccess")]
     public class OrderController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -543,9 +543,13 @@ namespace UretimPlanlama.Controllers
             {
                 return Json(new { success = false, message = "Yetkiniz yetersiz." });
             }
-            var order = _context.Orders.Find(id);
+            var order = _context.Orders.Include(o => o.OrderMaterials).FirstOrDefault(o => o.Id == id);
             if (order != null)
             {
+                if (order.OrderMaterials != null && order.OrderMaterials.Any())
+                {
+                    _context.OrderMaterials.RemoveRange(order.OrderMaterials);
+                }
                 _context.Orders.Remove(order);
                 _context.SaveChanges();
                 return Json(new { success = true });
@@ -562,9 +566,16 @@ namespace UretimPlanlama.Controllers
             }
             if (ids == null || !ids.Any()) return Json(new { success = false, message = "Geçersiz işlem." });
 
-            var orders = _context.Orders.Where(o => ids.Contains(o.Id)).ToList();
+            var orders = _context.Orders.Include(o => o.OrderMaterials).Where(o => ids.Contains(o.Id)).ToList();
             if (orders.Any())
             {
+                foreach (var order in orders)
+                {
+                    if (order.OrderMaterials != null && order.OrderMaterials.Any())
+                    {
+                        _context.OrderMaterials.RemoveRange(order.OrderMaterials);
+                    }
+                }
                 _context.Orders.RemoveRange(orders);
                 _context.SaveChanges();
                 return Json(new { success = true });

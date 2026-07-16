@@ -196,6 +196,7 @@ namespace UretimPlanlama.Models
         public string? MaterialDispatchJson { get; set; } // Malzeme Sevk Kayıtları
         public string? CuttingProcessJson { get; set; } // Günlük Kesim Kayıtları
         public string? PlannedCuttingJson { get; set; } // Kesim Planlaması Kayıtları
+        public string? FileClosingJson { get; set; } // Dosya Kapama / Maliyet ve Kumaş Analizi Kayıtları
 
 
 

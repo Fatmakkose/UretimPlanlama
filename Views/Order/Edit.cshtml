@@ -218,6 +218,25 @@
     <input type="hidden" name="Quantity" value="@Model.Quantity" />
     <input type="hidden" name="FabricSupplier" value="@Model.FabricSupplier" />
 
+    <input type="hidden" name="SizeS" value="@Model.SizeS" />
+    <input type="hidden" name="SizeM" value="@Model.SizeM" />
+    <input type="hidden" name="SizeL" value="@Model.SizeL" />
+    <input type="hidden" name="SizeXL" value="@Model.SizeXL" />
+    <input type="hidden" name="Size2XL" value="@Model.Size2XL" />
+    <input type="hidden" name="Size3XL" value="@Model.Size3XL" />
+
+    <input type="hidden" name="AsortiSizeS" value="@Model.AsortiSizeS" />
+    <input type="hidden" name="AsortiSizeM" value="@Model.AsortiSizeM" />
+    <input type="hidden" name="AsortiSizeL" value="@Model.AsortiSizeL" />
+    <input type="hidden" name="AsortiSizeXL" value="@Model.AsortiSizeXL" />
+    <input type="hidden" name="AsortiSize2XL" value="@Model.AsortiSize2XL" />
+    <input type="hidden" name="AsortiSize3XL" value="@Model.AsortiSize3XL" />
+
+    <input type="hidden" name="AsortiCount" value="@Model.AsortiCount" />
+    
+    <input type="hidden" name="SizeDistributionJson" value='@Html.Raw(Model.SizeDistributionJson)' />
+    <input type="hidden" name="AsortiDistributionJson" value='@Html.Raw(Model.AsortiDistributionJson)' />
+
     <div class="premium-wrapper">
         <h3 class="section-title">
             <i class="fa-solid fa-circle-info" style="color: #0f3057;"></i> Genel Bilgiler
@@ -492,11 +511,9 @@
                         calcFields.push({ Key: "FİRE (%)", Type: "number", Def: "0" });
                     } else if (cat === "TELA") {
                         isCalculable = true;
-                        calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.010,0.015,0.020,0.025,0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080,0.090,0.100,0.120,0.150,0.200" });
-                        calcFields.push({ Key: "GRAM", Type: "select", Def: "10,15,20,25,30,35,40,45,50,55,60,65,70,80,90,100,115,120,130,140,150" });
-                    }
-
-                    if (stok.OzelliklerJson) {
+                        calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.000,0.010,0.020,0.030,0.033,0.045,0.046,0.047" });
+                        calcFields.push({ Key: "GRAM", Type: "select", Def: "55,80,115,175,KAĞIT" });
+                        calcFields.push({ Key: "RENK", Type: "select", Def: "BEYAZ,SİYAH" });
                         try {
                             let sProps = JSON.parse(stok.OzelliklerJson);
                             if (Array.isArray(sProps)) {
