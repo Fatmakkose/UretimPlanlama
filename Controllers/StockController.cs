@@ -186,8 +186,8 @@ namespace UretimPlanlama.Controllers
                 existing.Kategori = model.Kategori;
                 existing.Birim = model.Birim;
                 existing.MinimumMiktar = model.MinimumMiktar;
-                existing.BirimFiyat = model.BirimFiyat;
                 existing.Aktif = model.Aktif;
+                existing.OzelliklerJson = model.OzelliklerJson;
                 
                 if (gorselDosya != null && gorselDosya.Length > 0)
                 {
@@ -363,10 +363,9 @@ namespace UretimPlanlama.Controllers
                 worksheet.Cell(currentRow, 4).Value = "Birim";
                 worksheet.Cell(currentRow, 5).Value = "Mevcut Miktar";
                 worksheet.Cell(currentRow, 6).Value = "Minimum Miktar";
-                worksheet.Cell(currentRow, 7).Value = "Birim Fiyat";
-                worksheet.Cell(currentRow, 8).Value = "Durum";
+                worksheet.Cell(currentRow, 7).Value = "Durum";
 
-                var headerRange = worksheet.Range(1, 1, 1, 8);
+                var headerRange = worksheet.Range(1, 1, 1, 7);
                 headerRange.Style.Font.Bold = true;
                 headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
 
@@ -379,8 +378,7 @@ namespace UretimPlanlama.Controllers
                     worksheet.Cell(currentRow, 4).Value = s.Birim;
                     worksheet.Cell(currentRow, 5).Value = (double)s.MevcutMiktar;
                     worksheet.Cell(currentRow, 6).Value = (double)s.MinimumMiktar;
-                    worksheet.Cell(currentRow, 7).Value = s.BirimFiyat.HasValue ? (double)s.BirimFiyat.Value : 0;
-                    worksheet.Cell(currentRow, 8).Value = s.MevcutMiktar <= s.MinimumMiktar && s.MinimumMiktar > 0 ? "KRİTİK" : "Normal";
+                    worksheet.Cell(currentRow, 7).Value = s.MevcutMiktar <= s.MinimumMiktar && s.MinimumMiktar > 0 ? "KRİTİK" : "Normal";
                 }
 
                 worksheet.Columns().AdjustToContents();

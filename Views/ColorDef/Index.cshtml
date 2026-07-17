@@ -63,16 +63,27 @@
     <script>
         $(document).ready(function() {
             $(".btnDelete").click(function() {
-                if (confirm("Bu rengi silmek istediğinize emin misiniz?")) {
-                    var id = $(this).data("id");
-                    $.post("/ColorDef/Delete", { id: id }, function(res) {
-                        if (res.success) {
-                            $("#color-row-" + id).fadeOut();
-                        } else {
-                            alert(res.message);
-                        }
-                    });
-                }
+                var id = $(this).data("id");
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: "Bu rengi silmek istediğinize emin misiniz?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Evet, Sil!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post("/ColorDef/Delete", { id: id }, function(res) {
+                            if (res.success) {
+                                $("#color-row-" + id).fadeOut();
+                            } else {
+                                Swal.fire('Hata!', res.message, 'error');
+                            }
+                        });
+                    }
+                });
             });
         });
     </script>

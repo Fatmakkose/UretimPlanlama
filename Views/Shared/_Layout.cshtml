@@ -249,7 +249,7 @@
                     const unreadClass = !notif.isRead ? 'unread' : '';
                     
                     html += `
-                        <div class="notification-item ${unreadClass}" data-id="${notif.id}">
+                        <div class="notification-item ${unreadClass}" data-id="${notif.id}" data-order-id="${notif.orderId || ''}" style="cursor: pointer;">
                             <div class="notification-icon-wrapper" style="background: ${bg}; color: ${color};">
                                 <i class="fa-solid ${icon}"></i>
                             </div>
@@ -268,6 +268,7 @@
                 
                 $('.notification-item').off('click').on('click', function() {
                     const id = $(this).data('id');
+                    const orderId = $(this).data('order-id');
                     const $item = $(this);
                     $.ajax({
                         url: '/Notifications/MarkAsRead',
@@ -276,6 +277,9 @@
                         success: function() {
                             $item.removeClass('unread');
                             loadNotifications();
+                            if (orderId) {
+                                window.location.href = '/ProcessTracking/Track/' + orderId + '#timeline';
+                            }
                         }
                     });
                 });

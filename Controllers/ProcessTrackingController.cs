@@ -39,6 +39,9 @@ namespace UretimPlanlama.Controllers
             var order = _context.Orders
                 .Include(o => o.OrderMaterials)
                     .ThenInclude(m => m.StokKarti)
+                        .ThenInclude(s => s.Varyantlar)
+                .Include(o => o.OrderMaterials)
+                    .ThenInclude(m => m.StokVaryant)
                 .FirstOrDefault(o => o.Id == id);
 
             if (order == null)
@@ -82,92 +85,56 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateMaterialApproval(int materialId, string plannedQuantityStr, bool isApproved)
+        public IActionResult UpdateMaterialApproval(int materialId, string actualQuantityStr, bool isApproved, int? selectedVaryantId)
         {
             if (!User.HasPermission("Write")) return Json(new { success = false, message = "Yetkisiz" });
 
             var material = _context.OrderMaterials
                 .Include(m => m.StokKarti)
                 .Include(m => m.StokVaryant)
+                .Include(m => m.Order)
                 .FirstOrDefault(m => m.Id == materialId);
             if (material == null) return Json(new { success = false, message = "Malzeme bulunamadı" });
 
-            decimal plannedQuantity = 0;
-            if (!string.IsNullOrEmpty(plannedQuantityStr)) {
-                plannedQuantityStr = plannedQuantityStr.Replace(",", ".");
-                decimal.TryParse(plannedQuantityStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out plannedQuantity);
+            decimal actualQuantity = 0;
+            if (!string.IsNullOrEmpty(actualQuantityStr)) {
+                actualQuantityStr = actualQuantityStr.Replace(",", ".");
+                decimal.TryParse(actualQuantityStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out actualQuantity);
             }
 
             if (material.IsApproved != isApproved)
             {
+                if (isApproved && selectedVaryantId.HasValue && selectedVaryantId > 0)
+                {
+                    material.StokVaryantId = selectedVaryantId;
+                    material.StokVaryant = _context.StokVaryantlar.Find(selectedVaryantId.Value);
+                }
+
                 if (isApproved)
                 {
-                    material.ActualQuantity = plannedQuantity;
-                    if (material.StokVaryant != null)
-                    {
-                        material.StokVaryant.MevcutMiktar -= plannedQuantity;
-                    }
-                    if (material.StokKarti != null)
-                    {
-                        material.StokKarti.MevcutMiktar -= plannedQuantity;
-                    }
-
-                    _context.StokHareketler.Add(new StokHareket
-                    {
-                        StokKartiId = material.StokKartiId,
-                        StokVaryantId = material.StokVaryantId,
-                        IslemTarihi = DateTime.Now,
-                        HareketTipi = "Çıkış",
-                        Miktar = plannedQuantity,
-                        KalanMiktar = material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : (material.StokKarti != null ? material.StokKarti.MevcutMiktar : 0),
-                        Aciklama = "Süreç Takip: Satın Alma Onayı (Kullanım)",
-                        OrderId = material.OrderId,
-                        IsApproved = true
-                    });
+                    material.ActualQuantity = actualQuantity;
                 }
                 else
                 {
-                    if (material.StokVaryant != null)
-                    {
-                        material.StokVaryant.MevcutMiktar += plannedQuantity;
-                    }
-                    if (material.StokKarti != null)
-                    {
-                        material.StokKarti.MevcutMiktar += plannedQuantity;
-                    }
                     material.ActualQuantity = 0;
-
-                    _context.StokHareketler.Add(new StokHareket
-                    {
-                        StokKartiId = material.StokKartiId,
-                        StokVaryantId = material.StokVaryantId,
-                        IslemTarihi = DateTime.Now,
-                        HareketTipi = "Giriş",
-                        Miktar = plannedQuantity,
-                        KalanMiktar = material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : (material.StokKarti != null ? material.StokKarti.MevcutMiktar : 0),
-                        Aciklama = "Süreç Takip: Satın Alma Onay İptali (İade)",
-                        OrderId = material.OrderId,
-                        IsApproved = true
-                    });
                 }
-            }
-
-            material.IsApproved = isApproved;
-            
-            // Check if all materials are approved to automatically update the global Order status
-            _context.SaveChanges();
-
-            var order = _context.Orders
-                .Include(o => o.OrderMaterials)
-                .FirstOrDefault(o => o.Id == material.OrderId);
                 
-            if (order != null)
-            {
-                bool allApproved = order.OrderMaterials.All(m => m.IsApproved);
-                if (order.IsPurchasingApproved != allApproved)
+                material.IsApproved = isApproved;
+                
+                _context.SaveChanges();
+
+                var order = _context.Orders
+                    .Include(o => o.OrderMaterials)
+                    .FirstOrDefault(o => o.Id == material.OrderId);
+                    
+                if (order != null)
                 {
-                    order.IsPurchasingApproved = allApproved;
-                    _context.SaveChanges();
+                    bool allApproved = order.OrderMaterials.All(m => m.IsApproved);
+                    if (order.IsPurchasingApproved != allApproved)
+                    {
+                        order.IsPurchasingApproved = allApproved;
+                        _context.SaveChanges();
+                    }
                 }
             }
 

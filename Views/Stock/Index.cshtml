@@ -652,7 +652,6 @@
                     <th>Stok Adı</th>
                     <th>Kategori</th>
                     <th>Birim</th>
-                    <th style="text-align: right;">Birim Fiyat</th>
                     <th style="text-align: center;">İşlem</th>
                 </tr>
             </thead>
@@ -682,7 +681,6 @@
                         <td><strong>@s.StokAdi</strong></td>
                         <td><span class="kategori-badge @katClass">@s.Kategori</span></td>
                         <td>@s.Birim</td>
-                        <td style="text-align: right;">₺@(s.BirimFiyat?.ToString("N2") ?? "0,00")</td>
                         <td style="text-align: center;">
                             <button class="btn-danger-sm" title="Sil" onclick="event.stopPropagation(); deleteStok(@s.Id, '@s.StokAdi')">
                                 <i class="fa-solid fa-trash"></i>
@@ -730,10 +728,6 @@
                                 <option value="Adet">Adet</option>
                                 <option value="Top">Top</option>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Birim Fiyat (₺)</label>
-                            <input type="number" step="0.01" class="form-control" id="newBirimFiyat" placeholder="0,00" />
                         </div>
                         <div class="form-group full" style="grid-column: span 2;">
                             <label class="form-label">Görsel Yükle</label>
@@ -834,7 +828,6 @@
         $('#newStokAdi').val('');
         $('#newKategori').val('Kumaş');
         $('#newBirim').val('Metre');
-        $('#newBirimFiyat').val('');
         $('#newGorselDosya').val('');
         $('#existingGorselUrl').val('');
         $('#currentGorselInfo').hide();
@@ -918,7 +911,6 @@
                 $('#newStokAdi').val(s.stokAdi);
                 $('#newKategori').val(s.kategori);
                 $('#newBirim').val(s.birim);
-                $('#newBirimFiyat').val(s.birimFiyat);
                 
                 $('#newGorselDosya').val('');
                 $('#existingGorselUrl').val(s.gorselUrl);
@@ -961,11 +953,6 @@
         formData.append("Kategori", $('#newKategori').val());
         formData.append("Birim", $('#newBirim').val());
         formData.append("MinimumMiktar", 0);
-        
-        var birimFiyat = parseFloat($('#newBirimFiyat').val());
-        if (!isNaN(birimFiyat)) {
-            formData.append("BirimFiyat", birimFiyat);
-        }
         
         formData.append("Aktif", true);
 
@@ -1060,10 +1047,6 @@
                 <div class="detail-info-item">
                     <div class="info-label">Minimum Seviye</div>
                     <div class="info-value">${parseFloat(s.minimumMiktar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${s.birim}</div>
-                </div>
-                <div class="detail-info-item">
-                    <div class="info-label">Birim Fiyat</div>
-                    <div class="info-value">${s.birimFiyat ? '₺' + parseFloat(s.birimFiyat).toLocaleString('tr-TR', {minimumFractionDigits: 2}) : '—'}</div>
                 </div>
             `;
             

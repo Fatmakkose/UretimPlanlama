@@ -986,7 +986,7 @@
                                         revizeTerminInput = Model.RevisedInspectionDate.Value.ToString("yyyy-MM-dd");
                                     }
                                 }
-                                <input type="date" name="prod_knn_revize_termin" class="input-field" value="@revizeTerminInput" />
+                                <input type="date" name="prod_knn_revize_termin" class="input-field not-mandatory" value="@revizeTerminInput" />
                             </div>
                         </div>
                     </div>
@@ -1179,8 +1179,23 @@
                             <span style="font-style: italic;">Yok</span>
                         }
                     </div>
+                    @if (asortiObj.Any()) {
+                        int dynamicLot2 = asortiTotal > 0 ? (int)Math.Floor((double)Model.CalculatedQuantity / asortiTotal) : 0;
+                        int dynamicTotal2 = dynamicLot2 * asortiTotal;
+                        int tekleme2 = Model.CalculatedQuantity - dynamicTotal2;
+                        if (tekleme2 > 0)
+                        {
+                            <div style="margin-top: 10px; background: #fffbeb; border: 1px solid #fde68a; padding: 10px 16px; border-radius: 8px; display: flex; align-items: center; gap: 12px; width: 100%;">
+                                <div style="color: #b45309; font-size: 0.88rem; font-weight: 600; flex: 1;">
+                                    <i class="fa-solid fa-triangle-exclamation" style="margin-right: 4px; font-size: 1.1rem; vertical-align: middle;"></i>
+                                    Asorti dağılımından sonra <strong>@tekleme2 adet</strong> tekleme kaldı. Bu ürünleri açık adet olarak kesmek ister misiniz?
+                                </div>
+                                <button type="button" class="btn btn-sm" onclick="planToggleCutForm('AcikAdet'); document.getElementById('planTxtAcikMultiplier').focus(); window.scrollTo({ top: document.getElementById('planTblCuttingAcik').offsetTop - 100, behavior: 'smooth' });" style="background: #f59e0b; color: white; border: none; font-weight: bold; border-radius: 6px; padding: 6px 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(245,158,11,0.3);"><i class="fa-solid fa-arrow-up-right-from-square" style="margin-right: 4px;"></i> Açık Adet Kesim Ekle</button>
+                            </div>
+                        }
+                    }
                 </div>
-                <button type="button" class="btn btn-sm" onclick="planToggleCutForm('Asorti')" style="background: linear-gradient(135deg, #1d4ed8, #2563eb); color: white; border: none; padding: 6px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 6px rgba(37,99,235,0.3); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 10px rgba(37,99,235,0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 6px rgba(37,99,235,0.3)'"><i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Asorti Kesim Ekle</button>
+                <button type="button" class="btn btn-sm" onclick="planToggleCutForm('Asorti')" style="background: linear-gradient(135deg, #1d4ed8, #2563eb); color: white; border: none; padding: 6px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 6px rgba(37,99,235,0.3); transition: all 0.2s; align-self: flex-start;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 10px rgba(37,99,235,0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 6px rgba(37,99,235,0.3)'"><i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Asorti Kesim Ekle</button>
             </div>
             <div class="table-responsive" style="width: 100%; overflow-x: auto;">
                 <table class="table table-bordered w-100" id="planTblCuttingAsorti" style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; font-size: 0.88rem;">
@@ -2060,7 +2075,7 @@ function planGetTotalCutForSize(sizeName, cutType) {
         
         function checkEmptyFields() {
             var emptyFields = false;
-            var inputs = form.querySelectorAll('input:not([type="hidden"]):not([readonly]):not([type="checkbox"]):not(:disabled), select:not(:disabled)');
+            var inputs = form.querySelectorAll('input:not([type="hidden"]):not([readonly]):not([type="checkbox"]):not(:disabled):not(.not-mandatory), select:not(:disabled):not(.not-mandatory)');
             for(var i=0; i<inputs.length; i++) {
                 // Sadece ekranda görünür olan alanları zorunlu tut
                 if (inputs[i].offsetWidth > 0 || inputs[i].offsetHeight > 0) {

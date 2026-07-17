@@ -11,7 +11,8 @@
         birimFiyat = s.BirimFiyat,
         gorselUrl = s.GorselUrl,
         kategori = s.Kategori,
-        ozelliklerJson = s.OzelliklerJson
+        ozelliklerJson = s.OzelliklerJson,
+        varyantlar = s.Varyantlar != null ? s.Varyantlar.Select(v => new { id = v.Id, varyantAdi = v.VaryantAdi, mevcutMiktar = v.MevcutMiktar }).ToList() : null
     }));
 }
 
@@ -355,70 +356,25 @@
                     row.find('.thumbnail').html('<i class="fa-solid fa-image"></i>');
                 }
 
-                // Generate dynamic fields
-                var cat = (stok.kategori || "").trim().toUpperCase();
-                var calcFields = [];
-                var extraOzellikler = [];
-
-                if (cat === "TELA") {
-                    calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.000,0.010,0.020,0.030,0.033,0.045,0.046,0.047" });
-                    calcFields.push({ Key: "GRAM", Type: "select", Def: "55,80,115,175,KAĞIT" });
-                    calcFields.push({ Key: "RENK", Type: "select", Def: "BEYAZ,SİYAH" });
-                }
-                
-                if (stok.stokAdi && stok.stokAdi.toUpperCase().includes("KUMAŞ")) {
-                    calcFields.push({ Key: "BİRİM METRAJ", Type: "text", Def: "" });
-                }
-
-                if (stok.ozelliklerJson) {
-                    try {
-                        var parsedOz = JSON.parse(stok.ozelliklerJson);
-                        if (Array.isArray(parsedOz)) {
-                            parsedOz.forEach(function(o) {
-                                if (o.Key && !calcFields.find(c => c.Key === o.Key.toUpperCase())) {
-                                    extraOzellikler.push(o);
+                if (stok.varyantlar && stok.varyantlar.length > 0) {
+                    let vHtml = `<select class="form-control varyant-select" style="padding: 6px; font-size: 0.8rem;">`;
+                    vHtml += `<option value="">-- Varyant Seçiniz --</option>`;
+                    stok.varyantlar.forEach(v => {
+                        let dispName = v.varyantAdi;
+                        if (dispName && dispName.trim().startsWith('[')) {
+                            try {
+                                let parsed = JSON.parse(dispName);
+                                if (Array.isArray(parsed)) {
+                                    dispName = parsed.map(x => (x.Key || '') + ': ' + (x.Value || '')).join(' | ');
                                 }
-                            });
+                            } catch(e) {}
                         }
-                    } catch(e){}
-                }
-
-                var allFields = [];
-                calcFields.forEach(function(cf) {
-                    allFields.push({ Key: cf.Key.toUpperCase(), Type: cf.Type, Value: cf.Def });
-                });
-                extraOzellikler.forEach(function(oz) {
-                    allFields.push({ Key: oz.Key.toUpperCase(), Type: oz.Type, Value: oz.Value });
-                });
-
-                if (stok.stokAdi && stok.stokAdi.toUpperCase().includes("DÜĞME")) {
-                    var orderMap = { "BOYUT": 1, "RENK": 2 };
-                    allFields.sort(function(a, b) {
-                        var orderA = orderMap[a.Key] || 99;
-                        var orderB = orderMap[b.Key] || 99;
-                        return orderA - orderB;
+                        vHtml += `<option value="${v.id}">${dispName} (Stok: ${v.mevcutMiktar})</option>`;
                     });
-                }
-
-                if (allFields.length > 0) {
-                    var html = `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">`;
-                    allFields.forEach(function(f) {
-                        var inputHtml = '';
-                        if (f.Type === 'select') {
-                            var options = f.Value ? f.Value.split(',') : [];
-                            inputHtml = `<select class="form-control sm-dyn-prop" data-key="${f.Key}" style="padding: 6px; font-size: 0.8rem;"><option value="">Seçiniz</option>`;
-                            options.forEach(opt => inputHtml += `<option value="${opt.trim()}">${opt.trim()}</option>`);
-                            inputHtml += `</select>`;
-                        } else {
-                            var typeAttr = f.Type === 'number' ? 'number' : 'text';
-                            inputHtml = `<input type="${typeAttr}" class="form-control sm-dyn-prop" data-key="${f.Key}" placeholder="${f.Value || '...'}" style="padding: 6px; font-size: 0.8rem;" />`;
-                        }
-                        html += `<div><label style="font-size:0.7rem; font-weight:700; color:#64748b; margin-bottom:2px;">${f.Key}</label>${inputHtml}</div>`;
-                    });
-                    html += `</div><input type="hidden" class="varyant-input" />`;
-                    varyantContainer.html(html);
+                    vHtml += `</select>`;
+                    varyantContainer.html(vHtml);
                 } else {
-                    varyantContainer.html(`<input type="text" class="form-control varyant-input" placeholder="Örn: 14/boy" />`);
+                    varyantContainer.html(`<input type="text" class="form-control varyant-input" placeholder="Varyantsız Ürün" readonly />`);
                 }
 
             } else {
@@ -470,21 +426,13 @@
                 const row = $(this);
                 const stokId = row.find('.stok-select').val();
 
-                let varyant = null;
-                if (row.find('.sm-dyn-prop').length > 0) {
-                    let dynProps = [];
-                    row.find('.sm-dyn-prop').each(function() {
-                        var key = $(this).attr('data-key');
-                        var val = $(this).val();
-                        if (val) {
-                            dynProps.push({ Key: key, Value: val });
-                        }
-                    });
-                    if (dynProps.length > 0) {
-                        varyant = JSON.stringify(dynProps);
-                    }
+                let varyantId = null;
+                let varyantAdi = null;
+                if (row.find('.varyant-select').length > 0) {
+                    varyantId = row.find('.varyant-select').val();
+                    varyantAdi = row.find('.varyant-select option:selected').text();
                 } else {
-                    varyant = row.find('.varyant-input').val() || null;
+                    varyantAdi = row.find('.varyant-input').val() || null;
                 }
 
                 const miktar = parseFloat(row.find('.miktar-input').val()) || 0;
@@ -499,7 +447,8 @@
 
                 kalemler.push({
                     StokKartiId: parseInt(stokId),
-                    Varyant: varyant,
+                    StokVaryantId: varyantId ? parseInt(varyantId) : null,
+                    VaryantAdi: varyantAdi,
                     Miktar: miktar,
                     BirimFiyat: fiyat
                 });

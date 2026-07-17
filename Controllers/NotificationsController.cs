@@ -18,18 +18,27 @@ namespace UretimPlanlama.Controllers
         [HttpGet]
         public IActionResult GetUnread()
         {
-            var notifications = _context.Notifications
+            var notificationsList = _context.Notifications
                 .OrderByDescending(n => n.CreatedAt)
                 .Take(15)
-                .Select(n => new {
-                    id = n.Id,
-                    title = n.Title,
-                    message = n.Message,
-                    type = n.Type,
-                    createdAt = n.CreatedAt.ToString("HH:mm - dd.MM.yyyy"),
-                    isRead = n.IsRead
-                })
                 .ToList();
+
+            var orderCodes = notificationsList.Select(n => n.OrderCode).Where(c => !string.IsNullOrEmpty(c)).Distinct().ToList();
+            var orderIdMap = _context.Orders.Where(o => orderCodes.Contains(o.OrderCode))
+                                            .Select(o => new { o.OrderCode, o.Id })
+                                            .ToList()
+                                            .GroupBy(x => x.OrderCode)
+                                            .ToDictionary(g => g.Key, g => g.First().Id);
+
+            var notifications = notificationsList.Select(n => new {
+                id = n.Id,
+                title = n.Title,
+                message = n.Message,
+                type = n.Type,
+                orderId = !string.IsNullOrEmpty(n.OrderCode) && orderIdMap.ContainsKey(n.OrderCode) ? (int?)orderIdMap[n.OrderCode] : null,
+                createdAt = n.CreatedAt.ToString("HH:mm - dd.MM.yyyy"),
+                isRead = n.IsRead
+            }).ToList();
 
             var unreadCount = _context.Notifications.Count(n => !n.IsRead);
             

@@ -248,5 +248,18 @@ namespace UretimPlanlama.Controllers
             }
             return Json(new { success = false, message = "Kumaşçı bulunamadı." });
         }
+
+        [HttpPost]
+        public IActionResult DeleteBrand(int id)
+        {
+            var brand = _context.Brands.Find(id);
+            if (brand != null)
+            {
+                _context.Brands.Remove(brand);
+                _context.SaveChanges();
+                return Json(new { success = true });
+            }
+            return Json(new { success = false, message = "Marka bulunamadı." });
+        }
     }
 }

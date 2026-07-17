@@ -298,16 +298,29 @@
             </div>
             <div class="form-group">
                 <label>Renk</label>
-                <input list="editColorOptions" name="Color" class="form-control" placeholder="Renk Seçin veya Yazın" required value="@Model.Color" autocomplete="off" />
-                <datalist id="editColorOptions">
+                <select name="Color" class="form-control" required>
+                    <option value="">-- Renk Seçin --</option>
                     @if (ViewBag.Colors != null)
                     {
+                        var hasMatch = false;
                         foreach (var c in (List<UretimPlanlama.Models.ColorDef>)ViewBag.Colors)
                         {
-                            <option value="@c.Name">@c.Name</option>
+                            if (Model.Color == c.Name)
+                            {
+                                hasMatch = true;
+                                <option value="@c.Name" selected>@c.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@c.Name">@c.Name</option>
+                            }
+                        }
+                        if (!string.IsNullOrEmpty(Model.Color) && !hasMatch)
+                        {
+                            <option value="@Model.Color" selected>@Model.Color (Tanımlı Değil)</option>
                         }
                     }
-                </datalist>
+                </select>
             </div>
             <div class="form-group">
                 <label>Termin Tarihi</label>
@@ -514,22 +527,23 @@
                         calcFields.push({ Key: "TELA BİRİM", Type: "select", Def: "0.000,0.010,0.020,0.030,0.033,0.045,0.046,0.047" });
                         calcFields.push({ Key: "GRAM", Type: "select", Def: "55,80,115,175,KAĞIT" });
                         calcFields.push({ Key: "RENK", Type: "select", Def: "BEYAZ,SİYAH" });
-                        try {
-                            let sProps = JSON.parse(stok.OzelliklerJson);
-                            if (Array.isArray(sProps)) {
-                                sProps.forEach(sp => {
-                                    if (sp.Key) {
-                                        let existingIdx = calcFields.findIndex(cf => cf.Key.toUpperCase() === sp.Key.toUpperCase());
-                                        if (existingIdx > -1) {
-                                            calcFields[existingIdx] = { Key: sp.Key.toUpperCase(), Type: sp.Type || 'text', Def: sp.Value || '' };
-                                        } else {
-                                            calcFields.push({ Key: sp.Key.toUpperCase(), Type: sp.Type || 'text', Def: sp.Value || '' });
-                                        }
-                                    }
-                                });
-                            }
-                        } catch(e) {}
                     }
+
+                    try {
+                        let sProps = JSON.parse(stok.OzelliklerJson);
+                        if (Array.isArray(sProps)) {
+                            sProps.forEach(sp => {
+                                if (sp.Key) {
+                                    let existingIdx = calcFields.findIndex(cf => cf.Key.toUpperCase() === sp.Key.toUpperCase());
+                                    if (existingIdx > -1) {
+                                        calcFields[existingIdx] = { Key: sp.Key.toUpperCase(), Type: sp.Type || 'text', Def: sp.Value || '' };
+                                    } else {
+                                        calcFields.push({ Key: sp.Key.toUpperCase(), Type: sp.Type || 'text', Def: sp.Value || '' });
+                                    }
+                                }
+                            });
+                        }
+                    } catch(e) {}
 
                     if (calcFields.length > 0) {
                         let detayHtml = `<div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 12px;">`;

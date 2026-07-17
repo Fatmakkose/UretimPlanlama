@@ -47,7 +47,7 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button class="btn-modify" style="color: var(--danger-text); border-color: var(--danger-text);"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-modify" style="color: var(--danger-text); border-color: var(--danger-text);" onclick="deleteBrand(@brand.Id, '@brand.Name')"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 }
@@ -76,5 +76,36 @@
                 });
             });
         });
+
+        function deleteBrand(id, name) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "'" + name + "' markasını silmek istediğinize emin misiniz?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, Sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Definitions/DeleteBrand',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (res) {
+                            if (res.success) {
+                                window.location.reload();
+                            } else {
+                                Swal.fire('Hata!', res.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Hata!', 'Silme işlemi sırasında bir hata oluştu.', 'error');
+                        }
+                    });
+                }
+            });
+        }
     </script>
 }

@@ -226,8 +226,8 @@
     .tip-musteri { background: #dbeafe; color: #1d4ed8; }
     .tip-tedarikci { background: #fef3c7; color: #b45309; }
     .tip-fason { background: #f3e8ff; color: #7c3aed; }
-    .bakiye-positive { color: #16a34a; font-weight: 700; }
-    .bakiye-negative { color: #dc2626; font-weight: 700; }
+    .bakiye-positive { color: #dc2626; font-weight: 700; } /* Borç -> Kırmızı */
+    .bakiye-negative { color: #16a34a; font-weight: 700; } /* Alacak -> Yeşil */
     .bakiye-zero { color: #64748b; font-weight: 600; }
     .aktif-badge {
         display: inline-flex;
@@ -435,17 +435,17 @@
 <!-- ÖZET KARTLARI -->
 <div class="summary-cards">
     <div class="summary-card">
-        <div class="summary-icon green"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="summary-icon red"><i class="fa-solid fa-hand-holding-dollar"></i></div>
         <div>
-            <div class="summary-label">Toplam Alacak</div>
-            <div class="summary-value green-text" id="toplamAlacak">₺0,00</div>
+            <div class="summary-label">Ödenecek Toplam Borcumuz</div>
+            <div class="summary-value red-text" id="toplamAlacak">₺0,00</div>
         </div>
     </div>
     <div class="summary-card">
-        <div class="summary-icon red"><i class="fa-solid fa-arrow-trend-down"></i></div>
+        <div class="summary-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
         <div>
-            <div class="summary-label">Toplam Borç</div>
-            <div class="summary-value red-text" id="toplamBorc">₺0,00</div>
+            <div class="summary-label">Tahsil Edilecek Alacağımız</div>
+            <div class="summary-value green-text" id="toplamBorc">₺0,00</div>
         </div>
     </div>
     <div class="summary-card">
@@ -656,7 +656,7 @@
             var net = data.netBakiye;
             var $netEl = $('#netBakiye');
             $netEl.text((net >= 0 ? '₺' : '-₺') + formatNumber(Math.abs(net)));
-            $netEl.removeClass('green-text red-text').addClass(net >= 0 ? 'green-text' : 'red-text');
+            $netEl.removeClass('green-text red-text').addClass(net >= 0 ? 'red-text' : 'green-text');
             $('#aktifHesap').text(data.aktifHesapSayisi);
         });
     }

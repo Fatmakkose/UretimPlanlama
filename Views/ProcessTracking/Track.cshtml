@@ -429,14 +429,18 @@
                         string displayName = !string.IsNullOrEmpty(extraInfo) ? $"{mat.StokKarti?.StokAdi ?? "Bilinmeyen"} ({extraInfo})" : (mat.StokKarti?.StokAdi ?? "Bilinmeyen");
 
                         <tr style="background: @(mat.IsApproved ? "#f0fdf4" : "white"); border-bottom: 1px solid #f1f5f9; transition: background 0.3s ease;">
-                            <td style="padding: 16px; font-weight: 600; color: #334155; border-right: 1px solid #f1f5f9;">@displayName</td>
+                            <td style="padding: 16px; font-weight: 600; color: #334155; border-right: 1px solid #f1f5f9;">
+                                @displayName
+                                @* Removed variant select from Purchasing Approval because it does not deduct stock here *@
+                            </td>
                             <td style="padding: 16px; font-weight: 700; color: #b45309; text-align: right; background: #fdf6e3; border-right: 1px solid #f1f5f9; font-size: 1.1rem;">@displayPlanlanan</td>
                             <td style="padding: 16px; width: 250px; background: #f0f9ff; border-right: 1px solid #f1f5f9;">
                                 <div style="display: flex; align-items: center; justify-content: center;">
                                     @{
-                                        decimal displayQty = mat.StokVaryant != null ? mat.StokVaryant.MevcutMiktar : (mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0);
+                                        decimal stockQty = mat.StokVaryant != null ? mat.StokVaryant.MevcutMiktar : (mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0);
+                                        decimal displayQty = mat.ActualQuantity > 0 ? mat.ActualQuantity : stockQty;
                                     }
-                                    <input type="number" step="0.01" style="width: 120px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: right; font-weight: 600; color: #475569; background-color: #f1f5f9; outline: none; box-shadow: none; cursor: not-allowed;" id="actual_qty_@mat.Id" value="@displayQty.ToString("F2").Replace(',', '.')" readonly oninput="updateComparison(@mat.Id, @(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture)))" />
+                                    <input type="number" step="0.01" style="width: 120px; padding: 8px 12px; border: 1px solid #bae6fd; border-radius: 6px; text-align: right; font-weight: 600; color: #0284c7; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);" id="actual_qty_@mat.Id" value="@displayQty.ToString(System.Globalization.CultureInfo.InvariantCulture)" oninput="updateComparison(@mat.Id, @(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture)))" />
                                 </div>
                             </td>
                             <td style="padding: 16px; text-align: center; border-right: 1px solid #f1f5f9; vertical-align: middle;">
@@ -769,15 +773,48 @@
         </div>
 
         <!-- ÇEKİ LİSTESİ TAB -->
+        <style media="print">
+            @@page {
+                margin: 0; /* Removes default browser headers and footers */
+            }
+            body {
+                margin: 0.5cm; /* Adds back some margin to prevent content cutoff */
+            }
+            body * {
+                visibility: hidden;
+            }
+            #printArea, #printArea * {
+                visibility: visible;
+            }
+            #printArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            /* Hide empty or editable background colors for cleaner print */
+            [contenteditable="true"] {
+                background-color: transparent !important;
+                border: 1px solid black !important;
+            }
+            /* Prevent other tabs and layout wrappers from taking up space and creating blank pages */
+            .tab-content > .tab-pane:not(#packing) {
+                display: none !important;
+            }
+            .tab-content, .main-panel, .content-wrapper, .wrapper {
+                min-height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        </style>
         <div class="tab-pane" id="packing">
-            <div id="printArea" style="background: white; padding: 40px; min-height: 1000px; color: black; font-family: Arial, sans-serif;">
+            <div id="printArea" style="background: white; padding: 20px; color: black; font-family: Arial, sans-serif;">
                 <!-- Başlık ve Logolar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <div>
-                        <img src="data:image/svg+xml;utf8,%3Csvg%20width%3D%22300%22%20height%3D%2270%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ctext%20x%3D%220%22%20y%3D%2240%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2242%22%20fill%3D%22%230055A5%22%20letter-spacing%3D%22-1.5%22%3ELC%20WAIKIKI%3C%2Ftext%3E%3Ctext%20x%3D%2255%22%20y%3D%2260%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-weight%3D%22600%22%20font-size%3D%2216%22%20fill%3D%22%23555555%22%20letter-spacing%3D%22-0.5%22%3Eiyi%20giyinmek%20herkesin%20hakk%C4%B1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LCW Logo" style="height: 60px;" />
-                    </div>
+                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
                     <div style="text-align: right;">
-                        <img src="/images/logo.jpg" alt="Kanuni Tekstil Logo" style="height: 50px;" />
+                        <img src="data:image/svg+xml;utf8,%3Csvg%20width%3D%22300%22%20height%3D%2270%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ctext%20x%3D%220%22%20y%3D%2240%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2242%22%20fill%3D%22%230055A5%22%20letter-spacing%3D%22-1.5%22%3ELC%20WAIKIKI%3C%2Ftext%3E%3Ctext%20x%3D%2255%22%20y%3D%2260%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-weight%3D%22600%22%20font-size%3D%2216%22%20fill%3D%22%23555555%22%20letter-spacing%3D%22-0.5%22%3Eiyi%20giyinmek%20herkesin%20hakk%C4%B1%3C%2Ftext%3E%3C%2Fsvg%3E" alt="LCW Logo" style="height: 60px;" />
                     </div>
                 </div>
                 <h3 style="text-align: center; font-weight: bold; margin-bottom: 40px;">LC WAIKIKI ÜRETİCİ ÇEKİ LİSTESİ</h3>
@@ -820,16 +857,16 @@
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.OptionCode</td>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.Color</td>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.ModelName</td>
-                            <td style="border: 1px solid black; padding: 8px;">@Model.AsortiCount</td>
+                            <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                             <td style="border: 1px solid black; padding: 8px;">@packingQty</td>
-                            <td style="border: 1px solid black; padding: 8px;">1</td>
-                            <td style="border: 1px solid black; padding: 8px;">1</td>
+                            <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                            <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                             <td style="border: 1px solid black; padding: 8px;">@packingQty</td>
                         </tr>
                         <tr><td colspan="10" style="border: 1px solid black; padding: 20px;"></td></tr>
                         <tr>
                             <td colspan="5" style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">TOPLAM</td>
-                            <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.AsortiCount</td>
+                            <td style="border: 1px solid black; padding: 8px; font-weight: bold; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@packingQty</td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px;"></td>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@packingQty</td>
@@ -889,12 +926,12 @@
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.Color</td>
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.ModelName</td>
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;"></td>
-                                        <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">1</td>
+                                        <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                                         isFirst = false;
                                     }
-                                    <td style="border: 1px solid black; padding: 8px;">@kvp.Key</td>
-                                    <td style="border: 1px solid black; padding: 8px;">@kvp.Value</td>
-                                    <td style="border: 1px solid black; padding: 8px;">@kvp.Value</td>
+                                    <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                    <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                    <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                                 </tr>
                             }
                         } else {
@@ -905,21 +942,21 @@
                                 <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.Color</td>
                                 <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.ModelName</td>
                                 <td style="border: 1px solid black; padding: 8px;"></td>
-                                <td style="border: 1px solid black; padding: 8px;">1</td>
-                                <td style="border: 1px solid black; padding: 8px;">-</td>
-                                <td style="border: 1px solid black; padding: 8px;">-</td>
-                                <td style="border: 1px solid black; padding: 8px;">-</td>
+                                <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                             </tr>
                         }
                         <tr>
                             <td colspan="6" style="border: 1px solid black;"></td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">TOPLAM ADET</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; font-weight: bold;">@toplamAcikAdet</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; font-weight: bold; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                         </tr>
                         <tr>
                             <td colspan="6" style="border: 1px solid black;"></td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">TOPLAM KOLİ SAYISI</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; font-weight: bold;">1</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; font-weight: bold; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -1396,9 +1433,12 @@
             const actualInput = $('#actual_qty_' + materialId);
             const actualQty = parseFloat(actualInput.val()) || 0;
             const compSpan = $('#comp_' + materialId);
+            const isChecked = $('#chk_mat_' + materialId).is(':checked');
             
             const diff = actualQty - plannedQty;
-            if (Math.abs(diff) < 0.01) {
+            if (isChecked) {
+                compSpan.text("TAM").css({ 'background': '#dcfce7', 'color': '#166534' });
+            } else if (Math.abs(diff) < 0.01) {
                 compSpan.text("TAM").css({ 'background': '#dcfce7', 'color': '#166534' });
             } else if (diff > 0) {
                 compSpan.text("FAZLA (+" + diff.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ")").css({ 'background': '#e0e7ff', 'color': '#3730a3' });
@@ -1412,6 +1452,13 @@
             const isChecked = $('#chk_mat_' + materialId).is(':checked');
             const plannedQtyStr = $('#chk_mat_' + materialId).attr('data-planned') || "0";
             
+            const actualQtyInput = $('#actual_qty_' + materialId).val().replace(',', '.');
+            const actualQty = parseFloat(actualQtyInput) || 0;
+
+            if (isChecked && actualQty <= 0) {
+                // Sadece stok uyarısı ver, ama engelleme.
+            }
+            
             // Update wrapper div styling
             $('#div_mat_' + materialId)
                 .css('background', isChecked ? "#dcfce7" : "#fffbeb")
@@ -1420,13 +1467,11 @@
             // Update row background color dynamically
             $('#chk_mat_' + materialId).closest('tr').css('background', isChecked ? "#f0fdf4" : "transparent");
             
-            $.post('/ProcessTracking/UpdateMaterialApproval', { materialId: materialId, plannedQuantityStr: plannedQtyStr, isApproved: isChecked }, function(res) {
+            $.post('/ProcessTracking/UpdateMaterialApproval', { materialId: materialId, actualQuantityStr: actualQtyInput, isApproved: isChecked }, function(res) {
                 if(res.success) {
-                    showToast("Malzeme onayı ve stok güncellendi.", "success");
-                    if (res.newStock !== undefined && res.newStock !== null) {
-                        $('#actual_qty_' + materialId).val(res.newStock.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                        updateComparison(materialId, parseFloat(plannedQtyStr));
-                    }
+                    showToast("Malzeme onayı başarıyla güncellendi.", "success");
+                    // Update comparison dynamically using the new actualQty
+                    updateComparison(materialId, parseFloat(plannedQtyStr));
                 } else {
                     showToast("Hata: " + res.message, "danger");
                     $('#chk_mat_' + materialId).prop('checked', !isChecked);
@@ -1434,6 +1479,11 @@
                         .css('background', !isChecked ? "#dcfce7" : "#fffbeb")
                         .css('border-color', !isChecked ? "#bbf7d0" : "#fef08a");
                     $('#chk_mat_' + materialId).closest('tr').css('background', !isChecked ? "#f0fdf4" : "transparent");
+                    updateComparison(materialId, parseFloat(plannedQtyStr));
+                    
+                    if ($('#varyant_select_' + materialId).length) {
+                        $('#varyant_select_' + materialId).prop('disabled', !isChecked);
+                    }
                 }
             });
         }

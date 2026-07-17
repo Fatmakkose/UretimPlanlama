@@ -188,7 +188,7 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction("AccessDenied", "Account");
 
             ViewBag.CariHesaplar = _context.CariHesaplar.Where(c => c.Aktif).OrderBy(c => c.HesapAdi).ToList();
-            ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
+            ViewBag.StokKartlari = _context.StokKartlari.Include(s => s.Varyantlar).Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
             ViewBag.Orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
 
             // Yeni belge no üretimi (YYYYMM_001 formatında - Alış ile aynı format/ortak havuz)

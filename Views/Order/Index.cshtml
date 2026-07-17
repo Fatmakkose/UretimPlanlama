@@ -1205,7 +1205,7 @@
                 }
 
                 // Sipariş Detay Modalı İşlemleri
-                $(document).on("click", ".view-order-detail", function(e) {
+                $(".view-order-detail").on("click", function(e) {
                     e.preventDefault();
                     var orderId = $(this).data("id");
 
@@ -1215,175 +1215,181 @@
                         data: { id: orderId },
                         success: function(response) {
                             if (response.success) {
-                                var order = response.data;
+                                try {
+                                    var order = response.data;
 
-                                // Genel Bilgiler
-                                $("#detOrderCode").text(order.orderCode || "-");
-                                $("#detOrderDate").html(formatDetailDate(order.orderDate));
-                                $("#detPlannedPackagingEndDate").html(formatDetailDate(order.plannedPackagingEndDate));
-                                
-                                var revizeTerminDet = "";
-                                if (order.productionJson) {
-                                    try {
-                                        var prodJsonDet = JSON.parse(order.productionJson);
-                                        revizeTerminDet = prodJsonDet["prod_knn_revize_termin"] || "";
-                                    } catch(e) {}
+                                    // Genel Bilgiler
+                                    $("#detOrderCode").text(order.orderCode || "-");
+                                    $("#detOrderDate").html(formatDetailDate(order.orderDate));
+                                    $("#detPlannedPackagingEndDate").html(formatDetailDate(order.plannedPackagingEndDate));
+                                    
+                                    var revizeTerminDet = "";
+                                    if (order.productionJson) {
+                                        try {
+                                            var prodJsonDet = JSON.parse(order.productionJson);
+                                            if (prodJsonDet) {
+                                                revizeTerminDet = prodJsonDet["prod_knn_revize_termin"] || "";
+                                            }
+                                        } catch(e) {}
+                                    }
+                                    $("#detKnnRevizeTermin").html(formatDetailDate(revizeTerminDet));
+                                    $("#detModelName").text(order.modelName || "-");
+                                    $("#detColor").text(order.color || "-");
+                                    $("#detBrand").text(order.brand || "-");
+                                    $("#detCustomer").text(order.customer || "LC Waikiki");
+                                    $("#detDeliveryPlace").text(order.deliveryPlace || "-");
+                                    $("#detDescription").text(order.goodsDescription || "-");
+                                    $("#detUnitPrice").html(formatCurrency(order.unitPrice || order.componentUnitPrice));
+                                    $("#detQuantity").text((order.quantity || 0).toLocaleString('tr-TR') + " Adet");
+
+                                    // Rozetler (Badges)
+                                    var status = order.status || "Yeni Kayıt";
+                                    $("#detStatusBadge").text(status);
+                                    $("#detStatusBadge").removeClass("badge-progress badge-medium badge-high badge-scheduled");
+                                    if (status === "Tamamlandı") $("#detStatusBadge").addClass("badge-progress");
+                                    else if (status === "İptal Edildi") $("#detStatusBadge").addClass("badge-high");
+                                    else if (status === "Yeni Kayıt") $("#detStatusBadge").addClass("badge-scheduled");
+                                    else $("#detStatusBadge").addClass("badge-medium");
+
+                                    var fStatus = order.fabricStatus || "Bekleniyor";
+                                    $("#detFabricBadge").text("Kumaş: " + fStatus);
+                                    $("#detFabricBadge").removeClass("badge-progress badge-medium badge-high badge-scheduled");
+                                    if (fStatus === "Tamamlandı" || fStatus === "Kumaş Tam") $("#detFabricBadge").addClass("badge-progress");
+                                    else if (fStatus === "Kısmi Geldi" || fStatus === "Gecikti") $("#detFabricBadge").addClass("badge-medium");
+                                    else $("#detFabricBadge").addClass("badge-high");
+
+                                    $("#detJITBadge").hide();
+
+                                    // Beden Dağılımı (Dinamik)
+                                    var openDist = {};
+                                    var asortiDist = {};
+                                    try { openDist = JSON.parse(order.sizeDistributionJson || "{}") || {}; } catch(e){ openDist = {}; }
+                                    try { asortiDist = JSON.parse(order.asortiDistributionJson || "{}") || {}; } catch(e){ asortiDist = {}; }
+                                    
+                                    var allSizesSet = new Set();
+                                    Object.keys(openDist).forEach(k => allSizesSet.add(k));
+                                    Object.keys(asortiDist).forEach(k => allSizesSet.add(k));
+                                    
+                                    var standardOrder = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL", "36", "38", "40", "42", "44", "46", "2 Yaş", "4 Yaş", "6 Yaş", "8 Yaş", "10 Yaş", "12 Yaş"];
+                                    var allSizes = Array.from(allSizesSet).sort(function(a, b) {
+                                        var iA = standardOrder.indexOf(a);
+                                        var iB = standardOrder.indexOf(b);
+                                        if (iA !== -1 && iB !== -1) return iA - iB;
+                                        if (iA !== -1) return -1;
+                                        if (iB !== -1) return 1;
+                                        return a.localeCompare(b);
+                                    });
+
+                                    var tableHtml = '<table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9rem;"><thead><tr style="border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-muted);"><th style="padding: 8px; text-align: left;">Beden Türü</th>';
+                                    allSizes.forEach(s => { tableHtml += '<th style="padding: 8px;">' + s + '</th>'; });
+                                    tableHtml += '<th style="padding: 8px; border-left: 1px solid var(--border-color); color: var(--text-main);">Toplam</th></tr></thead><tbody>';
+
+                                    // Açık Adetler
+                                    var openTotal = 0;
+                                    tableHtml += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #0284c7;">Açık Adet</td>';
+                                    allSizes.forEach(s => { 
+                                        var val = parseInt(openDist[s]) || 0;
+                                        openTotal += val;
+                                        tableHtml += '<td style="padding: 12px 8px;">' + val + '</td>';
+                                    });
+                                    tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #0284c7; background: #e0f2fe;">' + openTotal + '</td></tr>';
+
+                                    // Asorti Oran
+                                    var asortiRatioTotal = 0;
+                                    tableHtml += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #16a34a;">Asorti Oran</td>';
+                                    allSizes.forEach(s => { 
+                                        var val = parseInt(asortiDist[s]) || 0;
+                                        asortiRatioTotal += val;
+                                        tableHtml += '<td style="padding: 12px 8px;">' + val + '</td>';
+                                    });
+                                    tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #16a34a; background: #dcfce7;">' + asortiRatioTotal + '</td></tr>';
+
+                                    // Asorti Toplam
+                                    var asortiCount = order.asortiCount || 0;
+                                    var asortiFinalQty = asortiRatioTotal * asortiCount;
+                                    tableHtml += '<tr><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #15803d;">Asorti Toplam</td>';
+                                    tableHtml += '<td colspan="' + allSizes.length + '" style="padding: 12px 8px; text-align: right; color: var(--text-muted); font-style: italic;">Lot Sayısı: <strong style="color: var(--text-main); font-style: normal; margin-right: 15px;">' + asortiCount + '</strong> (Lot Sayısı × Asorti Oran Toplamı) =</td>';
+                                    tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #15803d; background: #bbf7d0;">' + asortiFinalQty + '</td></tr>';
+
+                                    tableHtml += '</tbody></table>';
+
+                                    $("#detDynamicSizesContainer").html(tableHtml);
+
+                                    // Model Detayları & Aksesuarlar (Dinamik HTML)
+                                    var accHtml = '';
+                                    var materials = [];
+                                    try { materials = JSON.parse(order.orderMaterialsJson || "[]") || []; } catch(e){ materials = []; }
+                                    
+                                    if (Array.isArray(materials) && materials.length > 0) {
+                                        var grouped = {};
+                                        materials.forEach(function(m) {
+                                            var cat = (m.kategori || m.Kategori || "Diğer").trim().toUpperCase();
+                                            if (!grouped[cat]) grouped[cat] = [];
+                                            grouped[cat].push(m);
+                                        });
+                                        
+                                        for (var category in grouped) {
+                                            accHtml += '<div style="margin-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569; border-bottom: 1px solid #e2e8f0; padding-bottom:4px;">' + category + '</h5>';
+                                            accHtml += '<div style="display: grid; grid-template-columns: 1fr; gap: 8px;">';
+                                            grouped[category].forEach(function(item) {
+                                                var displayName = (item.stokAdi || item.StokAdi || item.stokKodu || item.StokKodu || 'Bilinmeyen Ürün');
+                                                var qtyDisplay = '';
+                                                if (category !== 'KUMAŞ' && category !== 'MALZEME' && category !== 'ETİKET' && category !== 'TELA') {
+                                                    qtyDisplay = '<br/><span style="color:#64748b; font-size:0.8rem;">Miktar: ' + (item.miktar || item.Miktar || 0) + '</span>';
+                                                }
+                                                var aciklamaDisplay = (item.aciklama || item.Aciklama) ? '<br/><span style="color:#0284c7; font-size:0.8rem; font-weight: 500;">' + (item.aciklama || item.Aciklama) + '</span>' : '';
+                                                accHtml += '<div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0; font-size:0.85rem;">' +
+                                                            '<strong>' + displayName + '</strong>' + qtyDisplay + aciklamaDisplay + '</div>';
+                                            });
+                                            accHtml += '</div></div>';
+                                        }
+                                    } else {
+                                        accHtml = '<div style="color:#94a3b8; font-size:0.85rem; font-style:italic;">Bu siparişte model detayı seçilmemiştir.</div>';
+                                    }
+
+                                    $("#detAccessoriesContainer").html(accHtml);
+
+                                    // Planlama & İş Takvimi
+                                    // 1. Kumaş
+                                    $("#detFabricSupplier").text(order.fabricSupplier || "-");
+                                    $("#detTargetFabric").text(order.targetFabricQty ? parseFloat(order.targetFabricQty).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + " kg" : "-");
+                                    $("#detActualFabric").text(order.actualFabricQty ? parseFloat(order.actualFabricQty).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + " kg" : "-");
+                                    $("#detFabricAgreedDate").html(formatDetailDate(order.fabricArrivalAgreedDate));
+                                    $("#detFabricActualDate").html(formatDetailDate(order.fabricArrivalActualDate));
+                                    $("#detFabricMeterage").text(order.fabricMeterage ? order.fabricMeterage.toLocaleString('tr-TR') + " m" : "-");
+
+                                    // 2. Kesim
+                                    $("#detPlannedCuttingStart").html(formatDetailDate(order.plannedCuttingStartDate));
+                                    $("#detCuttingStart").html(formatDetailDate(order.cuttingStartDate));
+                                    $("#detPlannedCuttingEnd").html(formatDetailDate(order.plannedCuttingEndDate));
+                                    $("#detCuttingEnd").html(formatDetailDate(order.cuttingEndDate));
+
+                                    // 3. Dikim
+                                    $("#detSewingWorkshop").text(order.sewingWorkshop || "-");
+                                    $("#detPlannedSewingStart").html(formatDetailDate(order.plannedSewingStartDate));
+                                    $("#detSewingStart").html(formatDetailDate(order.sewingStartDate));
+                                    $("#detPlannedSewingEnd").html(formatDetailDate(order.plannedSewingEndDate));
+                                    $("#detSewingEnd").html(formatDetailDate(order.sewingEndDate));
+
+                                    // 4. Paket & Kalite
+                                    $("#detPlannedPackagingStart").html(formatDetailDate(order.plannedPackagingStartDate));
+                                    $("#detPackagingStart").html(formatDetailDate(order.packagingStartDate));
+                                    $("#detPlannedPackagingEnd").html(formatDetailDate(order.plannedPackagingEndDate));
+                                    $("#detPackagingEnd").html(formatDetailDate(order.packagingEndDate));
+                                    $("#detPlannedLastInspection").html(formatDetailDate(order.plannedLastInspectionDate));
+                                    $("#detLastInspection").html(formatDetailDate(order.lastInspectionDate));
+
+                                    // 5. Sevkiyat
+                                    $("#detDepartureDate").html(formatDetailDate(order.departureDate));
+                                    $("#detWarehouseDate").html(formatDetailDate(order.warehouseArrivalDate));
+
+                                    // Modalı Aç
+                                    $("#orderDetailModal").css("display", "flex").hide().fadeIn(200, function() {
+                                        $(this).addClass("active");
+                                    });
+                                } catch(err) {
+                                    alert("Detay açılırken bir hata oluştu: " + err.message + "\nLütfen bu mesajı ekran görüntüsü alıp gönderin.");
                                 }
-                                $("#detKnnRevizeTermin").html(formatDetailDate(revizeTerminDet));
-                                $("#detModelName").text(order.modelName || "-");
-                                $("#detColor").text(order.color || "-");
-                                $("#detBrand").text(order.brand || "-");
-                                $("#detCustomer").text(order.customer || "LC Waikiki");
-                                $("#detDeliveryPlace").text(order.deliveryPlace || "-");
-                                $("#detDescription").text(order.goodsDescription || "-");
-                                $("#detUnitPrice").html(formatCurrency(order.unitPrice || order.componentUnitPrice));
-                                $("#detQuantity").text((order.quantity || 0).toLocaleString('tr-TR') + " Adet");
-
-                                // Rozetler (Badges)
-                                var status = order.status || "Yeni Kayıt";
-                                $("#detStatusBadge").text(status);
-                                $("#detStatusBadge").removeClass("badge-progress badge-medium badge-high badge-scheduled");
-                                if (status === "Tamamlandı") $("#detStatusBadge").addClass("badge-progress");
-                                else if (status === "İptal Edildi") $("#detStatusBadge").addClass("badge-high");
-                                else if (status === "Yeni Kayıt") $("#detStatusBadge").addClass("badge-scheduled");
-                                else $("#detStatusBadge").addClass("badge-medium");
-
-                                var fStatus = order.fabricStatus || "Bekleniyor";
-                                $("#detFabricBadge").text("Kumaş: " + fStatus);
-                                $("#detFabricBadge").removeClass("badge-progress badge-medium badge-high badge-scheduled");
-                                if (fStatus === "Tamamlandı" || fStatus === "Kumaş Tam") $("#detFabricBadge").addClass("badge-progress");
-                                else if (fStatus === "Kısmi Geldi" || fStatus === "Gecikti") $("#detFabricBadge").addClass("badge-medium");
-                                else $("#detFabricBadge").addClass("badge-high");
-
-                                $("#detJITBadge").hide();
-
-                                // Beden Dağılımı (Dinamik)
-                                var openDist = {};
-                                var asortiDist = {};
-                                try { openDist = JSON.parse(order.sizeDistributionJson || "{}"); } catch(e){}
-                                try { asortiDist = JSON.parse(order.asortiDistributionJson || "{}"); } catch(e){}
-                                
-                                var allSizesSet = new Set();
-                                Object.keys(openDist).forEach(k => allSizesSet.add(k));
-                                Object.keys(asortiDist).forEach(k => allSizesSet.add(k));
-                                
-                                var standardOrder = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "6XL", "36", "38", "40", "42", "44", "46", "2 Yaş", "4 Yaş", "6 Yaş", "8 Yaş", "10 Yaş", "12 Yaş"];
-                                var allSizes = Array.from(allSizesSet).sort(function(a, b) {
-                                    var iA = standardOrder.indexOf(a);
-                                    var iB = standardOrder.indexOf(b);
-                                    if (iA !== -1 && iB !== -1) return iA - iB;
-                                    if (iA !== -1) return -1;
-                                    if (iB !== -1) return 1;
-                                    return a.localeCompare(b);
-                                });
-
-                                var tableHtml = '<table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9rem;"><thead><tr style="border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-muted);"><th style="padding: 8px; text-align: left;">Beden Türü</th>';
-                                allSizes.forEach(s => { tableHtml += '<th style="padding: 8px;">' + s + '</th>'; });
-                                tableHtml += '<th style="padding: 8px; border-left: 1px solid var(--border-color); color: var(--text-main);">Toplam</th></tr></thead><tbody>';
-
-                                // Açık Adetler
-                                var openTotal = 0;
-                                tableHtml += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #0284c7;">Açık Adet</td>';
-                                allSizes.forEach(s => { 
-                                    var val = parseInt(openDist[s]) || 0;
-                                    openTotal += val;
-                                    tableHtml += '<td style="padding: 12px 8px;">' + val + '</td>';
-                                });
-                                tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #0284c7; background: #e0f2fe;">' + openTotal + '</td></tr>';
-
-                                // Asorti Oran
-                                var asortiRatioTotal = 0;
-                                tableHtml += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #16a34a;">Asorti Oran</td>';
-                                allSizes.forEach(s => { 
-                                    var val = parseInt(asortiDist[s]) || 0;
-                                    asortiRatioTotal += val;
-                                    tableHtml += '<td style="padding: 12px 8px;">' + val + '</td>';
-                                });
-                                tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #16a34a; background: #dcfce7;">' + asortiRatioTotal + '</td></tr>';
-
-                                // Asorti Toplam
-                                var asortiCount = order.asortiCount || 0;
-                                var asortiFinalQty = asortiRatioTotal * asortiCount;
-                                tableHtml += '<tr><td style="padding: 12px 8px; text-align: left; font-weight: 600; color: #15803d;">Asorti Toplam</td>';
-                                tableHtml += '<td colspan="' + allSizes.length + '" style="padding: 12px 8px; text-align: right; color: var(--text-muted); font-style: italic;">Lot Sayısı: <strong style="color: var(--text-main); font-style: normal; margin-right: 15px;">' + asortiCount + '</strong> (Lot Sayısı × Asorti Oran Toplamı) =</td>';
-                                tableHtml += '<td style="padding: 12px 8px; border-left: 1px solid var(--border-color); font-weight: 700; color: #15803d; background: #bbf7d0;">' + asortiFinalQty + '</td></tr>';
-
-                                tableHtml += '</tbody></table>';
-
-                                $("#detDynamicSizesContainer").html(tableHtml);
-
-                                // Model Detayları & Aksesuarlar (Dinamik HTML)
-                                 var accHtml = '';
-                                 var materials = [];
-                                 try { materials = JSON.parse(order.orderMaterialsJson || "[]"); } catch(e){}
-                                 
-                                 if (materials && materials.length > 0) {
-                                     var grouped = {};
-                                     materials.forEach(function(m) {
-                                         var cat = (m.Kategori || "Diğer").trim().toUpperCase();
-                                         if (!grouped[cat]) grouped[cat] = [];
-                                         grouped[cat].push(m);
-                                     });
-                                     
-                                     for (var category in grouped) {
-                                         accHtml += '<div style="margin-top:12px;"><h5 style="margin:0 0 8px 0; font-size:0.85rem; color:#475569; border-bottom: 1px solid #e2e8f0; padding-bottom:4px;">' + category + '</h5>';
-                                         accHtml += '<div style="display: grid; grid-template-columns: 1fr; gap: 8px;">';
-                                         grouped[category].forEach(function(item) {
-                                             var displayName = (item.StokAdi || item.StokKodu || 'Bilinmeyen Ürün');
-                                             var qtyDisplay = '';
-                                             if (category !== 'KUMAŞ' && category !== 'MALZEME' && category !== 'ETİKET' && category !== 'TELA') {
-                                                 qtyDisplay = '<br/><span style="color:#64748b; font-size:0.8rem;">Miktar: ' + item.Miktar + '</span>';
-                                             }
-                                             var aciklamaDisplay = item.Aciklama ? '<br/><span style="color:#0284c7; font-size:0.8rem; font-weight: 500;">' + item.Aciklama + '</span>' : '';
-                                             accHtml += '<div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0; font-size:0.85rem;">' +
-                                                        '<strong>' + displayName + '</strong>' + qtyDisplay + aciklamaDisplay + '</div>';
-                                         });
-                                         accHtml += '</div></div>';
-                                     }
-                                 } else {
-                                     accHtml = '<div style="color:#94a3b8; font-size:0.85rem; font-style:italic;">Bu siparişte model detayı seçilmemiştir.</div>';
-                                 }
-
-                                 $("#detAccessoriesContainer").html(accHtml);
-
-                                // Planlama & İş Takvimi
-                                // 1. Kumaş
-                                $("#detFabricSupplier").text(order.fabricSupplier || "-");
-                                $("#detTargetFabric").text(order.targetFabricQty ? parseFloat(order.targetFabricQty).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + " kg" : "-");
-                                $("#detActualFabric").text(order.actualFabricQty ? parseFloat(order.actualFabricQty).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + " kg" : "-");
-                                $("#detFabricAgreedDate").html(formatDetailDate(order.fabricArrivalAgreedDate));
-                                $("#detFabricActualDate").html(formatDetailDate(order.fabricArrivalActualDate));
-                                $("#detFabricMeterage").text(order.fabricMeterage ? order.fabricMeterage.toLocaleString('tr-TR') + " m" : "-");
-
-                                // 2. Kesim
-                                $("#detPlannedCuttingStart").html(formatDetailDate(order.plannedCuttingStartDate));
-                                $("#detCuttingStart").html(formatDetailDate(order.cuttingStartDate));
-                                $("#detPlannedCuttingEnd").html(formatDetailDate(order.plannedCuttingEndDate));
-                                $("#detCuttingEnd").html(formatDetailDate(order.cuttingEndDate));
-
-                                // 3. Dikim
-                                $("#detSewingWorkshop").text(order.sewingWorkshop || "-");
-                                $("#detPlannedSewingStart").html(formatDetailDate(order.plannedSewingStartDate));
-                                $("#detSewingStart").html(formatDetailDate(order.sewingStartDate));
-                                $("#detPlannedSewingEnd").html(formatDetailDate(order.plannedSewingEndDate));
-                                $("#detSewingEnd").html(formatDetailDate(order.sewingEndDate));
-
-                                // 4. Paket & Kalite
-                                $("#detPlannedPackagingStart").html(formatDetailDate(order.plannedPackagingStartDate));
-                                $("#detPackagingStart").html(formatDetailDate(order.packagingStartDate));
-                                $("#detPlannedPackagingEnd").html(formatDetailDate(order.plannedPackagingEndDate));
-                                $("#detPackagingEnd").html(formatDetailDate(order.packagingEndDate));
-                                $("#detPlannedLastInspection").html(formatDetailDate(order.plannedLastInspectionDate));
-                                $("#detLastInspection").html(formatDetailDate(order.lastInspectionDate));
-
-                                // 5. Sevkiyat
-                                $("#detDepartureDate").html(formatDetailDate(order.departureDate));
-                                $("#detWarehouseDate").html(formatDetailDate(order.warehouseArrivalDate));
-
-                                // Modalı Aç
-                                $("#orderDetailModal").css("display", "flex").hide().fadeIn(200, function() {
-                                    $(this).addClass("active");
-                                });
                             } else {
                                 showToast("Hata: " + response.message, "danger");
                             }
@@ -1442,7 +1448,7 @@
                 var deleteOrderIds = [];
 
                 // Tek sipariş silme butonu
-                $(document).on("click", ".btnDeleteOrder", function(e) {
+                $(".btnDeleteOrder").on("click", function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     var orderId = $(this).data("id");
@@ -1453,7 +1459,7 @@
                 });
 
                 // Çoklu sipariş grubu silme butonu
-                $(document).on("click", ".btnDeleteOrderGroup", function(e) {
+                $(".btnDeleteOrderGroup").on("click", function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     var idsStr = $(this).data("ids").toString();
