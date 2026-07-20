@@ -1571,7 +1571,7 @@
                         var badgeHtml = `
                             <div class="size-badge" style="display:flex; align-items:center; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden;">
                                 <span style="background:#e2e8f0; padding:4px 8px; font-weight:700; font-size:0.8rem; color:#334155; border-right:1px solid #cbd5e1;">${size}</span>
-                                <input type="number" min="0" class="edit-dyn-size-input" data-type="${type}" data-size="${size}" value="${val}" style="width:40px; border:none; padding:4px; font-size:0.85rem; text-align:center; outline:none; background:transparent;" />
+                                <input type="number" min="0" class="edit-dyn-size-input" data-type="${type}" data-size="${size}" value="${val === 0 ? '' : val}" placeholder="0" style="width:40px; border:none; padding:4px; font-size:0.85rem; text-align:center; outline:none; background:transparent;" />
                             </div>`;
                         $container.append(badgeHtml);
                     }

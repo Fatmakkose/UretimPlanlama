@@ -324,12 +324,23 @@
                     </thead>
                     <tbody>
                     @{
-                        string ExtractFromOzellikler(string json, string key) {
+                        string ExtractFromOzellikler(string json, string keyContains) {
                             if (string.IsNullOrEmpty(json)) return null;
                             try {
-                                var items = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, string>>>(json);
-                                var item = items?.FirstOrDefault(x => x.ContainsKey("Key") && x["Key"].ToUpperInvariant() == key.ToUpperInvariant());
-                                if (item != null && item.ContainsKey("Value")) return item["Value"];
+                                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                                    foreach(var item in doc.RootElement.EnumerateArray()) {
+                                        if (item.TryGetProperty("Key", out var k) && item.TryGetProperty("Value", out var v)) {
+                                            if (k.GetString().Contains(keyContains, StringComparison.OrdinalIgnoreCase)) return v.GetString();
+                                        }
+                                    }
+                                } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                                    foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                        if (prop.Name.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) {
+                                            return prop.Value.GetString();
+                                        }
+                                    }
+                                }
                             } catch {}
                             return null;
                         }
@@ -375,13 +386,13 @@
                                 string kumasIstenenStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : null;
                                 double dKumas = 0;
                                 if (kumasIstenenStr != null) {
-                                    double.TryParse(kumasIstenenStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out dKumas);
+                                    dKumas = parseTr(kumasIstenenStr);
                                 }
                                 
                                 if (dKumas == 0) {
                                     string kumasIhtiyacStr = purDataTrack.ContainsKey($"pur_color_{c}_istenen_kumas_miktar") ? purDataTrack[$"pur_color_{c}_istenen_kumas_miktar"] : null;
                                     if (kumasIhtiyacStr != null) {
-                                        double.TryParse(kumasIhtiyacStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out dKumas);
+                                        dKumas = parseTr(kumasIhtiyacStr);
                                     }
                                 }
                                 
@@ -438,7 +449,7 @@
                                 <div style="display: flex; align-items: center; justify-content: center;">
                                     @{
                                         decimal stockQty = mat.StokVaryant != null ? mat.StokVaryant.MevcutMiktar : (mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0);
-                                        decimal displayQty = mat.ActualQuantity > 0 ? mat.ActualQuantity : stockQty;
+                                        decimal displayQty = mat.IsApproved ? mat.ActualQuantity : stockQty;
                                     }
                                     <input type="number" step="0.01" style="width: 120px; padding: 8px 12px; border: 1px solid #bae6fd; border-radius: 6px; text-align: right; font-weight: 600; color: #0284c7; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);" id="actual_qty_@mat.Id" value="@displayQty.ToString(System.Globalization.CultureInfo.InvariantCulture)" oninput="updateComparison(@mat.Id, @(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture)))" />
                                 </div>
@@ -981,12 +992,23 @@
                 // 1. Malzeme Raporu Hesaplamaları
                 var malzemeler = Model.OrderMaterials != null ? Model.OrderMaterials.ToList() : new List<UretimPlanlama.Models.OrderMaterial>();
                 
-                string ExtractFromOzelliklerRep(string json, string key) {
+                string ExtractFromOzelliklerRep(string json, string keyContains) {
                     if (string.IsNullOrEmpty(json)) return null;
                     try {
-                        var items = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, string>>>(json);
-                        var item = items?.FirstOrDefault(x => x.ContainsKey("Key") && x["Key"].ToUpperInvariant() == key.ToUpperInvariant());
-                        if (item != null && item.ContainsKey("Value")) return item["Value"];
+                        using var doc = System.Text.Json.JsonDocument.Parse(json);
+                        if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                            foreach(var item in doc.RootElement.EnumerateArray()) {
+                                if (item.TryGetProperty("Key", out var k) && item.TryGetProperty("Value", out var v)) {
+                                    if (k.GetString().Contains(keyContains, StringComparison.OrdinalIgnoreCase)) return v.GetString();
+                                }
+                            }
+                        } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                            foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                if (prop.Name.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) {
+                                    return prop.Value.GetString();
+                                }
+                            }
+                        }
                     } catch {}
                     return null;
                 }

@@ -112,10 +112,16 @@ namespace UretimPlanlama.Controllers
 
                 if (isApproved)
                 {
+                    if (material.StokVaryant != null) material.StokVaryant.MevcutMiktar -= actualQuantity;
+                    else if (material.StokKarti != null) material.StokKarti.MevcutMiktar -= actualQuantity;
+
                     material.ActualQuantity = actualQuantity;
                 }
                 else
                 {
+                    if (material.StokVaryant != null) material.StokVaryant.MevcutMiktar += material.ActualQuantity;
+                    else if (material.StokKarti != null) material.StokKarti.MevcutMiktar += material.ActualQuantity;
+
                     material.ActualQuantity = 0;
                 }
                 
