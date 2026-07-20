@@ -1,0 +1,680 @@
+@model UretimPlanlama.Models.Order
+
+<style>
+    .fc-dashboard {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #1e293b;
+        background: #f8fafc;
+        padding: 24px;
+        border-radius: 12px;
+    }
+    .fc-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; }
+    .fc-title { font-size: 1.75rem; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; }
+    .fc-subtitle { font-size: 0.95rem; color: #64748b; margin: 0; }
+    .fc-date { font-size: 0.9rem; color: #64748b; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    
+    .fc-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .fc-kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .fc-kpi-title { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+    .fc-kpi-value { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.2; }
+    .fc-kpi-sub { font-size: 0.8rem; color: #94a3b8; }
+    
+    .fc-main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    
+    .fc-panel { background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 24px; overflow: hidden; }
+    .fc-panel-header { background: white; padding: 16px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .fc-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .fc-table th { background: #f8fafc; padding: 12px 16px; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    .fc-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .fc-table tfoot td { background: #e2e8f0; color: #0f172a; font-weight: 700; border: none; padding: 12px 16px; }
+    
+    .fc-table-inputs td { padding: 8px 16px; }
+    .fc-table-inputs input { width: 100%; border: 1px solid transparent; background: transparent; padding: 4px 8px; font-size: 0.85rem; transition: all 0.2s; border-radius: 4px; font-family: inherit; }
+    .fc-table-inputs input:hover, .fc-table-inputs input:focus { border-color: #cbd5e1; background: white; outline: none; }
+    .fc-table-inputs .fc-exp-total { font-weight: 600; color: #0f172a; }
+    
+    .fc-dark-panel { background: #0b4e96; color: white; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .fc-dark-title { font-size: 0.75rem; font-weight: 700; color: #93c5fd; text-transform: uppercase; margin-bottom: 24px; letter-spacing: 0.5px; }
+    
+    .fc-dark-row { margin-bottom: 20px; }
+    .fc-dark-label { font-size: 0.8rem; font-weight: 600; color: #bfdbfe; text-transform: uppercase; margin-bottom: 4px; }
+    .fc-dark-value { font-size: 1.75rem; font-weight: 800; color: #f8fafc; }
+    .fc-dark-value.highlight { color: #f8fafc; }
+    
+    .fc-dark-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 24px 0; }
+    
+    .fc-dark-summary { display: flex; justify-content: space-between; align-items: flex-end; }
+    .fc-dark-summary-left .fc-dark-label { color: #bfdbfe; }
+    .fc-dark-summary-right { text-align: right; }
+    .fc-dark-summary-right .fc-dark-label { color: #bfdbfe; }
+    
+    .fc-btn-print { display: block; width: 100%; background: #f59e0b; color: #78350f; font-weight: 700; border: none; padding: 12px; border-radius: 6px; margin-top: 24px; transition: background 0.2s; text-align: center; cursor: pointer; }
+    .fc-btn-print:hover { background: #fbbf24; }
+    
+    .fc-btn-draft { display: block; width: 100%; background: rgba(255,255,255,0.05); color: #cbd5e1; font-weight: 600; border: 1px solid rgba(255,255,255,0.15); padding: 10px; border-radius: 6px; margin-top: 12px; transition: all 0.2s; text-align: center; cursor: pointer; }
+    .fc-btn-draft:hover { background: rgba(255,255,255,0.15); color: white; }
+    
+    .fc-progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; display: flex; margin: 12px 0 8px 0; }
+    .fc-progress-segment { height: 100%; transition: width 0.3s ease; }
+    
+    .fc-note-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: center; font-size: 0.8rem; color: #64748b; font-style: italic; margin-top: 16px; }
+    .fc-table-dark-foot { background: #0b4e96 !important; color: white !important; }
+
+    /* For quality inputs */
+    .fc-quality-input { width: 80px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; text-align: right; }
+</style>
+
+@{
+    string musteri = Model.Customer ?? "Bilinmiyor";
+    
+    string atolye = Model.SewingWorkshop;
+    if (string.IsNullOrEmpty(atolye) && !string.IsNullOrEmpty(Model.ProductionJson))
+    {
+        try {
+            var pData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(Model.ProductionJson);
+            if (pData != null && pData.ContainsKey("prod_dikim_atolyesi")) {
+                atolye = pData["prod_dikim_atolyesi"];
+            }
+        } catch {}
+    }
+    if (string.IsNullOrEmpty(atolye)) atolye = "-";
+    
+    string modelName = Model.ModelName ?? "Bilinmiyor";
+    string color = Model.Color ?? "Genel";
+    
+    // Kesim Raporu Hesaplamaları
+    var cutRecords = new List<dynamic>();
+    var allSizes = new List<string>();
+    decimal kesimToplam = 0;
+    decimal pastalToplam = 0;
+    int kesimCount = 0;
+
+    if (!string.IsNullOrEmpty(Model.CuttingProcessJson))
+    {
+        try {
+            using var doc = System.Text.Json.JsonDocument.Parse(Model.CuttingProcessJson);
+            if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                foreach(var item in doc.RootElement.EnumerateArray()) {
+                    string cName = item.TryGetProperty("CutName", out var cn) ? cn.GetString() : "Kesim";
+                    
+                    int multiplier = 1;
+                    if (item.TryGetProperty("Multiplier", out var mul)) {
+                        if (mul.ValueKind == System.Text.Json.JsonValueKind.Number) multiplier = mul.GetInt32();
+                        else if (mul.ValueKind == System.Text.Json.JsonValueKind.String) int.TryParse(mul.GetString(), out multiplier);
+                    }
+                    
+                    var sizesDict = new Dictionary<string, int>();
+                    if (item.TryGetProperty("Sizes", out var sz) && sz.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                        foreach(var prop in sz.EnumerateObject()) {
+                            int sVal = 0;
+                            if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number) sVal = prop.Value.GetInt32();
+                            else if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.String) int.TryParse(prop.Value.GetString(), out sVal);
+                            
+                            sizesDict[prop.Name] = sVal;
+                            if (!allSizes.Contains(prop.Name)) allSizes.Add(prop.Name);
+                        }
+                    }
+                    
+                    string dateStr = item.TryGetProperty("Date", out var dt) ? dt.GetString() : "";
+                    
+                    decimal tQty = 0;
+                    if (item.TryGetProperty("TotalQuantity", out var tq)) {
+                        if (tq.ValueKind == System.Text.Json.JsonValueKind.Number) tQty = tq.GetDecimal();
+                        else if (tq.ValueKind == System.Text.Json.JsonValueKind.String) decimal.TryParse(tq.GetString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tQty);
+                    }
+                    
+                    decimal mkLen = 0;
+                    if (item.TryGetProperty("MarkerLength", out var mkl)) {
+                        if (mkl.ValueKind == System.Text.Json.JsonValueKind.Number) mkLen = mkl.GetDecimal();
+                        else if (mkl.ValueKind == System.Text.Json.JsonValueKind.String) decimal.TryParse(mkl.GetString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out mkLen);
+                    }
+                    
+                    decimal unitMeterage = 0;
+                    if (item.TryGetProperty("UnitMeterage", out var um)) {
+                        if (um.ValueKind == System.Text.Json.JsonValueKind.Number) unitMeterage = um.GetDecimal();
+                        else if (um.ValueKind == System.Text.Json.JsonValueKind.String) decimal.TryParse(um.GetString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out unitMeterage);
+                    }
+                    
+                    kesimToplam += tQty;
+                    pastalToplam += mkLen;
+                    kesimCount++;
+                    
+                    cutRecords.Add(new { 
+                        Name = cName, 
+                        Qty = tQty, 
+                        Length = mkLen,
+                        Multiplier = multiplier,
+                        Sizes = sizesDict,
+                        Date = dateStr,
+                        UnitMeterage = unitMeterage
+                    });
+                }
+            }
+        } catch {}
+    }
+    
+    decimal avgPastal = kesimCount > 0 ? (pastalToplam / kesimCount) : 0;
+    decimal productionYield = Model.CalculatedQuantity > 0 ? (kesimToplam / Model.CalculatedQuantity) * 100 : 0;
+}
+
+<div class="tab-pane fc-dashboard" id="fileclosing">
+    <div class="fc-header">
+        <div>
+            <h1 class="fc-title">Dosya Kapama Özeti</h1>
+            <p class="fc-subtitle">Üretim Raporu: @modelName | Sipariş: @Model.OrderCode</p>
+        </div>
+        <div class="fc-date">
+            <i class="fa-regular fa-calendar"></i> @DateTime.Now.ToString("dd.MM.yyyy")
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="fc-kpi-grid">
+        <div class="fc-kpi-card">
+            <div class="fc-kpi-title">MÜŞTERİ / ATÖLYE</div>
+            <div class="fc-kpi-value" style="font-size: 1.25rem;">@musteri / @atolye</div>
+            <div class="fc-kpi-sub">Model: @modelName (@color)</div>
+        </div>
+        <div class="fc-kpi-card">
+            <div class="fc-kpi-title">TOPLAM MALİYET</div>
+            <div class="fc-kpi-value"><span id="kpi_total_cost">0</span> TL</div>
+            <div class="fc-kpi-sub"><i class="fa-solid fa-file-invoice-dollar"></i> Hesaplanan Giderler</div>
+        </div>
+        <div class="fc-kpi-card">
+            <div class="fc-kpi-title">NET KAR / ZARAR</div>
+            <div class="fc-kpi-value" id="kpi_net_profit_val" style="color: #f59e0b;">0 TL</div>
+            <div class="fc-kpi-sub" id="kpi_net_profit_sub"><i class="fa-solid fa-chart-line"></i> ~ 0% Verimlilik</div>
+        </div>
+        <div class="fc-kpi-card">
+            <div class="fc-kpi-title">ÜRETİM VERİMİ</div>
+            <div class="fc-kpi-value">@productionYield.ToString("N2")%</div>
+            <div class="fc-kpi-sub">Plan: @Model.CalculatedQuantity | Kesilen: @kesimToplam.ToString("N0")</div>
+        </div>
+    </div>
+
+    <div class="fc-main-grid">
+        <!-- LEFT COLUMN -->
+        <div>
+            <!-- KESIM DETAYLARI -->
+            <div class="fc-panel">
+                <div class="fc-panel-header">
+                    KESİM DETAYLARI (MODEL BAZLI)
+                    <i class="fa-solid fa-ellipsis" style="color:#cbd5e1;"></i>
+                </div>
+                <table class="fc-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="text-start" style="vertical-align: middle;">Kesim Adı</th>
+                            <th rowspan="2" class="text-center" style="vertical-align: middle;">Kat Sayısı</th>
+                            @if(allSizes.Count > 0) {
+                                <th class="text-center" colspan="@allSizes.Count" style="border-bottom: 1px solid #cbd5e1;">Bedenler</th>
+                            } else {
+                                <th class="text-center" rowspan="2" style="vertical-align: middle;">Bedenler</th>
+                            }
+                            <th rowspan="2" class="text-end" style="vertical-align: middle;">Çık Adet</th>
+                            <th rowspan="2" class="text-end" style="vertical-align: middle;">Pastal Boyu</th>
+                            <th rowspan="2" class="text-end" style="vertical-align: middle;">Birim Metraj</th>
+                            <th rowspan="2" class="text-center" style="vertical-align: middle;">Tarih</th>
+                            <th rowspan="2" class="text-end" style="vertical-align: middle;">Metraj Çarpımı</th>
+                        </tr>
+                        @if(allSizes.Count > 0) {
+                            <tr>
+                                @foreach(var s in allSizes) {
+                                    <th class="text-center" style="font-size:0.8rem; background:#f8fafc; color:#64748b; padding: 4px;">@s</th>
+                                }
+                            </tr>
+                        }
+                    </thead>
+                    <tbody>
+                        @if(cutRecords.Any()) {
+                            decimal carpimToplam = 0;
+                            foreach(var c in cutRecords) {
+                                decimal carpim = c.Qty * c.Length;
+                                carpimToplam += carpim;
+                                <tr>
+                                    <td class="text-start" style="font-weight: 600;">@c.Name</td>
+                                    <td class="text-center">@c.Multiplier</td>
+                                    @if(allSizes.Count > 0) {
+                                        foreach(var s in allSizes) {
+                                            var szDict = c.Sizes as Dictionary<string, int>;
+                                            int sVal = szDict != null && szDict.ContainsKey(s) ? szDict[s] : 0;
+                                            <td class="text-center">@(sVal > 0 ? sVal.ToString() : "")</td>
+                                        }
+                                    } else {
+                                        <td class="text-center">-</td>
+                                    }
+                                    <td class="text-end" style="font-weight: 700;">@c.Qty.ToString("N0")</td>
+                                    <td class="text-end">@c.Length.ToString("N2")</td>
+                                    <td class="text-end">@c.UnitMeterage.ToString("N2")</td>
+                                    <td class="text-center">@c.Date</td>
+                                    <td class="text-end" style="color: #3b82f6; font-weight: 600;">@carpim.ToString("N2")</td>
+                                </tr>
+                            }
+                            <tr style="background: #0f172a; color: white;">
+                                <td colspan="@(2 + Math.Max(1, allSizes.Count))" class="text-end" style="border: none; color: white; padding-right: 15px;">TOPLAM</td>
+                                <td class="text-end" style="border: none; color: white; font-weight: 700;">@kesimToplam.ToString("N0")</td>
+                                <td class="text-end" style="border: none; color: white;">@avgPastal.ToString("N2") (ort)</td>
+                                <td class="text-end" style="border: none; color: white;"></td>
+                                <td class="text-center" style="border: none; color: white;"></td>
+                                <td class="text-end" style="border: none; color: white; font-weight: 700;">@carpimToplam.ToString("N2")</td>
+                            </tr>
+                        } else {
+                            <tr><td colspan="@(7 + Math.Max(1, allSizes.Count))" class="text-center text-muted">Kesim kaydı bulunamadı.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- GIDERLER -->
+            <div class="fc-panel">
+                <div class="fc-panel-header">
+                    GİDERLER (AKSESUAR & OPERASYON)
+                </div>
+                <table class="fc-table fc-table-inputs" id="fc_expenses_table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Cinsi</th>
+                            <th style="width: 20%; text-align: right;">Adet</th>
+                            <th style="width: 20%; text-align: right;">Fiyat (TL)</th>
+                            <th style="width: 20%; text-align: right;">Tutar (TL)</th>
+                            <th style="width: 40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var purchases = ViewBag.PurchaseMovements as List<UretimPlanlama.Models.StokHareket>;
+                            bool hasPurchases = purchases != null && purchases.Any();
+                        }
+                        
+                        @if (hasPurchases) {
+                            foreach(var p in purchases) {
+                                string pName = p.StokKarti != null ? p.StokKarti.StokAdi : "Alınan Ürün";
+                                decimal pQty = p.Miktar;
+                                decimal pPrice = p.StokKarti != null ? (p.StokKarti.BirimFiyat ?? 0) : 0;
+                                <tr>
+                                    <td><input type="text" class="fc-exp-name" value="@pName"></td>
+                                    <td><input type="text" class="fc-exp-qty text-end" value="@pQty.ToString(System.Globalization.CultureInfo.InvariantCulture)" oninput="calculateFileClosing()"></td>
+                                    <td><input type="text" class="fc-exp-price text-end" value="@pPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)" oninput="calculateFileClosing()"></td>
+                                    <td class="fc-exp-total text-end">0.00</td>
+                                    <td class="text-center"><button class="btn btn-sm text-danger py-0 px-1" onclick="$(this).closest('tr').remove(); calculateFileClosing();"><i class="fa-solid fa-times"></i></button></td>
+                                </tr>
+                            }
+                        } else {
+                            <tr>
+                                <td><input type="text" class="fc-exp-name" value="KUMAŞ GİDERİ"></td>
+                                <td><input type="text" class="fc-exp-qty text-end" value="@kesimToplam" oninput="calculateFileClosing()"></td>
+                                <td><input type="text" class="fc-exp-price text-end" value="0" oninput="calculateFileClosing()"></td>
+                                <td class="fc-exp-total text-end">0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" class="fc-exp-name" value="AKSESUARLAR"></td>
+                                <td><input type="text" class="fc-exp-qty text-end" value="1" oninput="calculateFileClosing()"></td>
+                                <td><input type="text" class="fc-exp-price text-end" value="0" oninput="calculateFileClosing()"></td>
+                                <td class="fc-exp-total text-end">0.00</td>
+                                <td></td>
+                            </tr>
+                        }
+                        
+                        <tr>
+                            <td><input type="text" class="fc-exp-name" value="DİKİM (Fason)"></td>
+                            <td><input type="text" class="fc-exp-qty text-end" value="@kesimToplam" oninput="calculateFileClosing()"></td>
+                            <td><input type="text" class="fc-exp-price text-end" value="0" oninput="calculateFileClosing()"></td>
+                            <td class="fc-exp-total text-end">0.00</td>
+                            <td class="text-center"><button class="btn btn-sm text-danger py-0 px-1" onclick="$(this).closest('tr').remove(); calculateFileClosing();"><i class="fa-solid fa-times"></i></button></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" class="fc-exp-name" value="YIKAMA"></td>
+                            <td><input type="number" class="fc-exp-qty text-end" value="@kesimToplam" oninput="calculateFileClosing()"></td>
+                            <td><input type="number" class="fc-exp-price text-end" value="0" oninput="calculateFileClosing()"></td>
+                            <td class="fc-exp-total text-end">0.00</td>
+                            <td class="text-center"><button class="btn btn-sm text-danger py-0 px-1" onclick="$(this).closest('tr').remove(); calculateFileClosing();"><i class="fa-solid fa-times"></i></button></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" class="fc-exp-name" value="NAKLİYELER"></td>
+                            <td><input type="number" class="fc-exp-qty text-end" value="1" oninput="calculateFileClosing()"></td>
+                            <td><input type="number" class="fc-exp-price text-end" value="0" oninput="calculateFileClosing()"></td>
+                            <td class="fc-exp-total text-end">0.00</td>
+                            <td class="text-center"><button class="btn btn-sm text-danger py-0 px-1" onclick="$(this).closest('tr').remove(); calculateFileClosing();"><i class="fa-solid fa-times"></i></button></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-center bg-white border-bottom">
+                                <button class="btn btn-sm text-secondary" style="font-weight: 600;" onclick="addExpenseRow()"><i class="fa-solid fa-plus"></i> Gider Satırı Ekle</button>
+                            </td>
+                        </tr>
+                        <tr style="background: #f8fafc; color: #64748b;">
+                            <td colspan="3" class="text-end">GİDER TOPLAMI</td>
+                            <td class="text-end" id="fc_total_expense_foot" style="color: #0f172a; font-size: 1.1rem; font-weight: 700;">0.00 TL</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+            <!-- FİRE & SAPMA ANALİZİ -->
+            <div class="fc-panel" style="padding: 16px;">
+                <div class="fc-kpi-title" style="margin-bottom: 20px;">FİRE & SAPMA ANALİZİ</div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 0.85rem; color: #475569;">1. Kalite (Sağlam)</span>
+                    <input type="number" id="fc_quality_1" class="fc-quality-input" value="@kesimToplam" oninput="calculateFileClosing()">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 0.85rem; color: #475569;">2. Kalite (Hatalı)</span>
+                    <input type="number" id="fc_quality_2" class="fc-quality-input" value="0" oninput="calculateFileClosing()">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 0.85rem; color: #475569;">3. Kalite / İade</span>
+                    <input type="number" id="fc_quality_3" class="fc-quality-input" value="0" oninput="calculateFileClosing()">
+                </div>
+                
+                <div style="height: 1px; background: #e2e8f0; margin: 16px 0;"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">Eksik / Fire Adet</span>
+                    <span id="fc_quality_missing" style="font-weight: 800; color: #ef4444; font-size: 1.1rem;">0</span>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #0f172a;"><i class="fa-solid fa-circle" style="color: #1e3a8a; font-size: 8px; margin-right: 4px;"></i> Kalite Dağılımı</span>
+                    <div class="fc-progress-bar">
+                        <div id="prog_q1" class="fc-progress-segment" style="width: 100%; background: #1e3a8a;" title="1. Kalite"></div>
+                        <div id="prog_q2" class="fc-progress-segment" style="width: 0%; background: #f59e0b;" title="2. Kalite"></div>
+                        <div id="prog_q3" class="fc-progress-segment" style="width: 0%; background: #ef4444;" title="3. Kalite"></div>
+                        <div id="prog_qm" class="fc-progress-segment" style="width: 0%; background: #cbd5e1;" title="Eksik"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #64748b;">
+                        <span id="lbl_q1">1. Kalite (100%)</span>
+                        <span id="lbl_q2">2. Kalite (0%)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- GELİR / GİDER DENGESİ -->
+            @if(User.IsInRole("Admin") || User.IsInRole("Yönetici"))
+            {
+                <div class="fc-dark-panel">
+                    <div class="fc-dark-title">GELİR / GİDER DENGESİ</div>
+                    
+                    <div class="fc-dark-row">
+                        <div class="fc-dark-label">TOPLAM GELİR</div>
+                        <div style="display: flex; align-items: baseline; gap: 8px;">
+                            <input type="number" id="fc_revenue_input" value="0" oninput="calculateFileClosing()" style="background: transparent; border: none; border-bottom: 2px dashed rgba(255,255,255,0.3); color: #f8fafc; font-size: 2rem; font-weight: 800; width: 70%; outline: none; padding: 0;">
+                            <span class="fc-dark-value">TL</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">* Gelirinizi manuel giriniz.</div>
+                    </div>
+                    
+                    <div class="fc-dark-row">
+                        <div class="fc-dark-label">TOPLAM GİDER</div>
+                        <div class="fc-dark-value" id="fc_dark_expense">0 TL</div>
+                    </div>
+                    
+                    <div class="fc-dark-divider"></div>
+                    
+                    <div class="fc-dark-summary">
+                        <div class="fc-dark-summary-left">
+                            <div class="fc-dark-label">NET FARK</div>
+                            <div class="fc-dark-value" id="fc_dark_profit">0 TL</div>
+                        </div>
+                        <div class="fc-dark-summary-right">
+                            <div class="fc-dark-label">KAR %</div>
+                            <div class="fc-dark-value" id="fc_dark_margin">0%</div>
+                        </div>
+                    </div>
+                    
+                    <button class="fc-btn-print" onclick="saveFileClosing(true)">
+                        <i class="fa-solid fa-lock" style="margin-right: 6px;"></i> Dosyayı Kapat ve Kaydet
+                    </button>
+                    
+                    <button class="fc-btn-draft" onclick="saveFileClosing(false)">
+                        <i class="fa-solid fa-save" style="margin-right: 6px;"></i> Sadece Taslak Kaydet
+                    </button>
+                </div>
+                
+                <div class="fc-note-panel">
+                    Dosya Kapatma Notu<br>
+                    Bu dosya üretimi tamamlanmış olup, tüm sevkiyatlar faturalandırılmıştır. İtiraz süresi x gündür.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary mt-3">
+                    <i class="fa-solid fa-lock"></i> Karlılık analizini görüntüleme ve Dosya Kapatma yetkiniz bulunmamaktadır.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data and Logic
+    const totalCutQty = @kesimToplam.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    const autoPurchases = [
+        @if(purchases != null) {
+            foreach(var p in purchases) {
+                string pName = p.StokKarti != null ? p.StokKarti.StokAdi : "Alınan Ürün";
+                decimal pQty = p.Miktar;
+                decimal pPrice = p.StokKarti != null ? (p.StokKarti.BirimFiyat ?? 0) : 0;
+                @Html.Raw($"{{ name: '{pName}', qty: {pQty.ToString(System.Globalization.CultureInfo.InvariantCulture)}, price: {pPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)} }},")
+            }
+        }
+    ];
+    
+    function initFileClosing() {
+        // Parse Existing FileClosingJson if exists
+        let existingData = @Html.Raw(string.IsNullOrEmpty(Model.FileClosingJson) ? "null" : Model.FileClosingJson);
+        
+        if (existingData) {
+            // Populate fields
+            if(existingData.quality1 !== undefined) $('#fc_quality_1').val(existingData.quality1);
+            if(existingData.quality2 !== undefined) $('#fc_quality_2').val(existingData.quality2);
+            if(existingData.quality3 !== undefined) $('#fc_quality_3').val(existingData.quality3);
+            
+            // Check old revenue logic vs new revenue input
+            if(existingData.revenueTotal !== undefined) {
+                $('#fc_revenue_input').val(existingData.revenueTotal);
+            } else if (existingData.revenues && existingData.revenues.length > 0) {
+                let s = 0;
+                existingData.revenues.forEach(r => s += parseFloat(r.amount) || 0);
+                $('#fc_revenue_input').val(s);
+            }
+            
+            // Populate Expenses
+            if (existingData.expenses && existingData.expenses.length > 0) {
+                $('#fc_expenses_table tbody').empty();
+                existingData.expenses.forEach(e => {
+                    let eQtyStr = String(e.qty || '0').replace(',', '.');
+                    let ePriceStr = String(e.price || '0').replace(',', '.');
+                    addExpenseRow(e.name, eQtyStr, ePriceStr);
+                });
+                
+                // Append any autoPurchases that are NOT in existingData
+                autoPurchases.forEach(ap => {
+                    if (!existingData.expenses.some(e => e.name === ap.name)) {
+                        addExpenseRow(ap.name, ap.qty, ap.price);
+                    }
+                });
+            }
+        }
+        
+        calculateFileClosing();
+    }
+
+    function addExpenseRow(name = '', qty = 0, price = 0) {
+        let tr = `<tr>
+            <td><input type="text" class="fc-exp-name" value="${name}"></td>
+            <td><input type="text" class="fc-exp-qty text-end" value="${qty}" oninput="calculateFileClosing()"></td>
+            <td><input type="text" class="fc-exp-price text-end" value="${price}" oninput="calculateFileClosing()"></td>
+            <td class="fc-exp-total text-end">0.00</td>
+            <td class="text-center"><button class="btn btn-sm text-danger py-0 px-1" onclick="$(this).closest('tr').remove(); calculateFileClosing();"><i class="fa-solid fa-times"></i></button></td>
+        </tr>`;
+        $('#fc_expenses_table tbody').append(tr);
+    }
+    
+    function parseTurkishFloat(str) {
+        if (!str) return 0;
+        let s = String(str).trim();
+        if (s.indexOf(',') > -1 && s.indexOf('.') > -1) {
+            s = s.replace(/\./g, '');
+            s = s.replace(',', '.');
+        } else if (s.indexOf(',') > -1) {
+            s = s.replace(',', '.');
+        }
+        return parseFloat(s) || 0;
+    }
+
+    function calculateFileClosing() {
+        try {
+            // 1. Missing Qty (Eksik Adet) & Progress Bar
+            let q1 = parseFloat($('#fc_quality_1').val()) || 0;
+            let q2 = parseFloat($('#fc_quality_2').val()) || 0;
+            let q3 = parseFloat($('#fc_quality_3').val()) || 0;
+            let missing = totalCutQty - (q1 + q2 + q3);
+            
+            $('#fc_quality_missing').text(missing);
+            
+            let targetTotal = totalCutQty > 0 ? totalCutQty : 1;
+            let p1 = (q1 / targetTotal) * 100;
+            let p2 = (q2 / targetTotal) * 100;
+            let p3 = (q3 / targetTotal) * 100;
+            let pm = (missing > 0 ? missing / targetTotal : 0) * 100;
+            
+            $('#prog_q1').css('width', p1 + '%');
+            $('#prog_q2').css('width', p2 + '%');
+            $('#prog_q3').css('width', p3 + '%');
+            $('#prog_qm').css('width', Math.max(0, pm) + '%');
+            
+            $('#lbl_q1').text('1. Kalite (' + p1.toFixed(1) + '%)');
+            $('#lbl_q2').text('2. Kalite (' + p2.toFixed(1) + '%)');
+            
+            // 2. Expenses
+            let totalExp = 0;
+            $('#fc_expenses_table tbody tr').each(function() {
+                let qtyStr = $(this).find('.fc-exp-qty').val() || "0";
+                let priceStr = $(this).find('.fc-exp-price').val() || "0";
+                
+                let qty = parseTurkishFloat(qtyStr);
+                let price = parseTurkishFloat(priceStr);
+                
+                let rowTotal = qty * price;
+                $(this).find('.fc-exp-total').text(rowTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                totalExp += rowTotal;
+            });
+        
+        let expStr = totalExp.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        $('#fc_total_expense_foot').text(expStr + ' TL');
+        $('#kpi_total_cost').text(expStr);
+        if($('#fc_dark_expense').length) $('#fc_dark_expense').text(expStr + ' TL');
+        
+        // 3. Profit Summary
+        if($('#fc_revenue_input').length) {
+            let totalRev = parseFloat($('#fc_revenue_input').val()) || 0;
+            let profit = totalRev - totalExp;
+            
+            let profitStr = profit.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            $('#fc_dark_profit').text(profitStr + ' TL');
+            $('#kpi_net_profit_val').text(profitStr + ' TL');
+            
+            if(profit >= 0) {
+                $('#fc_dark_profit').css('color', '#10b981'); // Greenish
+                $('#kpi_net_profit_val').css('color', '#10b981');
+                $('#fc_dark_margin').css('color', '#10b981');
+            } else {
+                $('#fc_dark_profit').css('color', '#ef4444'); // Red
+                $('#kpi_net_profit_val').css('color', '#ef4444');
+                $('#fc_dark_margin').css('color', '#ef4444');
+            }
+            
+            let profitMargin = totalRev > 0 ? (profit / totalRev) * 100 : 0;
+            let marginStr = profitMargin.toFixed(1) + '%';
+            $('#fc_dark_margin').text(marginStr);
+            $('#kpi_net_profit_sub').html(`<i class="fa-solid fa-chart-line"></i> ~ ${marginStr} Kar Marjı`);
+        }
+        } catch (err) {
+            console.error("calculateFileClosing error:", err);
+        }
+    }
+    
+    function saveFileClosing(completeOrder) {
+        if (completeOrder) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Dosyayı Kapat?',
+                    text: "Siparişi kapatmak ve 'Tamamlandı' statüsüne almak istediğinize emin misiniz?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0b4e96',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Evet, Kapat',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        executeSaveFileClosing(completeOrder);
+                    }
+                });
+            } else {
+                if (confirm("Siparişi kapatmak ve 'Tamamlandı' statüsüne almak istediğinize emin misiniz?")) {
+                    executeSaveFileClosing(completeOrder);
+                }
+            }
+        } else {
+            executeSaveFileClosing(completeOrder);
+        }
+    }
+
+    function executeSaveFileClosing(completeOrder) {
+        let data = {
+            quality1: parseFloat($('#fc_quality_1').val()) || 0,
+            quality2: parseFloat($('#fc_quality_2').val()) || 0,
+            quality3: parseFloat($('#fc_quality_3').val()) || 0,
+            revenueTotal: parseFloat($('#fc_revenue_input').val()) || 0,
+            expenses: []
+        };
+        
+        $('#fc_expenses_table tbody tr').each(function() {
+            let n = $(this).find('.fc-exp-name').val();
+            let q = parseTurkishFloat($(this).find('.fc-exp-qty').val());
+            let p = parseTurkishFloat($(this).find('.fc-exp-price').val());
+            if (n) data.expenses.push({ name: n, qty: q, price: p });
+        });
+        
+        let jsonData = JSON.stringify(data);
+        
+        $.post('/ProcessTracking/SaveFileClosing', { orderId: orderId, fileClosingJson: jsonData, completeOrder: completeOrder }, function(res) {
+            if(res.success) {
+                showToast(completeOrder ? "Sipariş kapatıldı!" : "Dosya kapama taslağı kaydedildi.", "success");
+                if (completeOrder) {
+                    setTimeout(() => location.href = '/Order', 1500);
+                }
+            } else {
+                showToast("Hata: " + res.message, "danger");
+            }
+        });
+    }
+
+    // Initialize on load (pure JS to avoid $ is not defined error before jQuery loads)
+    window.addEventListener('load', function() {
+        let tab = document.getElementById('fileclosing-tab');
+        if (tab) {
+            tab.addEventListener('click', function() {
+                setTimeout(initFileClosing, 50);
+                setTimeout(calculateFileClosing, 100);
+                setTimeout(calculateFileClosing, 300);
+                setTimeout(calculateFileClosing, 600);
+            });
+        }
+        
+        // Try initial calculation multiple times to ensure rendering completes
+        setTimeout(initFileClosing, 50);
+        setTimeout(calculateFileClosing, 150);
+        setTimeout(calculateFileClosing, 400);
+        setTimeout(calculateFileClosing, 800);
+    });
+</script>

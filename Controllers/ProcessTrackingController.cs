@@ -25,7 +25,7 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction("AccessDenied", "Account");
 
             var orders = _context.Orders
-                .Where(o => o.Status != "İptal Edildi" && o.Status != "Tamamlandı")
+                .Where(o => o.Status != "İptal Edildi")
                 .OrderByDescending(o => o.OrderDate)
                 .ToList();
             return View(orders);
@@ -63,6 +63,7 @@ namespace UretimPlanlama.Controllers
             ViewBag.SalesMovements = salesMovements;
 
             var purchaseMovements = _context.StokHareketler
+                .Include(sh => sh.StokKarti)
                 .Where(sh => sh.OrderId == id && sh.HareketTipi == "Giriş")
                 .ToList();
             ViewBag.PurchaseMovements = purchaseMovements;
@@ -170,6 +171,26 @@ namespace UretimPlanlama.Controllers
             if (order == null) return Json(new { success = false, message = "Sipariş bulunamadı" });
 
             order.CuttingProcessJson = request.CuttingProcessJson;
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult SaveFileClosing(int orderId, string fileClosingJson, bool completeOrder)
+        {
+            if (!User.HasPermission("Write")) return Json(new { success = false, message = "Yetkisiz" });
+
+            var order = _context.Orders.Find(orderId);
+            if (order == null) return Json(new { success = false, message = "Sipariş bulunamadı" });
+
+            order.FileClosingJson = fileClosingJson;
+            
+            if (completeOrder)
+            {
+                order.Status = "Tamamlandı";
+            }
+
             _context.SaveChanges();
 
             return Json(new { success = true });
