@@ -211,6 +211,12 @@ namespace UretimPlanlama.Controllers
                 }
 
                 order.ProductionJson = System.Text.Json.JsonSerializer.Serialize(dict);
+
+                // Atölye seçimi SewingWorkshop alanına da kaydediliyor (Atölye Tanım sayfası bu alandan okur)
+                if (dict.TryGetValue("prod_dikim_atolyesi", out var dikimAtolye) && !string.IsNullOrEmpty(dikimAtolye))
+                {
+                    order.SewingWorkshop = dikimAtolye;
+                }
                 
                 if (form.ContainsKey("IsProductionCompleted")) {
                     order.IsProductionCompleted = form["IsProductionCompleted"] == "true";

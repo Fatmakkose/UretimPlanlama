@@ -23,6 +23,7 @@ namespace UretimPlanlama.Controllers
             {
                 return RedirectToAction("AccessDenied", "Account");
             }
+            SyncWorkshopsToCariHesaplar();
             var hesaplar = _context.CariHesaplar.OrderByDescending(h => h.OlusturmaTarihi).ToList();
             ViewBag.Orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
             ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
@@ -39,6 +40,7 @@ namespace UretimPlanlama.Controllers
             if (!User.HasPermission("View"))
                 return RedirectToAction("AccessDenied", "Account");
 
+            SyncWorkshopsToCariHesaplar();
             ViewBag.CariHesaplar = _context.CariHesaplar.Where(c => c.Aktif).OrderBy(c => c.HesapAdi).ToList();
             ViewBag.StokKartlari = _context.StokKartlari.Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
             ViewBag.Orders = _context.Orders.Where(o => o.Status != "Tamamlandı" && o.Status != "İptal Edildi").OrderByDescending(o => o.OrderDate).ToList();
@@ -88,7 +90,8 @@ namespace UretimPlanlama.Controllers
                     var order = _context.Orders.Find(model.OrderId.Value);
                     if (order != null)
                     {
-                        var orderInfo = $"[Sipariş: {order.OrderCode} - {order.ModelName}]";
+                        var colorStr = !string.IsNullOrWhiteSpace(order.Color) ? $" - {order.Color}" : "";
+                        var orderInfo = $"[Sipariş: {order.OrderCode} - {order.ModelName}{colorStr}]";
                         finalAciklama = string.IsNullOrEmpty(model.Aciklama) 
                             ? orderInfo 
                             : $"{model.Aciklama} {orderInfo}";
@@ -187,6 +190,7 @@ namespace UretimPlanlama.Controllers
             if (!User.HasPermission("View"))
                 return RedirectToAction("AccessDenied", "Account");
 
+            SyncWorkshopsToCariHesaplar();
             ViewBag.CariHesaplar = _context.CariHesaplar.Where(c => c.Aktif).OrderBy(c => c.HesapAdi).ToList();
             ViewBag.StokKartlari = _context.StokKartlari.Include(s => s.Varyantlar).Where(s => s.Aktif).OrderBy(s => s.StokAdi).ToList();
             ViewBag.Orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
@@ -236,7 +240,8 @@ namespace UretimPlanlama.Controllers
                     var order = _context.Orders.Find(model.OrderId.Value);
                     if (order != null)
                     {
-                        var orderInfo = $"[Sipariş: {order.OrderCode} - {order.ModelName}]";
+                        var colorStr = !string.IsNullOrWhiteSpace(order.Color) ? $" - {order.Color}" : "";
+                        var orderInfo = $"[Sipariş: {order.OrderCode} - {order.ModelName}{colorStr}]";
                         finalAciklama = string.IsNullOrEmpty(model.Aciklama) 
                             ? orderInfo 
                             : $"{model.Aciklama} {orderInfo}";
@@ -701,6 +706,76 @@ namespace UretimPlanlama.Controllers
                     return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CariHareketler.xlsx");
                 }
             }
+        }
+
+        private void SyncWorkshopsToCariHesaplar()
+        {
+            try
+            {
+                var workshops = _context.Workshops.ToList();
+                if (!workshops.Any()) return;
+
+                bool hasChanges = false;
+                var existingCaris = _context.CariHesaplar.ToList();
+
+                int maxNum = 0;
+                foreach (var c in existingCaris)
+                {
+                    if (!string.IsNullOrEmpty(c.HesapKodu) && c.HesapKodu.StartsWith("CRH-"))
+                    {
+                        if (int.TryParse(c.HesapKodu.Replace("CRH-", ""), out int num))
+                        {
+                            if (num > maxNum) maxNum = num;
+                        }
+                    }
+                }
+
+                foreach (var ws in workshops)
+                {
+                    if (string.IsNullOrWhiteSpace(ws.Name)) continue;
+                    var wsName = ws.Name.Trim();
+
+                    var matchingCari = existingCaris.FirstOrDefault(c => c.HesapAdi.Equals(wsName, StringComparison.OrdinalIgnoreCase));
+                    if (matchingCari == null)
+                    {
+                        maxNum++;
+                        while (existingCaris.Any(c => c.HesapKodu == $"CRH-{maxNum:D4}"))
+                        {
+                            maxNum++;
+                        }
+
+                        var newCari = new CariHesap
+                        {
+                            HesapKodu = $"CRH-{maxNum:D4}",
+                            HesapAdi = wsName,
+                            HesapTipi = "Fason Atölye",
+                            Telefon = ws.AuthorizedPerson,
+                            Adres = ws.Address,
+                            Aktif = ws.IsActive,
+                            OlusturmaTarihi = DateTime.Now,
+                            Bakiye = 0
+                        };
+                        _context.CariHesaplar.Add(newCari);
+                        existingCaris.Add(newCari);
+                        hasChanges = true;
+                    }
+                    else
+                    {
+                        if (matchingCari.Aktif != ws.IsActive)
+                        {
+                            matchingCari.Aktif = ws.IsActive;
+                            _context.CariHesaplar.Update(matchingCari);
+                            hasChanges = true;
+                        }
+                    }
+                }
+
+                if (hasChanges)
+                {
+                    _context.SaveChanges();
+                }
+            }
+            catch { }
         }
     }
 }

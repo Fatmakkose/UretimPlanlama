@@ -706,7 +706,9 @@
                         fabricator: row.find('.row-fabricator').val() || "",
                         openSizes: row.data('openSizes') || {},
                         asortiSizes: row.data('asortiSizes') || {},
-                        asortiCount: row.find('.row-asorti-count').val() || "0"
+                        asortiCount: row.find('.row-asorti-count').val() || "0",
+                        openSpecialCode: row.find('.row-open-special-code').val() || "",
+                        asortiSpecialCode: row.find('.row-asorti-special-code').val() || ""
                     };
                     data.push(rowData);
                 });
@@ -741,6 +743,8 @@
                 var unitPrice = savedData ? savedData.unitPrice : "";
                 var fabricator = savedData ? savedData.fabricator : "";
                 var asortiCount = savedData ? savedData.asortiCount : "0";
+                var openSpecialCode = savedData ? (savedData.openSpecialCode || "") : "";
+                var asortiSpecialCode = savedData ? (savedData.asortiSpecialCode || "") : "";
 
                 var openSizes = (savedData && savedData.openSizes) ? savedData.openSizes : {};
                 var asortiSizes = (savedData && savedData.asortiSizes) ? savedData.asortiSizes : {};
@@ -830,6 +834,11 @@
                                     ${openSizesHtml}
                                 </div>
                                 <input type="hidden" class="row-open-total" value="0" />
+
+                                <div style="margin-top:16px; padding-top:12px; border-top:1px dashed #cbd5e1;">
+                                    <label style="font-size: 0.8rem; font-weight: 600; color:#475569; margin-bottom:4px; display:block;"><i class="fa-solid fa-barcode" style="margin-right:4px; color:#0284c7;"></i> Özel Kod (Açık Adet)</label>
+                                    <input type="text" class="form-control row-open-special-code" value="${openSpecialCode}" placeholder="Örn: ACK-001" style="height:32px; font-size:0.85rem;" />
+                                </div>
                             </div>
 
                             <!-- Asorti Adetleri -->
@@ -858,13 +867,18 @@
                                 
                                 <div style="margin-top:16px; padding-top:12px; border-top:1px dashed #cbd5e1; display:flex; gap:12px;">
                                     <div style="flex:1;">
-                                        <label style="font-size: 0.8rem; font-weight: 600; color:#475569;">Lot Sayısı</label>
+                                        <label style="font-size: 0.8rem; font-weight: 600; color:#475569;">Toplam Asorti Sayısı</label>
                                         <input type="number" min="0" class="form-control asorti-count row-asorti-count" value="${asortiCount}" placeholder="Örn: 50" style="height:32px; font-size:0.85rem;" />
                                     </div>
                                     <div style="flex:1;">
                                         <label style="font-size: 0.8rem; font-weight: 600; color:#475569;">Toplam Asorti Sipariş</label>
                                         <input type="number" class="form-control row-asorti-final" readonly style="height:32px; font-size:0.85rem; background:#f8fafc; font-weight:bold; color:#16a34a; border-color:#e2e8f0;" value="0" />
                                     </div>
+                                </div>
+
+                                <div style="margin-top:12px; padding-top:8px;">
+                                    <label style="font-size: 0.8rem; font-weight: 600; color:#475569; margin-bottom:4px; display:block;"><i class="fa-solid fa-barcode" style="margin-right:4px; color:#16a34a;"></i> Özel Kod (Asorti)</label>
+                                    <input type="text" class="form-control row-asorti-special-code" value="${asortiSpecialCode}" placeholder="Örn: ASR-001" style="height:32px; font-size:0.85rem;" />
                                 </div>
                             </div>
                         </div>
@@ -1163,6 +1177,8 @@
 
                     orderObj.Color = row.find('.row-color').val();
                     orderObj.OptionCode = "";
+                    orderObj.OpenSpecialCode = row.find('.row-open-special-code').val() || "";
+                    orderObj.AsortiSpecialCode = row.find('.row-asorti-special-code').val() || "";
                     orderObj.PlannedPackagingEndDate = row.find('.row-inspection-date').val() || null;
                     orderObj.RevisedInspectionDate = row.find('.row-revised-inspection-date').val() || null;
                     orderObj.FabricSupplier = row.find('.row-fabricator').val() || "";

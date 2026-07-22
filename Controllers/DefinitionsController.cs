@@ -30,11 +30,36 @@ namespace UretimPlanlama.Controllers
             {
                 return Json(new { success = false, message = "Atölye bulunamadı." });
             }
-            var orders = _context.Orders
-                .Where(o => o.SewingWorkshop == workshop.Name || (o.ProductionJson != null && o.ProductionJson.Contains(workshop.Name)))
-                .OrderByDescending(o => o.OrderDate)
+
+            var allOrders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
+
+            // Atölye adına göre siparişleri bul:
+            // 1. SewingWorkshop alanı (UpdateProductionPlan ile kaydedilen)
+            // 2. ProductionPlace alanı
+            // 3. ProductionJson içindeki prod_dikim_atolyesi, prod_kesim_atolyesi, prod_paketleme_atolyesi key'leri
+            var orders = allOrders
+                .Where(o => o.Status != "İptal Edildi" &&
+                    (o.SewingWorkshop == workshop.Name ||
+                     o.ProductionPlace == workshop.Name ||
+                     IsWorkshopInProductionJson(o.ProductionJson, workshop.Name)))
                 .ToList();
+
             return Json(new { success = true, workshop = workshop, orders = orders });
+        }
+
+        private bool IsWorkshopInProductionJson(string? json, string workshopName)
+        {
+            if (string.IsNullOrEmpty(json)) return false;
+            try
+            {
+                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                if (dict == null) return false;
+                if (dict.TryGetValue("prod_dikim_atolyesi", out var dikim) && dikim == workshopName) return true;
+                if (dict.TryGetValue("prod_kesim_atolyesi", out var kesim) && kesim == workshopName) return true;
+                if (dict.TryGetValue("prod_paketleme_atolyesi", out var paket) && paket == workshopName) return true;
+            }
+            catch { }
+            return false;
         }
 
         public IActionResult CreateWorkshop()
@@ -49,6 +74,7 @@ namespace UretimPlanlama.Controllers
             {
                 _context.Workshops.Add(model);
                 _context.SaveChanges();
+                SyncWorkshopToCari(model);
                 TempData["SuccessMessage"] = "Atölye veritabanına başarıyla eklendi.";
                 return RedirectToAction("Workshops");
             }
@@ -82,6 +108,7 @@ namespace UretimPlanlama.Controllers
                     ws.Address = model.Address;
 
                     _context.SaveChanges();
+                    SyncWorkshopToCari(ws);
                     TempData["SuccessMessage"] = "Atölye kapasite ve bilgileri başarıyla güncellendi.";
                     return RedirectToAction("Workshops");
                 }
@@ -219,9 +246,63 @@ namespace UretimPlanlama.Controllers
             {
                 workshop.IsActive = !workshop.IsActive;
                 _context.SaveChanges();
+                SyncWorkshopToCari(workshop);
                 return Json(new { success = true, isActive = workshop.IsActive });
             }
             return Json(new { success = false });
+        }
+
+        private void SyncWorkshopToCari(Workshop ws)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(ws.Name)) return;
+                var wsName = ws.Name.Trim();
+
+                var existingCaris = _context.CariHesaplar.ToList();
+                var matchingCari = existingCaris.FirstOrDefault(c => c.HesapAdi.Equals(wsName, StringComparison.OrdinalIgnoreCase));
+                if (matchingCari == null)
+                {
+                    int maxNum = 0;
+                    foreach (var c in existingCaris)
+                    {
+                        if (!string.IsNullOrEmpty(c.HesapKodu) && c.HesapKodu.StartsWith("CRH-"))
+                        {
+                            if (int.TryParse(c.HesapKodu.Replace("CRH-", ""), out int num))
+                            {
+                                if (num > maxNum) maxNum = num;
+                            }
+                        }
+                    }
+                    maxNum++;
+                    while (existingCaris.Any(c => c.HesapKodu == $"CRH-{maxNum:D4}"))
+                    {
+                        maxNum++;
+                    }
+
+                    var newCari = new CariHesap
+                    {
+                        HesapKodu = $"CRH-{maxNum:D4}",
+                        HesapAdi = wsName,
+                        HesapTipi = "Fason Atölye",
+                        Telefon = ws.AuthorizedPerson,
+                        Adres = ws.Address,
+                        Aktif = ws.IsActive,
+                        OlusturmaTarihi = DateTime.Now,
+                        Bakiye = 0
+                    };
+                    _context.CariHesaplar.Add(newCari);
+                }
+                else
+                {
+                    matchingCari.Aktif = ws.IsActive;
+                    matchingCari.Telefon = ws.AuthorizedPerson;
+                    matchingCari.Adres = ws.Address;
+                    _context.CariHesaplar.Update(matchingCari);
+                }
+                _context.SaveChanges();
+            }
+            catch { }
         }
 
         [HttpPost]

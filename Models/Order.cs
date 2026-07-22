@@ -101,6 +101,8 @@ namespace UretimPlanlama.Models
         public string? Color { get; set; }
 
         public string? OptionCode { get; set; } // Renk bazlı model/varyant numarası
+        public string? OpenSpecialCode { get; set; } // Açık Adet Özel Kodu
+        public string? AsortiSpecialCode { get; set; } // Asorti Adet Özel Kodu
         public string? SizeDistributionJson { get; set; } // Dinamik Açık Beden Dağılımı JSON
         public string? AsortiDistributionJson { get; set; } // Dinamik Asorti Dağılımı JSON
         public string? SelectedAccessoriesJson { get; set; } // Seçilen Aksesuarlar JSON
@@ -270,6 +272,7 @@ namespace UretimPlanlama.Models
 
         // Numune/Test Bilgileri
         public string? SampleTestJson { get; set; } // Numune test bilgileri
+        public string? TalosTestJson { get; set; } // LCW Kumaş Testleri (TALOS) JSON
 
         // Üretim Ekstra Bilgileri
         public string? ProductionJson { get; set; } // Üretim ekstra bilgileri (GS Gidişi, Termin vb.)

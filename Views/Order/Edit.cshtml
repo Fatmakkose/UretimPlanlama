@@ -342,6 +342,14 @@
                 <input id="revizeTerminInput" class="form-control" type="date" value="@revizeTermin" />
                 <input type="hidden" id="hiddenProductionJson" name="ProductionJson" value='@Html.Raw(Model.ProductionJson ?? "{}")' />
             </div>
+            <div class="form-group">
+                <label>Özel Kod (Açık Adet)</label>
+                <input name="OpenSpecialCode" class="form-control" value="@Model.OpenSpecialCode" placeholder="Örn: ACK-001" />
+            </div>
+            <div class="form-group">
+                <label>Özel Kod (Asorti)</label>
+                <input name="AsortiSpecialCode" class="form-control" value="@Model.AsortiSpecialCode" placeholder="Örn: ASR-001" />
+            </div>
         </div>
     </div>
 

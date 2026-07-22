@@ -239,7 +239,8 @@
                 {
                     foreach (var o in orders)
                     {
-                        <option value="@o.Id">@o.OrderCode (@o.ModelName - @o.Color)</option>
+                        var colorStr = !string.IsNullOrWhiteSpace(o.Color) ? $" - {o.Color}" : "";
+                        <option value="@o.Id">@o.OrderCode - @o.ModelName@colorStr</option>
                     }
                 }
             </select>

@@ -65,6 +65,29 @@ app.MapHub<UretimPlanlama.Hubs.NotificationHub>("/notificationHub");
 
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        dbContext.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Orders]') AND name = N'OpenSpecialCode')
+            BEGIN
+                ALTER TABLE [Orders] ADD [OpenSpecialCode] nvarchar(MAX) NULL;
+            END;
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Orders]') AND name = N'AsortiSpecialCode')
+            BEGIN
+                ALTER TABLE [Orders] ADD [AsortiSpecialCode] nvarchar(MAX) NULL;
+            END;
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Orders]') AND name = N'TalosTestJson')
+            BEGIN
+                ALTER TABLE [Orders] ADD [TalosTestJson] nvarchar(MAX) NULL;
+            END;
+        ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Database column auto-migration warning: " + ex.Message);
+    }
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 

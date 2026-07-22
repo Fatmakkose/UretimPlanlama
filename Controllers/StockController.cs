@@ -233,20 +233,30 @@ namespace UretimPlanlama.Controllers
 
                 model.IslemTarihi = model.IslemTarihi == default ? DateTime.Now : model.IslemTarihi;
 
+                var varyant = model.StokVaryantId.HasValue ? _context.StokVaryantlar.Find(model.StokVaryantId.Value) : null;
+
                 // Stok miktarını güncelle
                 switch (model.HareketTipi)
                 {
                     case "Giriş":
                         stok.MevcutMiktar += model.Miktar;
+                        if (varyant != null) varyant.MevcutMiktar += model.Miktar;
                         break;
                     case "Çıkış":
                     case "Fire":
-                        if (stok.MevcutMiktar < model.Miktar)
-                            return Json(new { success = false, message = "Yetersiz stok! Mevcut: " + stok.MevcutMiktar + " " + stok.Birim });
+                        if (stok.MevcutMiktar < model.Miktar || (varyant != null && varyant.MevcutMiktar < model.Miktar))
+                            return Json(new { success = false, message = "Yetersiz stok! Mevcut: " + (varyant != null ? varyant.MevcutMiktar : stok.MevcutMiktar) + " " + stok.Birim });
                         stok.MevcutMiktar -= model.Miktar;
+                        if (varyant != null) varyant.MevcutMiktar -= model.Miktar;
                         break;
                     case "Sayım Düzeltme":
-                        stok.MevcutMiktar = model.Miktar;
+                        if (varyant != null) {
+                            decimal fark = model.Miktar - varyant.MevcutMiktar;
+                            varyant.MevcutMiktar = model.Miktar;
+                            stok.MevcutMiktar += fark; // ana stoğa aradaki farkı yansıt
+                        } else {
+                            stok.MevcutMiktar = model.Miktar;
+                        }
                         break;
                 }
 
@@ -288,15 +298,18 @@ namespace UretimPlanlama.Controllers
                 var stok = _context.StokKartlari.Find(hareket.StokKartiId);
                 if (stok != null)
                 {
+                    var varyant = hareket.StokVaryantId.HasValue ? _context.StokVaryantlar.Find(hareket.StokVaryantId.Value) : null;
                     // Hareketi geri al
                     switch (hareket.HareketTipi)
                     {
                         case "Giriş":
                             stok.MevcutMiktar -= hareket.Miktar;
+                            if (varyant != null) varyant.MevcutMiktar -= hareket.Miktar;
                             break;
                         case "Çıkış":
                         case "Fire":
                             stok.MevcutMiktar += hareket.Miktar;
+                            if (varyant != null) varyant.MevcutMiktar += hareket.Miktar;
                             break;
                     }
                 }
@@ -410,6 +423,39 @@ namespace UretimPlanlama.Controllers
                 _context.SaveChanges();
             }
             return Content($"Tamamlandı. Güncellenen kayıt sayısı: {guncellenen}");
+        }
+        [HttpGet]
+        public IActionResult FixStocks()
+        {
+            var stoklar = _context.StokKartlari.ToList();
+            foreach (var s in stoklar)
+            {
+                var hareketler = _context.StokHareketler.Where(h => h.StokKartiId == s.Id).OrderBy(h => h.IslemTarihi).ThenBy(h => h.Id).ToList();
+                decimal total = 0;
+                foreach(var h in hareketler)
+                {
+                    if (h.HareketTipi == "Giriş") total += h.Miktar;
+                    else if (h.HareketTipi == "Çıkış" || h.HareketTipi == "Fire") total -= h.Miktar;
+                    else if (h.HareketTipi == "Sayım Düzeltme") total = h.Miktar;
+                }
+                s.MevcutMiktar = total;
+
+                var varyantlar = _context.StokVaryantlar.Where(v => v.StokKartiId == s.Id).ToList();
+                foreach (var v in varyantlar)
+                {
+                    var vHareketler = hareketler.Where(h => h.StokVaryantId == v.Id).ToList();
+                    decimal vTotal = 0;
+                    foreach(var h in vHareketler)
+                    {
+                        if (h.HareketTipi == "Giriş") vTotal += h.Miktar;
+                        else if (h.HareketTipi == "Çıkış" || h.HareketTipi == "Fire") vTotal -= h.Miktar;
+                        else if (h.HareketTipi == "Sayım Düzeltme") vTotal = h.Miktar;
+                    }
+                    v.MevcutMiktar = vTotal;
+                }
+            }
+            _context.SaveChanges();
+            return Content("Tüm stok ve varyant miktarları depo hareketlerine göre yeniden hesaplandı ve senkronize edildi.");
         }
     }
 }

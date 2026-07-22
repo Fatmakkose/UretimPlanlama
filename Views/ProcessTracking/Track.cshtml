@@ -67,93 +67,323 @@
             <h2 style="margin: 0; color: #0f172a; padding-bottom: 2px;">@Model.OrderCode</h2>
         </div>
     </div>
-    <div>
-        <button class="btn btn-outline-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Yazdır</button>
-    </div>
 </div>
 
-    <ul class="nav nav-tabs" id="trackTabs" style="margin-bottom: 24px;">
-        <li class="nav-item">
-            <button class="nav-link active" onclick="switchTab('purchase')" id="purchase-tab">Satın Alma Onay</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('dispatch')" id="dispatch-tab">Malzeme Sevk</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('timeline')" id="timeline-tab" style="background: #fdf4ff; color: #a21caf;">Takvim & Planlama <i class="fa-solid fa-calendar-check"></i></button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('cutting')" id="cutting-tab">Kesim Süreci</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('packing')" id="packing-tab">Çeki Listesi</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" onclick="switchTab('fileclosing')" id="fileclosing-tab" style="background: #fdf4ff; color: #db2777;">Dosya Kapama <i class="fa-solid fa-file-signature"></i></button>
-        </li>
+<ul class="nav nav-tabs" id="trackTabs" style="margin-bottom: 20px;">
+    <li class="nav-item">
+        <button class="nav-link active" onclick="switchTab('purchase')" id="purchase-tab">Sevk Onay</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('timeline')" id="timeline-tab" style="background: #fdf4ff; color: #a21caf;">Takvim & Planlama <i class="fa-solid fa-calendar-check"></i></button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('cutting')" id="cutting-tab">Kesim Süreci</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('packing')" id="packing-tab">Çeki Listesi</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" onclick="switchTab('fileclosing')" id="fileclosing-tab" style="background: #fdf4ff; color: #db2777;">Dosya Kapama <i class="fa-solid fa-file-signature"></i></button>
+    </li>
+</ul>
 
-    </ul>
-
-<div id="orderDetailsCard" style="margin-bottom: 24px; background: white; border-radius: 10px; box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; padding: 12px 16px;">
-    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 10px;">
-        <span style="font-weight: 700; color: #0f172a; font-size: 0.9rem;"><i class="fa-solid fa-box-open" style="color: #0ea5e9; margin-right: 6px;"></i>Sipariş Özellikleri</span>
-    </div>
-    
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
-        <div style="background: #f8fafc; padding: 8px 10px; border-radius: 6px;">
-            <div style="font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">MODEL</div>
-            <div style="font-weight: 600; color: #0f172a; font-size: 0.8rem;">@Model.ModelName</div>
-        </div>
-        <div style="background: #f8fafc; padding: 8px 10px; border-radius: 6px;">
-            <div style="font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">RENK</div>
-            <div style="font-weight: 600; color: #0f172a; font-size: 0.8rem;">@Model.Color</div>
-        </div>
-        <div style="background: #f8fafc; padding: 8px 10px; border-radius: 6px;">
-            <div style="font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">MÜŞTERİ</div>
-            <div style="font-weight: 600; color: #0f172a; font-size: 0.8rem;">@Model.Customer</div>
-        </div>
-        <div style="background: #fdf4ff; padding: 8px 10px; border-radius: 6px; border: 1px solid #fae8ff;">
-            <div style="font-size: 0.65rem; color: #a21caf; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">ATÖLYE</div>
-            <div style="font-weight: 600; color: #701a75; font-size: 0.8rem;">
-                @{
-                    var atolyeInfo = GetProdVal("prod_dikim_atolyesi");
-                    <text>@(string.IsNullOrEmpty(atolyeInfo) ? "-" : atolyeInfo)</text>
-                }
+<div class="tabs-container">
+    <div class="tab-content" id="trackTabsContent">
+        
+        <!-- BİRLEŞTİRİLMİŞ SİPARİŞ ÖZELLİKLERİ ÜST ALANI -->
+        <div id="orderDetailsCard" style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 14px;">
+                <h3 style="margin: 0; font-weight: 800; color: #0f172a; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-box-open" style="color: #0ea5e9; font-size: 1.25rem;"></i> Sipariş Özellikleri
+                </h3>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px;">
+                <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                    <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.6px;">MODEL</div>
+                    <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">@Model.ModelName</div>
+                </div>
+                <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                    <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.6px;">RENK</div>
+                    <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">@Model.Color</div>
+                </div>
+                <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                    <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.6px;">MÜŞTERİ</div>
+                    <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">@Model.Customer</div>
+                </div>
+                <div style="background: #fdf4ff; padding: 10px 14px; border-radius: 8px; border: 1px solid #fae8ff;">
+                    <div style="font-size: 0.72rem; color: #a21caf; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.6px;">ATÖLYE</div>
+                    <div style="font-weight: 700; color: #701a75; font-size: 0.95rem;">
+                        @{
+                            var atolyeInfo = GetProdVal("prod_dikim_atolyesi");
+                            <text>@(string.IsNullOrEmpty(atolyeInfo) ? "-" : atolyeInfo)</text>
+                        }
+                    </div>
+                </div>
+                <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #f1f5f9;">
+                    <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.6px;">ADET</div>
+                    <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">@Model.CalculatedQuantity.ToString("N0")</div>
+                </div>
+                <div style="background: #f0f9ff; padding: 10px 14px; border-radius: 8px; border: 1px solid #e0f2fe;">
+                    <div style="font-size: 0.72rem; color: #0284c7; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.6px;">TERMİN TARİHİ</div>
+                    <div style="font-weight: 700; color: #0c4a6e; font-size: 0.95rem;">@(Model.PlannedPackagingEndDate.HasValue ? Model.PlannedPackagingEndDate.Value.ToString("dd.MM.yyyy") : "-")</div>
+                </div>
+                <div style="background: #fdf2f8; padding: 10px 14px; border-radius: 8px; border: 1px solid #fce7f3;">
+                    <div style="font-size: 0.72rem; color: #db2777; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.6px;">REVİZE TERMİN</div>
+                    <div style="font-weight: 700; color: #9d174d; font-size: 0.95rem;">
+                        @{
+                            var revizeTermin = Model.RevisedInspectionDate.HasValue 
+                                ? Model.RevisedInspectionDate.Value.ToString("dd.MM.yyyy") 
+                                : "";
+                            
+                            if (string.IsNullOrEmpty(revizeTermin))
+                            {
+                                var revizeTerminStr = GetProdVal("prod_knn_revize_termin");
+                                if (!string.IsNullOrEmpty(revizeTerminStr))
+                                {
+                                    if (DateTime.TryParse(revizeTerminStr, out DateTime dtRevize))
+                                    {
+                                        revizeTermin = dtRevize.ToString("dd.MM.yyyy");
+                                    }
+                                    else
+                                    {
+                                        revizeTermin = revizeTerminStr;
+                                    }
+                                }
+                            }
+                            <text>@(string.IsNullOrEmpty(revizeTermin) ? "-" : revizeTermin)</text>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
-        <div style="background: #f8fafc; padding: 8px 10px; border-radius: 6px;">
-            <div style="font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">ADET</div>
-            <div style="font-weight: 600; color: #0f172a; font-size: 0.8rem;">@Model.CalculatedQuantity.ToString("N0")</div>
-        </div>
-        <div style="background: #f0f9ff; padding: 8px 10px; border-radius: 6px; border: 1px solid #e0f2fe;">
-            <div style="font-size: 0.65rem; color: #0284c7; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">TERMİN TARİHİ</div>
-            <div style="font-weight: 600; color: #0c4a6e; font-size: 0.8rem;">@(Model.PlannedPackagingEndDate.HasValue ? Model.PlannedPackagingEndDate.Value.ToString("dd.MM.yyyy") : "-")</div>
-        </div>
-        <div style="background: #fdf2f8; padding: 8px 10px; border-radius: 6px; border: 1px solid #fce7f3;">
-            <div style="font-size: 0.65rem; color: #db2777; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">REVİZE TERMİN</div>
-            <div style="font-weight: 600; color: #9d174d; font-size: 0.8rem;">
-                @{
-                    var revizeTermin = Model.RevisedInspectionDate.HasValue 
-                        ? Model.RevisedInspectionDate.Value.ToString("dd.MM.yyyy") 
-                        : "";
-                    
-                    if (string.IsNullOrEmpty(revizeTermin))
+
+        <!-- SEVK ONAY (ESKİ SATIN ALMA ONAYI) TAB -->
+        <div class="tab-pane active" id="purchase">
+            <div style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 0;">
+                <table style="margin: 0; width: 100%; border-collapse: collapse;">
+                    <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <tr>
+                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #475569; font-size: 0.85rem; border-right: 1px solid #e2e8f0;">MALZEME</th>
+                            <th style="padding: 16px; text-align: right; font-weight: 600; color: #b45309; font-size: 0.85rem; background: #fef08a; border-right: 1px solid #e2e8f0;">PLANLANAN MİKTAR</th>
+                            <th style="padding: 16px; text-align: center; font-weight: 600; color: #0284c7; font-size: 0.85rem; background: #e0f2fe; border-right: 1px solid #e2e8f0;">MEVCUT DEPO STOĞU</th>
+                            <th style="padding: 16px; text-align: center; font-weight: 600; color: #475569; font-size: 0.85rem;">KARŞILAŞTIRMA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @{
+                        string ExtractFromOzellikler(string json, string keyContains) {
+                            if (string.IsNullOrEmpty(json)) return null;
+                            try {
+                                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                                    foreach(var item in doc.RootElement.EnumerateArray()) {
+                                        if (item.TryGetProperty("Key", out var k) && item.TryGetProperty("Value", out var v)) {
+                                            if (k.GetString().Contains(keyContains, StringComparison.OrdinalIgnoreCase)) return v.GetString();
+                                        }
+                                    }
+                                } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                                    foreach(var prop in doc.RootElement.EnumerateObject()) {
+                                        if (prop.Name.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) {
+                                            return prop.Value.GetString();
+                                        }
+                                    }
+                                }
+                            } catch {}
+                            return null;
+                        }
+
+                        var salesMovements = ViewBag.SalesMovements as List<UretimPlanlama.Models.StokHareket> ?? new List<UretimPlanlama.Models.StokHareket>();
+                        var purchaseMovements = ViewBag.PurchaseMovements as List<UretimPlanlama.Models.StokHareket> ?? new List<UretimPlanlama.Models.StokHareket>();
+                        var orderMats = Model.OrderMaterials != null ? Model.OrderMaterials.ToList() : new List<UretimPlanlama.Models.OrderMaterial>();
+
+                        var purDataTrack = new Dictionary<string, string>();
+                        if (!string.IsNullOrEmpty(Model.PurchasingMaterialsJson)) {
+                            try { purDataTrack = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.PurchasingMaterialsJson) ?? new Dictionary<string, string>(); } catch {}
+                        }
+                        var trackColors = new List<string>();
+                        if (!string.IsNullOrEmpty(Model.Color)) {
+                            trackColors = Model.Color.Split(new[] { ',', '-' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim().ToUpper()).ToList();
+                        }
+                        if (!trackColors.Any()) trackColors.Add("GENEL");
+
+                        Func<string, double> parseTr = (string v) => {
+                            if (string.IsNullOrWhiteSpace(v)) return 0;
+                            v = v.Trim();
+                            if (v.Contains(",") && v.Contains(".")) v = v.Replace(".", "").Replace(",", ".");
+                            else if (v.Contains(",")) v = v.Replace(",", ".");
+                            else if (v.Contains(".") && v.IndexOf(".") == v.Length - 4) v = v.Replace(".", "");
+                            double.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r);
+                            return r;
+                        };
+                    }
+
+                    @if(orderMats.Any())
                     {
-                        var revizeTerminStr = GetProdVal("prod_knn_revize_termin");
-                        if (!string.IsNullOrEmpty(revizeTerminStr))
+                        foreach(var mat in orderMats)
                         {
-                            if (DateTime.TryParse(revizeTerminStr, out DateTime dtRevize))
-                            {
-                                revizeTermin = dtRevize.ToString("dd.MM.yyyy");
+                            var stokKarti = mat.StokKarti;
+                            string dynBoyut = ExtractFromOzellikler(mat.OzelliklerJson, "BOYUT") ?? ExtractFromOzellikler(mat.OzelliklerJson, "EBAT") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BÜYÜKLÜK") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BOY");
+                            string extraInfo = !string.IsNullOrEmpty(dynBoyut) ? dynBoyut : mat.Aciklama;
+
+                            string dynMatBirim = ExtractFromOzellikler(mat.OzelliklerJson, "TELA BİRİM") 
+                                ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM KULLANIM") 
+                                ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM") 
+                                ?? ExtractFromOzellikler(mat.OzelliklerJson, "BIRIM");
+
+                            if (!string.IsNullOrEmpty(dynMatBirim)) {
+                                if (string.IsNullOrEmpty(extraInfo)) {
+                                    extraInfo = $"BİRİM: {dynMatBirim}";
+                                } else if (!extraInfo.Contains("BİRİM", StringComparison.OrdinalIgnoreCase) && !extraInfo.Contains("BIRIM", StringComparison.OrdinalIgnoreCase)) {
+                                    extraInfo = $"{extraInfo} | BİRİM: {dynMatBirim}";
+                                }
                             }
-                            else
-                            {
-                                revizeTermin = revizeTerminStr;
+
+                            string matName = !string.IsNullOrEmpty(extraInfo) ? $"{stokKarti?.StokAdi ?? "Bilinmeyen Malzeme"} ({extraInfo})" : (stokKarti?.StokAdi ?? "Belirtilmemiş Malzeme");
+
+                            // Hesaplanan Planlanan Miktar (Sipariş adeti, renk, birim kullanım ve fire oranına göre)
+                            double totalIstenen = 0;
+                            string itemKey = "stk_" + mat.StokKartiId;
+                            string cat = (stokKarti?.Kategori ?? "").Trim().ToUpperInvariant();
+
+                            foreach(var c in trackColors) {
+                                string sipAdetiStr = purDataTrack.ContainsKey($"pur_color_{c}_siparis_adeti") ? purDataTrack[$"pur_color_{c}_siparis_adeti"] : Model.CalculatedQuantity.ToString();
+                                double siparisAdeti = parseTr(sipAdetiStr);
+                                if (siparisAdeti == 0) siparisAdeti = Model.CalculatedQuantity;
+
+                                string bedenMiktarStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : "0";
+                                double bedenMiktar = parseTr(bedenMiktarStr);
+
+                                string bedenCikacakStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_cikacak") ? purDataTrack[$"pur_color_{c}_beden_cikacak"] : "0";
+                                double bedenCikacak = parseTr(bedenCikacakStr);
+
+                                double jobQty = bedenMiktar > 0 ? bedenCikacak : siparisAdeti;
+                                
+                                if (cat == "KUMAŞ" || cat == "KUMAS") {
+                                    string kumasIstenenStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : null;
+                                    double dKumas = 0;
+                                    if (kumasIstenenStr != null) {
+                                        dKumas = parseTr(kumasIstenenStr);
+                                    }
+                                    
+                                    if (dKumas == 0) {
+                                        string kumasIhtiyacStr = purDataTrack.ContainsKey($"pur_color_{c}_istenen_kumas_miktar") ? purDataTrack[$"pur_color_{c}_istenen_kumas_miktar"] : null;
+                                        if (kumasIhtiyacStr != null) {
+                                            dKumas = parseTr(kumasIhtiyacStr);
+                                        }
+                                    }
+                                    
+                                    if (dKumas > 0) {
+                                        totalIstenen += dKumas;
+                                    } else {
+                                        string metrajStr = ExtractFromOzellikler(mat.OzelliklerJson, "METRAJ") ?? mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                        double metraj = 0; double.TryParse(metrajStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out metraj);
+                                        totalIstenen += Math.Round(jobQty * metraj);
+                                    }
+                                } else if (cat == "TELA") {
+                                    string dynBirim = ExtractFromOzellikler(mat.OzelliklerJson, "TELA BİRİM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM");
+                                    string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                    string birimStr = purDataTrack.ContainsKey($"pur_color_{c}_tela_birim_{itemKey}") ? purDataTrack[$"pur_color_{c}_tela_birim_{itemKey}"] : defBirim;
+                                    double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
+                                    totalIstenen += Math.Ceiling(jobQty * birim);
+                                } else if (cat == "ETİKET" || cat == "ETIKET") {
+                                    string dynFire = ExtractFromOzellikler(mat.OzelliklerJson, "FİRE (%)") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FIRE") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FİRE");
+                                    string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : "0";
+                                    string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_label_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_label_fire_{itemKey}"] : defFire;
+                                    double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
+                                    double tmp = jobQty * 1; 
+                                    totalIstenen += Math.Round(tmp + Math.Round(tmp * (fire / 100.0)));
+                                } else {
+                                    string dynBirim = ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM KULLANIM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BIRIM");
+                                    string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                    string birimStr = purDataTrack.ContainsKey($"pur_color_{c}_birim_{itemKey}") ? purDataTrack[$"pur_color_{c}_birim_{itemKey}"] : defBirim;
+                                    double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
+                                    
+                                    string dynFire = ExtractFromOzellikler(mat.OzelliklerJson, "FİRE (%)") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FIRE") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FİRE");
+                                    string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : (Model.WastageRate ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                    string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_fire_{itemKey}"] : defFire;
+                                    double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
+                                    
+                                    double toplam = jobQty * birim;
+                                    double fazla = Math.Round(toplam * (fire / 100.0));
+                                    totalIstenen += Math.Round(toplam + fazla);
+                                }
                             }
+
+                            double planMiktar = totalIstenen > 0 ? totalIstenen : (double)mat.Miktar;
+
+                            // 1. Siparişe Özel Alınan (Alış / Giriş) Miktarlar Toplamı
+                            double siparisAlisMiktar = 0;
+                            if (mat.StokVaryantId.HasValue && mat.StokVaryantId > 0) {
+                                siparisAlisMiktar = (double)purchaseMovements.Where(p => p.StokKartiId == mat.StokKartiId && p.StokVaryantId == mat.StokVaryantId).Sum(p => p.Miktar);
+                            } else if (!string.IsNullOrEmpty(mat.OzelliklerJson) && stokKarti != null && stokKarti.Varyantlar != null) {
+                                var vMatch = stokKarti.Varyantlar.FirstOrDefault(v => v.VaryantAdi == mat.OzelliklerJson.Trim());
+                                if (vMatch != null) {
+                                    siparisAlisMiktar = (double)purchaseMovements.Where(p => p.StokKartiId == mat.StokKartiId && p.StokVaryantId == vMatch.Id).Sum(p => p.Miktar);
+                                }
+                            }
+                            if (siparisAlisMiktar == 0) {
+                                siparisAlisMiktar = (double)purchaseMovements.Where(p => p.StokKartiId == mat.StokKartiId).Sum(p => p.Miktar);
+                            }
+
+                            // 2. Depodaki Anlık Stok (Asla eksiye düşmez)
+                            double rawDepoStok = 0;
+                            if (mat.StokVaryant != null) {
+                                rawDepoStok = (double)mat.StokVaryant.MevcutMiktar;
+                            } else if (!string.IsNullOrEmpty(mat.OzelliklerJson) && stokKarti != null && stokKarti.Varyantlar != null) {
+                                var vMatch = stokKarti.Varyantlar.FirstOrDefault(v => v.VaryantAdi == mat.OzelliklerJson.Trim());
+                                if (vMatch != null) {
+                                    rawDepoStok = (double)vMatch.MevcutMiktar;
+                                } else if (stokKarti != null) {
+                                    rawDepoStok = (double)stokKarti.MevcutMiktar;
+                                }
+                            } else if (stokKarti != null) {
+                                rawDepoStok = (double)stokKarti.MevcutMiktar;
+                            }
+                            double mevcutDepoStok = Math.Max(0, rawDepoStok);
+
+                            // 3. Sipariş Süreç Takibinde Kullanılabilir Miktar (Siparişe özel alış veya depodaki stok)
+                            double sevkMiktar = Math.Max(siparisAlisMiktar, mevcutDepoStok);
+
+                            bool isStokYeterli = sevkMiktar >= planMiktar;
+                            double fark = sevkMiktar - planMiktar;
+                            string statusBadgeStyle = isStokYeterli 
+                                ? "background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;" 
+                                : "background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;";
+                            string statusBadgeText = isStokYeterli 
+                                ? "STOK YETERLİ" 
+                                : "YETERSİZ STOK (" + fark.ToString("N0") + ")";
+
+                            <tr>
+                                <td style="padding: 16px; border-right: 1px solid #e2e8f0; font-weight: 600; color: #1e293b;">
+                                    @matName
+                                </td>
+                                <td style="padding: 16px; text-align: right; border-right: 1px solid #e2e8f0; font-weight: 800; font-size: 1.1rem; color: #b45309; background: #fffbeb;">
+                                    @planMiktar.ToString("N2")
+                                </td>
+                                <td style="padding: 16px; text-align: center; border-right: 1px solid #e2e8f0; background: #f0f9ff;">
+                                    <input type="text" readonly class="form-control" value="@sevkMiktar.ToString("N2")" style="text-align: center; font-weight: 700; background: white; border: 1px solid #bae6fd; color: #0369a1; width: 140px; margin: 0 auto;" />
+                                </td>
+                                <td style="padding: 16px; text-align: center;">
+                                    <span class="badge" style="padding: 8px 14px; font-size: 0.85rem; font-weight: 700; border-radius: 20px; @statusBadgeStyle">@statusBadgeText</span>
+                                </td>
+                            </tr>
                         }
                     }
-                    <text>@(string.IsNullOrEmpty(revizeTermin) ? "-" : revizeTermin)</text>
-                }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 40px; color: #64748b;">
+                                <i class="fa-solid fa-boxes-stacked" style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5;"></i>
+                                <p style="margin: 0; font-size: 1rem; font-weight: 600;">Bu siparişe tanımlı malzeme bulunmuyor.</p>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-end mt-3 mb-2">
+                <button class="btn btn-primary" onclick="switchTab('timeline')">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
             </div>
         </div>
     </div>
@@ -302,230 +532,7 @@
     .text-end { text-align: right; }
 </style>
 
-<div class="tabs-container">
-    <div class="tab-content" id="trackTabsContent">
-        
-        <!-- SATIN ALMA ONAYI TAB -->
-        <div class="tab-pane active" id="purchase">
-            <div style="margin-bottom: 24px;">
-                <h4 style="margin: 0 0 8px 0; color: #0f172a; font-weight: 700; font-size: 1.25rem;"><i class="fa-solid fa-check-double" style="color: var(--primary-color);"></i> Satın Alma Onayı</h4>
-                <p style="color: #64748b; font-size: 0.95rem; margin: 0;">Satın alma planlamasında girilen ürünlerin girişleri (alış faturası / depo fişi) yapıldıysa aşağıdan gerçekleşen miktarı girip onaylayınız.</p>
-            </div>
 
-            <div style="background: white; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; overflow: hidden; margin-top: 16px;">
-                <table style="margin: 0; width: 100%; border-collapse: collapse;">
-                    <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                        <tr>
-                            <th style="padding: 16px; text-align: left; font-weight: 600; color: #475569; font-size: 0.85rem; border-right: 1px solid #e2e8f0;">MALZEME</th>
-                            <th style="padding: 16px; text-align: right; font-weight: 600; color: #b45309; font-size: 0.85rem; background: #fef08a; border-right: 1px solid #e2e8f0;">PLANLANAN MİKTAR</th>
-                            <th style="padding: 16px; text-align: center; font-weight: 600; color: #0284c7; font-size: 0.85rem; background: #e0f2fe; border-right: 1px solid #e2e8f0;">GERÇEKLEŞEN MİKTAR</th>
-                            <th style="padding: 16px; text-align: center; font-weight: 600; color: #475569; font-size: 0.85rem; border-right: 1px solid #e2e8f0;">KARŞILAŞTIRMA</th>
-                            <th style="padding: 16px; text-align: center; font-weight: 600; color: #475569; font-size: 0.85rem;">DURUM / ONAY</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @{
-                        string ExtractFromOzellikler(string json, string keyContains) {
-                            if (string.IsNullOrEmpty(json)) return null;
-                            try {
-                                using var doc = System.Text.Json.JsonDocument.Parse(json);
-                                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
-                                    foreach(var item in doc.RootElement.EnumerateArray()) {
-                                        if (item.TryGetProperty("Key", out var k) && item.TryGetProperty("Value", out var v)) {
-                                            if (k.GetString().Contains(keyContains, StringComparison.OrdinalIgnoreCase)) return v.GetString();
-                                        }
-                                    }
-                                } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
-                                    foreach(var prop in doc.RootElement.EnumerateObject()) {
-                                        if (prop.Name.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) {
-                                            return prop.Value.GetString();
-                                        }
-                                    }
-                                }
-                            } catch {}
-                            return null;
-                        }
-
-                        var purDataTrack = new Dictionary<string, string>();
-                        if (!string.IsNullOrEmpty(Model.PurchasingMaterialsJson)) {
-                            try { purDataTrack = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.PurchasingMaterialsJson) ?? new Dictionary<string, string>(); } catch {}
-                        }
-                        var trackColors = new List<string>();
-                        if (!string.IsNullOrEmpty(Model.Color)) {
-                            trackColors = Model.Color.Split(new[] { ',', '-' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim().ToUpper()).ToList();
-                        }
-                        if (!trackColors.Any()) trackColors.Add("GENEL");
-                    }
-                    @foreach(var mat in Model.OrderMaterials) {
-                        double totalIstenen = 0;
-                        string itemKey = "stk_" + mat.StokKartiId;
-                        string cat = (mat.StokKarti?.Kategori ?? "").Trim().ToUpperInvariant();
-                        
-                        Func<string, double> parseTr = (string v) => {
-                            if (string.IsNullOrWhiteSpace(v)) return 0;
-                            v = v.Trim();
-                            if (v.Contains(",") && v.Contains(".")) v = v.Replace(".", "").Replace(",", ".");
-                            else if (v.Contains(",")) v = v.Replace(",", ".");
-                            else if (v.Contains(".") && v.IndexOf(".") == v.Length - 4) v = v.Replace(".", "");
-                            double.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r);
-                            return r;
-                        };
-
-                        foreach(var c in trackColors) {
-                            string sipAdetiStr = purDataTrack.ContainsKey($"pur_color_{c}_siparis_adeti") ? purDataTrack[$"pur_color_{c}_siparis_adeti"] : Model.Quantity.ToString();
-                            double siparisAdeti = parseTr(sipAdetiStr);
-
-                            string bedenMiktarStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : "0";
-                            double bedenMiktar = parseTr(bedenMiktarStr);
-
-                            string bedenCikacakStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_cikacak") ? purDataTrack[$"pur_color_{c}_beden_cikacak"] : "0";
-                            double bedenCikacak = parseTr(bedenCikacakStr);
-
-                            double jobQty = bedenMiktar > 0 ? bedenCikacak : siparisAdeti;
-                            
-                            if (cat == "KUMAŞ" || cat == "KUMAS") {
-                                string kumasIstenenStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : null;
-                                double dKumas = 0;
-                                if (kumasIstenenStr != null) {
-                                    dKumas = parseTr(kumasIstenenStr);
-                                }
-                                
-                                if (dKumas == 0) {
-                                    string kumasIhtiyacStr = purDataTrack.ContainsKey($"pur_color_{c}_istenen_kumas_miktar") ? purDataTrack[$"pur_color_{c}_istenen_kumas_miktar"] : null;
-                                    if (kumasIhtiyacStr != null) {
-                                        dKumas = parseTr(kumasIhtiyacStr);
-                                    }
-                                }
-                                
-                                if (dKumas > 0) {
-                                    totalIstenen += dKumas;
-                                } else {
-                                    string metrajStr = ExtractFromOzellikler(mat.OzelliklerJson, "METRAJ") ?? mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                                    double metraj = 0; double.TryParse(metrajStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out metraj);
-                                    totalIstenen += Math.Round(jobQty * metraj);
-                                }
-                            } else if (cat == "TELA") {
-                                string dynBirim = ExtractFromOzellikler(mat.OzelliklerJson, "TELA BİRİM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM");
-                                string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                                string birimStr = purDataTrack.ContainsKey($"pur_color_{c}_tela_birim_{itemKey}") ? purDataTrack[$"pur_color_{c}_tela_birim_{itemKey}"] : defBirim;
-                                double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
-                                totalIstenen += Math.Ceiling(jobQty * birim);
-                            } else if (cat == "ETİKET" || cat == "ETIKET") {
-                                string dynFire = ExtractFromOzellikler(mat.OzelliklerJson, "FİRE (%)") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FIRE") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FİRE");
-                                string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : "0";
-                                string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_label_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_label_fire_{itemKey}"] : defFire;
-                                double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
-                                double tmp = jobQty * 1; 
-                                totalIstenen += Math.Round(tmp + Math.Round(tmp * (fire / 100.0)));
-                            } else {
-                                string dynBirim = ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM KULLANIM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BİRİM") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BIRIM");
-                                string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                                string birimStr = purDataTrack.ContainsKey($"pur_color_{c}_birim_{itemKey}") ? purDataTrack[$"pur_color_{c}_birim_{itemKey}"] : defBirim;
-                                double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
-                                
-                                string dynFire = ExtractFromOzellikler(mat.OzelliklerJson, "FİRE (%)") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FIRE") ?? ExtractFromOzellikler(mat.OzelliklerJson, "FİRE");
-                                string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : (Model.WastageRate ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                                string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_fire_{itemKey}"] : defFire;
-                                double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
-                                
-                                double toplam = jobQty * birim;
-                                double fazla = Math.Round(toplam * (fire / 100.0));
-                                totalIstenen += Math.Round(toplam + fazla);
-                            }
-                        }
-                        
-                        string displayPlanlanan = totalIstenen > 0 ? totalIstenen.ToString("N2") : mat.Miktar.ToString("N2");
-                        
-                        string dynBoyut = ExtractFromOzellikler(mat.OzelliklerJson, "BOYUT") ?? ExtractFromOzellikler(mat.OzelliklerJson, "EBAT") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BÜYÜKLÜK") ?? ExtractFromOzellikler(mat.OzelliklerJson, "BOY");
-                        string extraInfo = !string.IsNullOrEmpty(dynBoyut) ? dynBoyut : mat.Aciklama;
-                        string displayName = !string.IsNullOrEmpty(extraInfo) ? $"{mat.StokKarti?.StokAdi ?? "Bilinmeyen"} ({extraInfo})" : (mat.StokKarti?.StokAdi ?? "Bilinmeyen");
-
-                        <tr style="background: @(mat.IsApproved ? "#f0fdf4" : "white"); border-bottom: 1px solid #f1f5f9; transition: background 0.3s ease;">
-                            <td style="padding: 16px; font-weight: 600; color: #334155; border-right: 1px solid #f1f5f9;">
-                                @displayName
-                                @* Removed variant select from Purchasing Approval because it does not deduct stock here *@
-                            </td>
-                            <td style="padding: 16px; font-weight: 700; color: #b45309; text-align: right; background: #fdf6e3; border-right: 1px solid #f1f5f9; font-size: 1.1rem;">@displayPlanlanan</td>
-                            <td style="padding: 16px; width: 250px; background: #f0f9ff; border-right: 1px solid #f1f5f9;">
-                                <div style="display: flex; align-items: center; justify-content: center;">
-                                    @{
-                                        decimal stockQty = mat.StokVaryant != null ? mat.StokVaryant.MevcutMiktar : (mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0);
-                                        decimal displayQty = mat.IsApproved ? mat.ActualQuantity : stockQty;
-                                    }
-                                    <input type="number" step="0.01" style="width: 120px; padding: 8px 12px; border: 1px solid #bae6fd; border-radius: 6px; text-align: right; font-weight: 600; color: #0284c7; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);" id="actual_qty_@mat.Id" value="@displayQty.ToString(System.Globalization.CultureInfo.InvariantCulture)" oninput="updateComparison(@mat.Id, @(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture)))" />
-                                </div>
-                            </td>
-                            <td style="padding: 16px; text-align: center; border-right: 1px solid #f1f5f9; vertical-align: middle;">
-                                <span id="comp_@mat.Id" style="font-weight: 700; font-size: 0.9rem; padding: 6px 12px; border-radius: 6px; display: inline-block; min-width: 80px;">-</span>
-                            </td>
-                            <td style="padding: 16px; text-align: center;">
-                                <div id="div_mat_@mat.Id" style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: @(mat.IsApproved ? "#dcfce7" : "#fffbeb"); border-radius: 50%; border: 1px solid @(mat.IsApproved ? "#bbf7d0" : "#fef08a");">
-                                    <input type="checkbox" id="chk_mat_@mat.Id" data-planned="@(totalIstenen > 0 ? totalIstenen.ToString(System.Globalization.CultureInfo.InvariantCulture) : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture))" @(mat.IsApproved ? "checked" : "") onchange="updateMaterialApproval(@mat.Id)" style="width: 22px; height: 22px; cursor: pointer; accent-color: #16a34a; margin: 0;">
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-                </table>
-            </div>
-            <div class="text-end mt-3 mb-2">
-                <button class="btn btn-primary" onclick="switchTab('dispatch')">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
-            </div>
-        </div>
-
-        <!-- MALZEME SEVK TAB -->
-        <div class="tab-pane" id="dispatch">
-            <h4 style="margin-bottom: 24px; color: #0f172a; font-weight: 700; font-size: 1.25rem;"><i class="fa-solid fa-truck-ramp-box" style="color: var(--primary-color);"></i> Malzeme Sevk (Atölyelere Çıkış)</h4>
-            
-            <div class="card mb-4" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-                <div class="card-body" style="padding: 24px; background: linear-gradient(to right, #f8fafc, #ffffff);">
-                    <h5 style="margin-bottom: 15px; color: #0f172a; font-weight: 600;"><i class="fa-solid fa-file-invoice-dollar" style="color: #0284c7;"></i> Cari Satış ile Gerçekleşen Sevkler</h5>
-                    <table class="table table-bordered">
-                        <thead style="background: #f1f5f9;">
-                            <tr>
-                                <th>Tarih</th>
-                                <th>Belge No</th>
-                                <th>Atölye (Cari Hesap)</th>
-                                <th>Malzeme</th>
-                                <th>Miktar</th>
-                                <th>Durum / Onay</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if(ViewBag.SalesMovements != null)
-                            {
-                                var salesMovements = (List<UretimPlanlama.Models.StokHareket>)ViewBag.SalesMovements;
-                                if(salesMovements.Any())
-                                {
-                                    foreach(var sh in salesMovements)
-                                    {
-                                        <tr>
-                                            <td>@sh.IslemTarihi.ToString("dd.MM.yyyy")</td>
-                                            <td>@sh.BelgeNo</td>
-                                            <td>@sh.Tedarikci</td>
-                                            <td>@(sh.StokKarti?.StokAdi)</td>
-                                            <td style="font-weight: 700; color: #0284c7;">@sh.Miktar.ToString("N2")</td>
-                                            <td style="text-align: center;">
-                                                <div id="div_disp_@sh.Id" style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: @(sh.IsApproved ? "#dcfce7" : "#fffbeb"); border-radius: 50%; border: 1px solid @(sh.IsApproved ? "#bbf7d0" : "#fef08a");">
-                                                    <input type="checkbox" id="chk_disp_@sh.Id" @(sh.IsApproved ? "checked" : "") onchange="updateDispatchApproval(@sh.Id)" style="width: 22px; height: 22px; cursor: pointer; accent-color: #16a34a; margin: 0;">
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                                else
-                                {
-                                    <tr><td colspan="6" class="text-center text-muted">Finans Modülü (Satış) üzerinden bu siparişe ait atölyelere yapılmış bir malzeme çıkışı bulunmuyor.</td></tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="text-end mt-3 mb-2">
-                <button class="btn btn-primary" onclick="switchTab('cutting')">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
-            </div>
-        </div>
 
         <!-- KESİM SÜRECİ TAB -->
         <div class="tab-pane" id="cutting">
@@ -846,6 +853,10 @@
                 </div>
 
                 <!-- A SORTİLİ BÖLÜMÜ -->
+                @{
+                    string asortiSpecialCode = !string.IsNullOrEmpty(Model.AsortiSpecialCode) ? Model.AsortiSpecialCode : (!string.IsNullOrEmpty(Model.OptionCode) ? Model.OptionCode : "");
+                    string openSpecialCode = !string.IsNullOrEmpty(Model.OpenSpecialCode) ? Model.OpenSpecialCode : (!string.IsNullOrEmpty(Model.OptionCode) ? Model.OptionCode : "");
+                }
                 <h5 style="text-align: center; font-weight: bold; margin-bottom: 5px;">A SORTİLİ</h5>
                 <table style="border-collapse: collapse; width: 100%; text-align: center; font-size: 0.9rem; margin-bottom: 30px;">
                     <thead>
@@ -866,7 +877,7 @@
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.OrderCode</td>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">BUB</td>
-                            <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.OptionCode</td>
+                            <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@asortiSpecialCode</td>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.Color</td>
                             <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.ModelName</td>
                             <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
@@ -934,36 +945,36 @@
                                     @if(isFirst) {
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.OrderCode</td>
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">BUB</td>
-                                        <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.OptionCode</td>
+                                        <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">@openSpecialCode</td>
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.Color</td>
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.ModelName</td>
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold;"></td>
                                         <td rowspan="@rowSpan" style="border: 1px solid black; padding: 8px; font-weight: bold; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
                                         isFirst = false;
                                     }
+                                    <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@kvp.Key</td>
                                     <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
-                                    <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
-                                    <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                    <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@(sAdet > 0 ? sAdet.ToString("N0") : "")</td>
                                 </tr>
                             }
                         } else {
                             <tr>
                                 <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.OrderCode</td>
                                 <td style="border: 1px solid black; padding: 8px; font-weight: bold;">BUB</td>
-                                <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.OptionCode</td>
+                                <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@openSpecialCode</td>
                                 <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.Color</td>
                                 <td style="border: 1px solid black; padding: 8px; font-weight: bold;">@Model.ModelName</td>
                                 <td style="border: 1px solid black; padding: 8px;"></td>
                                 <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                <td style="border: 1px solid black; padding: 8px; font-weight: bold;">-</td>
                                 <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
-                                <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
-                                <td style="border: 1px solid black; padding: 8px; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                                <td style="border: 1px solid black; padding: 8px; font-weight: bold;">-</td>
                             </tr>
                         }
                         <tr>
                             <td colspan="6" style="border: 1px solid black;"></td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">TOPLAM ADET</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; font-weight: bold; background-color: #fefce8; cursor: text;" contenteditable="true" title="Manuel düzenleyebilirsiniz"></td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; font-weight: bold;">@(toplamAcikAdet > 0 ? toplamAcikAdet.ToString("N0") : "")</td>
                         </tr>
                         <tr>
                             <td colspan="6" style="border: 1px solid black;"></td>
@@ -989,115 +1000,422 @@
         <div class="tab-pane" id="timeline">
             <h4 style="margin-bottom: 24px; color: #0f172a; font-weight: 700; font-size: 1.25rem;"><i class="fa-solid fa-calendar-check" style="color: var(--primary-color);"></i> Zaman Çizelgesi ve Takvim Takibi</h4>
             
-            <div class="timeline-container" style="position: relative; max-width: 800px; margin: 0 auto; padding: 20px 0;">
-                <div style="position: absolute; width: 4px; background-color: #e2e8f0; top: 0; bottom: 0; left: 50%; margin-left: -2px; border-radius: 2px;"></div>
+            <!-- Yatay Timeline Konteyner -->
+            @{
+                var timelineItems = new List<dynamic>();
                 
-                @{
-                    var timelineItems = new List<dynamic>();
+                void AddTimelineItem(string id, string type, string title, string icon, string color, string planDateStr, string actualDateStr) {
+                    DateTime? planDate = null;
+                    if (!string.IsNullOrEmpty(planDateStr) && DateTime.TryParse(planDateStr, out DateTime dt1)) planDate = dt1;
                     
-                    void AddTimelineItem(string id, string type, string title, string icon, string color, string planDateStr, string actualDateStr) {
-                        DateTime? planDate = null;
-                        if (!string.IsNullOrEmpty(planDateStr) && DateTime.TryParse(planDateStr, out DateTime dt1)) planDate = dt1;
-                        
-                        DateTime? actualDate = null;
-                        if (!string.IsNullOrEmpty(actualDateStr) && DateTime.TryParse(actualDateStr, out DateTime dt2)) actualDate = dt2;
+                    DateTime? actualDate = null;
+                    if (!string.IsNullOrEmpty(actualDateStr) && DateTime.TryParse(actualDateStr, out DateTime dt2)) actualDate = dt2;
 
-                        bool isDelayed = false;
-                        if (actualDate == null && planDate.HasValue && planDate.Value.Date < DateTime.Now.Date) {
-                            isDelayed = true;
-                        } else if (actualDate.HasValue && planDate.HasValue && actualDate.Value.Date > planDate.Value.Date) {
-                            isDelayed = true;
-                        }
-                        
-                        timelineItems.Add(new {
-                            Id = id, Type = type, Title = title, Icon = icon, Color = color, PlanDate = planDate, ActualDate = actualDate, IsDelayed = isDelayed
-                        });
+                    bool isDelayed = false;
+                    int delayDays = 0;
+                    int earlyDays = 0;
+
+                    if (actualDate == null && planDate.HasValue && planDate.Value.Date < DateTime.Now.Date) {
+                        isDelayed = true;
+                        delayDays = (int)(DateTime.Now.Date - planDate.Value.Date).TotalDays;
+                    } else if (actualDate.HasValue && planDate.HasValue && actualDate.Value.Date > planDate.Value.Date) {
+                        isDelayed = true;
+                        delayDays = (int)(actualDate.Value.Date - planDate.Value.Date).TotalDays;
+                    } else if (actualDate.HasValue && planDate.HasValue && actualDate.Value.Date < planDate.Value.Date) {
+                        earlyDays = (int)(planDate.Value.Date - actualDate.Value.Date).TotalDays;
                     }
                     
-                    var pDict = new Dictionary<string, string>();
-                    if (!string.IsNullOrEmpty(Model.ProductionJson)) { try { pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.ProductionJson); } catch {} }
-                    var sDict = new Dictionary<string, string>();
-                    if (!string.IsNullOrEmpty(Model.SampleTestJson)) { try { sDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.SampleTestJson); } catch {} }
-                    
-                    string GetPD(string k) => pDict.ContainsKey(k) ? pDict[k] : "";
-                    string GetSD(string k) => sDict.ContainsKey(k) ? sDict[k] : "";
-
-                    // Numune
-                    AddTimelineItem("sample_kumas_ytesti", "sample", "Kumaş Y-Testi Onayı", "fa-vial", "#8b5cf6", GetSD("sample_kumas_ytesti"), GetSD("sample_kumas_ytesti_actual"));
-                    AddTimelineItem("sample_tuse_renk", "sample", "K-Tuşe Renk Onayı", "fa-palette", "#8b5cf6", GetSD("sample_tuse_renk"), GetSD("sample_tuse_renk_actual"));
-                    AddTimelineItem("sample_dugme_renk", "sample", "Düğme Renk Kalite", "fa-circle-dot", "#8b5cf6", GetSD("sample_dugme_renk"), GetSD("sample_dugme_renk_actual"));
-                    AddTimelineItem("sample_pp_onay", "sample", "PP Onay", "fa-shirt", "#8b5cf6", GetSD("sample_pp_onay"), GetSD("sample_pp_onay_actual"));
-
-                    // Üretim
-                    AddTimelineItem("prod_kesim_baslangic", "prod", "Kesim Başlangıç", "fa-scissors", "#3b82f6", GetPD("prod_kesim_baslangic"), GetPD("prod_kesim_baslangic_actual"));
-                    AddTimelineItem("prod_kesim_bitis", "prod", "Kesim Bitiş", "fa-check-double", "#3b82f6", GetPD("prod_kesim_bitis"), GetPD("prod_kesim_bitis_actual"));
-                    
-                    AddTimelineItem("prod_dikim_baslangic", "prod", "Dikim Başlangıç", "fa-mitten", "#ec4899", GetPD("prod_dikim_baslangic"), GetPD("prod_dikim_baslangic_actual"));
-                    AddTimelineItem("prod_dikim_bitis", "prod", "Dikim Bitiş", "fa-check-double", "#ec4899", GetPD("prod_dikim_bitis"), GetPD("prod_dikim_bitis_actual"));
-                    
-                    AddTimelineItem("prod_paket_baslangic", "prod", "Paket Başlangıç", "fa-box", "#f59e0b", GetPD("prod_paket_baslangic"), GetPD("prod_paket_baslangic_actual"));
-                    AddTimelineItem("prod_paket_bitis", "prod", "Paket Bitiş", "fa-check-double", "#f59e0b", GetPD("prod_paket_bitis"), GetPD("prod_paket_bitis_actual"));
-
-                    // Lojistik
-                    AddTimelineItem("prod_gs_gidisi", "prod", "GS Gidişi", "fa-plane-departure", "#10b981", GetPD("prod_gs_gidisi"), GetPD("prod_gs_gidisi_actual"));
-                    AddTimelineItem("prod_yola_cikis", "prod", "Yola Çıkış", "fa-truck-fast", "#10b981", GetPD("prod_yola_cikis"), GetPD("prod_yola_cikis_actual"));
-                    AddTimelineItem("prod_depo_varis", "prod", "Depo Varış", "fa-warehouse", "#10b981", GetPD("prod_depo_varis"), GetPD("prod_depo_varis_actual"));
-                    
-                    string termin = GetPD("prod_knn_revize_termin");
-                    if (string.IsNullOrEmpty(termin)) termin = GetPD("prod_suanki_termin");
-                    if (string.IsNullOrEmpty(termin) && Model.PlannedPackagingEndDate.HasValue) termin = Model.PlannedPackagingEndDate.Value.ToString("yyyy-MM-dd");
-                    AddTimelineItem("termin_tarihi", "prod", "Termin Hedefi", "fa-flag-checkered", "#ef4444", termin, GetPD("termin_tarihi_actual"));
-
-                    int tlIndex = 0;
+                    timelineItems.Add(new {
+                        Id = id, Type = type, Title = title, Icon = icon, Color = color, PlanDate = planDate, ActualDate = actualDate, IsDelayed = isDelayed, DelayDays = delayDays, EarlyDays = earlyDays
+                    });
                 }
+                
+                var pDict = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.ProductionJson)) { try { pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.ProductionJson); } catch {} }
+                var sDict = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.SampleTestJson)) { try { sDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.SampleTestJson); } catch {} }
+                
+                string GetPD(string k) => pDict.ContainsKey(k) ? pDict[k] : "";
+                string GetSD(string k) => sDict.ContainsKey(k) ? sDict[k] : "";
 
-                @foreach(var item in timelineItems)
-                {
-                    bool isLeft = tlIndex % 2 == 0;
-                    string floatDir = isLeft ? "left" : "right";
-                    string textDir = isLeft ? "right" : "left";
-                    string markerLeft = isLeft ? "calc(100% + 22px)" : "-42px";
-                    
-                    string cardBg = item.IsDelayed ? "#fef2f2" : (item.ActualDate != null ? "#f0fdf4" : "#ffffff");
-                    string cardBorder = item.IsDelayed ? "#fecaca" : (item.ActualDate != null ? "#bbf7d0" : "#e2e8f0");
-                    string statusIcon = item.ActualDate != null ? "<i class='fa-solid fa-circle-check' style='color:#16a34a;'></i>" : (item.IsDelayed ? "<i class='fa-solid fa-circle-exclamation' style='color:#dc2626;'></i>" : "<i class='fa-solid fa-clock' style='color:#94a3b8;'></i>");
-                    
-                    <div style="position: relative; width: 50%; float: @floatDir; padding: 10px 40px; clear: both; box-sizing: border-box; text-align: @textDir;">
-                        <!-- Timeline Marker -->
-                        <div style="position: absolute; top: 20px; left: @markerLeft; width: 40px; height: 40px; background-color: @item.Color; border: 4px solid white; border-radius: 50%; z-index: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <i class="fa-solid @item.Icon" style="color: white; font-size: 1rem;"></i>
-                        </div>
+                // Numune
+                AddTimelineItem("sample_kumas_ytesti", "sample", "Kumaş Y-Testi Onayı", "fa-vial", "#8b5cf6", GetSD("sample_kumas_ytesti"), GetSD("sample_kumas_ytesti_actual"));
+                AddTimelineItem("sample_tuse_renk", "sample", "K-Tuşe Renk Onayı", "fa-palette", "#8b5cf6", GetSD("sample_tuse_renk"), GetSD("sample_tuse_renk_actual"));
+                AddTimelineItem("sample_dugme_renk", "sample", "Düğme Renk Kalite", "fa-circle-dot", "#8b5cf6", GetSD("sample_dugme_renk"), GetSD("sample_dugme_renk_actual"));
+                AddTimelineItem("sample_pp_onay", "sample", "PP Onay", "fa-shirt", "#8b5cf6", GetSD("sample_pp_onay"), GetSD("sample_pp_onay_actual"));
 
-                        <!-- Content Card -->
-                        <div style="background: @cardBg; border: 1px solid @cardBorder; border-radius: 8px; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: inline-block; width: 100%; text-align: left;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h5 style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1rem;">@item.Title</h5>
-                                <span style="font-size: 1.1rem;">@Html.Raw(statusIcon)</span>
-                            </div>
+                // Üretim
+                AddTimelineItem("prod_kesim_baslangic", "prod", "Kesim Başlangıç", "fa-scissors", "#3b82f6", GetPD("prod_kesim_baslangic"), GetPD("prod_kesim_baslangic_actual"));
+                AddTimelineItem("prod_kesim_bitis", "prod", "Kesim Bitiş", "fa-check-double", "#3b82f6", GetPD("prod_kesim_bitis"), GetPD("prod_kesim_bitis_actual"));
+                
+                AddTimelineItem("prod_dikim_baslangic", "prod", "Dikim Başlangıç", "fa-mitten", "#ec4899", GetPD("prod_dikim_baslangic"), GetPD("prod_dikim_baslangic_actual"));
+                AddTimelineItem("prod_dikim_bitis", "prod", "Dikim Bitiş", "fa-check-double", "#ec4899", GetPD("prod_dikim_bitis"), GetPD("prod_dikim_bitis_actual"));
+                
+                AddTimelineItem("prod_paket_baslangic", "prod", "Paket Başlangıç", "fa-box", "#f59e0b", GetPD("prod_paket_baslangic"), GetPD("prod_paket_baslangic_actual"));
+                AddTimelineItem("prod_paket_bitis", "prod", "Paket Bitiş", "fa-check-double", "#f59e0b", GetPD("prod_paket_bitis"), GetPD("prod_paket_bitis_actual"));
+
+                // Lojistik
+                AddTimelineItem("prod_gs_gidisi", "prod", "GS Gidişi", "fa-plane-departure", "#10b981", GetPD("prod_gs_gidisi"), GetPD("prod_gs_gidisi_actual"));
+                AddTimelineItem("prod_yola_cikis", "prod", "Yola Çıkış", "fa-truck-fast", "#10b981", GetPD("prod_yola_cikis"), GetPD("prod_yola_cikis_actual"));
+                AddTimelineItem("prod_depo_varis", "prod", "Depo Varış", "fa-warehouse", "#10b981", GetPD("prod_depo_varis"), GetPD("prod_depo_varis_actual"));
+                
+                string termin = GetPD("prod_knn_revize_termin");
+                if (string.IsNullOrEmpty(termin)) termin = GetPD("prod_suanki_termin");
+                if (string.IsNullOrEmpty(termin) && Model.PlannedPackagingEndDate.HasValue) termin = Model.PlannedPackagingEndDate.Value.ToString("yyyy-MM-dd");
+                AddTimelineItem("termin_tarihi", "prod", "Termin Hedefi", "fa-flag-checkered", "#ef4444", termin, GetPD("termin_tarihi_actual"));
+            }
+
+            <div class="horizontal-timeline-wrapper" style="overflow-x: auto; padding: 20px 10px; margin-bottom: 30px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; position: relative;">
+                <div style="display: flex; gap: 30px; min-width: max-content; position: relative; padding-top: 30px; padding-bottom: 20px;">
+                    <!-- Arka plan çizgisi -->
+                    <div style="position: absolute; height: 4px; background-color: #cbd5e1; top: 50px; left: 0; right: 0; border-radius: 2px; z-index: 0;"></div>
+                    
+                    @foreach(var item in timelineItems)
+                    {
+                        string cardBg = item.IsDelayed ? "#fef2f2" : (item.ActualDate != null ? "#f0fdf4" : "#ffffff");
+                        string cardBorder = item.IsDelayed ? "#fecaca" : (item.ActualDate != null ? "#bbf7d0" : "#e2e8f0");
+                        string statusIcon = item.ActualDate != null ? "<i class='fa-solid fa-circle-check' style='color:#16a34a;'></i>" : (item.IsDelayed ? "<i class='fa-solid fa-circle-exclamation' style='color:#dc2626;'></i>" : "<i class='fa-solid fa-clock' style='color:#94a3b8;'></i>");
+                        
+                        <div style="position: relative; width: 260px; display: flex; flex-direction: column; align-items: center; z-index: 1;">
                             
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569;">
-                                    <span><strong>Planlanan:</strong> @(item.PlanDate?.ToString("dd.MM.yyyy") ?? "-")</span>
+                            <!-- Yuvarlak İkon -->
+                            <div style="width: 44px; height: 44px; background-color: @item.Color; border: 4px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 16px; position: relative; z-index: 2;">
+                                <i class="fa-solid @item.Icon" style="color: white; font-size: 1.1rem;"></i>
+                            </div>
+
+                            <!-- Kart -->
+                            <div style="background: @cardBg; border: 1px solid @cardBorder; border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); width: 100%; position: relative;">
+                                <!-- Etiketler -->
+                                <div style="position: absolute; top: -12px; right: 10px;">
+                                    @if (item.IsDelayed)
+                                    {
+                                        <span style="background: #ef4444; color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">@item.DelayDays GÜN GECİKTİ</span>
+                                    }
+                                    else if (item.EarlyDays > 0 && item.ActualDate != null)
+                                    {
+                                        <span style="background: #10b981; color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">@item.EarlyDays GÜN ERKEN</span>
+                                    }
+                                    else if (item.ActualDate != null && item.DelayDays == 0 && item.EarlyDays == 0)
+                                    {
+                                        <span style="background: #3b82f6; color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);">ZAMANINDA</span>
+                                    }
                                 </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569; align-items: center;">
-                                    <span><strong>Gerçekleşen:</strong> @(item.ActualDate?.ToString("dd.MM.yyyy") ?? "-")</span>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 4px;">
+                                    <h5 style="margin: 0; font-weight: 700; color: #1e293b; font-size: 0.95rem;">@item.Title</h5>
+                                    <span style="font-size: 1rem;">@Html.Raw(statusIcon)</span>
+                                </div>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #475569;">
+                                        <span><strong>Planlanan:</strong></span>
+                                        <span>@(item.PlanDate?.ToString("dd.MM.yyyy") ?? "-")</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #475569; align-items: center;">
+                                        <span><strong>Gerçekleşen:</strong></span>
+                                        <span>@(item.ActualDate?.ToString("dd.MM.yyyy") ?? "-")</span>
+                                    </div>
                                     @if(item.ActualDate == null)
                                     {
                                         string btnText = "Tamamlandı";
                                         if (item.Id.EndsWith("_baslangic")) btnText = "Başladı";
                                         else if (item.Id.EndsWith("_bitis")) btnText = "Bitti";
                                         
-                                        <button class="btn btn-sm btn-success" style="padding: 4px 10px; font-size: 0.75rem;" onclick="markTimelineCompleted('@item.Id', '@item.Type')"><i class="fa-solid fa-check"></i> @btnText</button>
+                                        <button class="btn btn-sm btn-outline-success w-100 mt-2" style="font-size: 0.8rem; font-weight: 600;" onclick="markTimelineCompleted('@item.Id', '@item.Type')"><i class="fa-solid fa-check"></i> @btnText Olarak İşaretle</button>
                                     }
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    tlIndex++;
+                    }
+                </div>
+            </div>
+
+            <!-- KUMAŞ TESTLERİ (TALOS) ALANI (ZAMAN ÇİZELGESİ ALTINDA) -->
+            @{
+                var talosData = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(Model.TalosTestJson))
+                {
+                    try { talosData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(Model.TalosTestJson) ?? new Dictionary<string, string>(); } catch {}
                 }
-                <div style="clear: both;"></div>
+
+                string GetT(string k) => talosData.ContainsKey(k) ? talosData[k] : "";
+
+                bool step1 = GetT("talos_step1") == "true" || GetT("talos_numune_status") == "EVET";
+                bool step2 = GetT("talos_step2") == "true" || GetT("talos_lab_status") == "EVET";
+                bool step3 = GetT("talos_step3") == "true" || (GetT("talos_test_result_status") != "" && GetT("talos_test_result_status") != "BEKLENIYOR");
+                
+                // Step 4: Kalır değer var mı?
+                bool step4 = GetT("talos_step4") == "true" || GetT("talos_kalir_val_status") == "VAR_KALIR";
+                string kalirDegerTxt = GetT("talos_kalir_deger_txt");
+                if (string.IsNullOrEmpty(kalirDegerTxt)) kalirDegerTxt = GetT("talos_kalir_test_details");
+
+                // Step 5: Kalır değerlere onay alındı mı?
+                bool step5 = GetT("talos_step5") == "true" || GetT("talos_kalir_approval_status") == "EVET_OK";
+                string islemNedir = GetT("talos_islem_nedir");
+                if (string.IsNullOrEmpty(islemNedir)) islemNedir = GetT("talos_action_notes");
+
+                string overallBadgeClass = "bg-warning text-dark";
+                string overallBadgeText = "İŞLEM BEKLİYOR / DEVAM EDİYOR";
+                
+                if (step5 || (step3 && !step4)) {
+                    overallBadgeClass = "bg-success text-white";
+                    overallBadgeText = "OK - ONAYLANDI";
+                } else if (step4 && !step5) {
+                    overallBadgeClass = "bg-danger text-white";
+                    overallBadgeText = "KALIR DEĞER ONAYSIZ - AKSIYON GEREKLİ";
+                }
+            }
+
+            <div style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; padding: 24px; margin-top: 30px; margin-bottom: 35px;">
+                
+                <!-- Başlık ve Genel Durum Özeti -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px;">
+                    <div>
+                        <h4 style="margin: 0; font-weight: 800; color: #1e3a8a; font-size: 1.15rem; display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-vial-circle-check" style="color: #2563eb; font-size: 1.3rem;"></i> LCW Kumaş Testleri (TALOS) Onay Tablosu
+                        </h4>
+                        <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.85rem;">Test onay adımlarını işaretleyiniz ve kaydı güncelleyiniz.</p>
+                    </div>
+                    <div>
+                        <span class="badge @overallBadgeClass" style="font-size: 0.88rem; padding: 8px 16px; border-radius: 20px; font-weight: 700;" id="badgeTalosOverall">
+                            @overallBadgeText
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Düzenli Onay Tablosu -->
+                <form id="formTalosTest" onsubmit="return false;">
+                    <div style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #ffffff;">
+                        <table class="table table-hover align-middle" style="margin-bottom: 0;">
+                            <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                <tr>
+                                    <th style="width: 50px; text-align: center; color: #475569; font-weight: 700; font-size: 0.8rem; padding: 12px;">#</th>
+                                    <th style="color: #475569; font-weight: 700; font-size: 0.8rem; padding: 12px 16px;">ONAY AŞAMASI (SORU)</th>
+                                    <th style="width: 240px; text-align: center; color: #475569; font-weight: 700; font-size: 0.8rem; padding: 12px 16px;">İŞARETLEME / DURUM</th>
+                                    <th style="width: 240px; text-align: right; color: #475569; font-weight: 700; font-size: 0.8rem; padding: 12px 20px;">DURUM ETİKETİ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 1. Adım -->
+                                <tr id="wrapper_step1" style="background: @(step1 ? "#f0fdf4" : "transparent"); transition: background 0.2s;">
+                                    <td style="text-align: center; padding: 14px 12px;">
+                                        <span style="background: #eff6ff; color: #2563eb; font-weight: 700; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">1</span>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <label class="form-check-label" for="talos_step1" style="font-size: 0.95rem; font-weight: 700; color: #1e293b; cursor: pointer; display: block;">
+                                            Kumaşçıdan numune alındı mı?
+                                        </label>
+                                    </td>
+                                    <td style="text-align: center; padding: 14px 16px;">
+                                        <div class="form-check d-inline-block" style="margin: 0;">
+                                            <input class="form-check-input" type="checkbox" id="talos_step1" @(step1 ? "checked" : "") style="width: 22px; height: 22px; cursor: pointer;" onchange="updateTalosUI()">
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right; padding: 14px 20px;">
+                                        <span class="badge @(step1 ? "bg-success text-white" : "bg-secondary text-white")" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 12px;" id="badge_step1">
+                                            @(step1 ? "✓ Alındı" : "Alınmadı")
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- 2. Adım -->
+                                <tr id="wrapper_step2" style="background: @(step2 ? "#f0fdf4" : "transparent"); transition: background 0.2s;">
+                                    <td style="text-align: center; padding: 14px 12px;">
+                                        <span style="background: #eff6ff; color: #2563eb; font-weight: 700; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">2</span>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <label class="form-check-label" for="talos_step2" style="font-size: 0.95rem; font-weight: 700; color: #1e293b; cursor: pointer; display: block;">
+                                            Kumaş laboratuvara gitti mi?
+                                        </label>
+                                    </td>
+                                    <td style="text-align: center; padding: 14px 16px;">
+                                        <div class="form-check d-inline-block" style="margin: 0;">
+                                            <input class="form-check-input" type="checkbox" id="talos_step2" @(step2 ? "checked" : "") style="width: 22px; height: 22px; cursor: pointer;" onchange="updateTalosUI()">
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right; padding: 14px 20px;">
+                                        <span class="badge @(step2 ? "bg-success text-white" : "bg-secondary text-white")" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 12px;" id="badge_step2">
+                                            @(step2 ? "✓ Gitti" : "Gitmedi")
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- 3. Adım -->
+                                <tr id="wrapper_step3" style="background: @(step3 ? "#f0fdf4" : "transparent"); transition: background 0.2s;">
+                                    <td style="text-align: center; padding: 14px 12px;">
+                                        <span style="background: #eff6ff; color: #2563eb; font-weight: 700; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">3</span>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <label class="form-check-label" for="talos_step3" style="font-size: 0.95rem; font-weight: 700; color: #1e293b; cursor: pointer; display: block;">
+                                            Test sonuçları geldi mi?
+                                        </label>
+                                    </td>
+                                    <td style="text-align: center; padding: 14px 16px;">
+                                        <div class="form-check d-inline-block" style="margin: 0;">
+                                            <input class="form-check-input" type="checkbox" id="talos_step3" @(step3 ? "checked" : "") style="width: 22px; height: 22px; cursor: pointer;" onchange="updateTalosUI()">
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right; padding: 14px 20px;">
+                                        <span class="badge @(step3 ? "bg-success text-white" : "bg-secondary text-white")" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 12px;" id="badge_step3">
+                                            @(step3 ? "✓ Geldi" : "Gelmedi")
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- 4. Adım: "KALIR" DEĞER VAR MI? (2 Buton: Var / Yok) -->
+                                <tr id="wrapper_step4" style="background: @(step4 ? "#fef2f2" : "transparent"); transition: background 0.2s;">
+                                    <td style="text-align: center; padding: 14px 12px;">
+                                        <span style="background: #fef2f2; color: #dc2626; font-weight: 700; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">4</span>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <label style="font-size: 0.95rem; font-weight: 700; color: #1e293b; display: block;">
+                                            "Kalır" değer var mı?
+                                        </label>
+                                    </td>
+                                    <td style="text-align: center; padding: 14px 16px;">
+                                        <div style="display: inline-flex; gap: 12px; justify-content: center; align-items: center;">
+                                            <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.88rem; padding: 4px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff;">
+                                                <input type="radio" name="talos_step4_radio" id="talos_step4_no" value="no" @(!step4 ? "checked" : "") onchange="updateTalosUI()" style="width: 16px; height: 16px; cursor: pointer;"> Yok
+                                            </label>
+                                            <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.88rem; padding: 4px 12px; border-radius: 6px; border: 1px solid #fca5a5; background: #ffffff; color: #dc2626;">
+                                                <input type="radio" name="talos_step4_radio" id="talos_step4_yes" value="yes" @(step4 ? "checked" : "") onchange="updateTalosUI()" style="width: 16px; height: 16px; cursor: pointer;"> Var
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right; padding: 14px 20px;">
+                                        <span class="badge @(step4 ? "bg-danger text-white" : "bg-success text-white")" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 12px;" id="badge_step4">
+                                            @(step4 ? "⚠ Kalır Değer Var" : "✓ Yok (Tüm Testler Geçti)")
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- Hangi Değer Kalır Çıktı (4. Adımda "Var" Seçildiğinde Gösterilir) -->
+                                <tr id="tr_kalir_deger_txt" style="display: @(step4 ? "table-row" : "none"); background: #fff5f5;">
+                                    <td colspan="4" style="padding: 12px 20px; border-top: 1px dashed #fca5a5;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <label class="form-label text-danger font-weight-bold" style="font-size: 0.88rem; margin: 0; white-space: nowrap;">
+                                                <i class="fa-solid fa-pen-to-square"></i> Hangi Değer / Test "Kalır" Çıktı?
+                                            </label>
+                                            <input type="text" class="form-control border-danger" id="talos_kalir_deger_txt" placeholder="Örn. Yıkama çekmezliği %6 çıktı, Sürtünme haslığı 2-3..." value="@kalirDegerTxt" style="font-size: 0.88rem;" />
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- 5. Adım: "KALIR" DEĞERLERE ONAY ALINDI MI? (Sadece Kalır Değer Var Seçildiğinde Görünür) -->
+                                <tr id="wrapper_step5" style="display: @(step4 ? "table-row" : "none"); background: @(step5 ? "#f0fdf4" : "#fffbe6"); transition: background 0.2s;">
+                                    <td style="text-align: center; padding: 14px 12px;">
+                                        <span style="background: #eff6ff; color: #2563eb; font-weight: 700; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">5</span>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <label style="font-size: 0.95rem; font-weight: 700; color: #1e293b; display: block;">
+                                            "Kalır" değerlere onay alındı mı?
+                                        </label>
+                                    </td>
+                                    <td style="text-align: center; padding: 14px 16px;">
+                                        <div style="display: inline-flex; gap: 12px; justify-content: center; align-items: center;">
+                                            <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.88rem; padding: 4px 12px; border-radius: 6px; border: 1px solid #86efac; background: #ffffff; color: #166534;">
+                                                <input type="radio" name="talos_step5_radio" id="talos_step5_yes" value="yes" @(step5 ? "checked" : "") onchange="updateTalosUI()" style="width: 16px; height: 16px; cursor: pointer;"> Evet (OK)
+                                            </label>
+                                            <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.88rem; padding: 4px 12px; border-radius: 6px; border: 1px solid #fca5a5; background: #ffffff; color: #dc2626;">
+                                                <input type="radio" name="talos_step5_radio" id="talos_step5_no" value="no" @(!step5 && step4 ? "checked" : "") onchange="updateTalosUI()" style="width: 16px; height: 16px; cursor: pointer;"> Hayır
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right; padding: 14px 20px;">
+                                        <span class="badge @(step5 ? "bg-success text-white" : "bg-warning text-dark")" style="font-size: 0.85rem; padding: 6px 14px; border-radius: 12px;" id="badge_step5">
+                                            @(step5 ? "✓ OK (Onay Alındı)" : "Onay Alınmadı")
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Onay Alınmadıysa Hangi Değerler Kaldı / Yapılan İşlem Nedir? -->
+                        <div id="div_islem_nedir" style="display: @(step4 && !step5 ? "block" : "none"); background: #fff5f5; border-top: 1px solid #feb2b2; padding: 16px 20px;">
+                            <label class="form-label text-danger font-weight-bold" style="font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-circle-exclamation"></i> Onay Alınmadıysa Hangi Değerler Kaldı / Yapılacak İşlem Nedir?
+                            </label>
+                            <textarea class="form-control border-danger" id="talos_islem_nedir" rows="2" placeholder="Hangi değerler kaldı ve uygulanacak işlem / aksiyon detayını yazınız..." style="font-size: 0.88rem;">@islemNedir</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Kaydet Butonu -->
+                    <div class="text-end mt-3">
+                        <button class="btn btn-primary" onclick="saveTalosTestForm()" style="padding: 8px 24px; font-weight: 700;">
+                            <i class="fa-solid fa-floppy-disk" style="margin-right: 6px;"></i> TALOS Onaylarını Kaydet
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
+            <!-- Takvim Performans Raporu -->
+            <h5 style="margin-top: 40px; margin-bottom: 16px; color: #0f172a; font-weight: 700;"><i class="fa-solid fa-chart-line" style="color: var(--primary-color);"></i> Takvim Performans Raporu</h5>
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <table class="table table-hover" style="margin-bottom: 0;">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th style="color: #475569; font-weight: 600; font-size: 0.85rem; padding: 12px 16px;">AŞAMA ADI</th>
+                            <th style="color: #475569; font-weight: 600; font-size: 0.85rem; padding: 12px 16px;">PLANLANAN</th>
+                            <th style="color: #475569; font-weight: 600; font-size: 0.85rem; padding: 12px 16px;">GERÇEKLEŞEN</th>
+                            <th style="color: #475569; font-weight: 600; font-size: 0.85rem; padding: 12px 16px;">DURUM</th>
+                            <th style="color: #475569; font-weight: 600; font-size: 0.85rem; padding: 12px 16px;">GECİKME / ERKEN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int totalDelayDays = 0;
+                            int totalEarlyDays = 0;
+                        }
+                        @foreach(var item in timelineItems)
+                        {
+                            if (item.IsDelayed) totalDelayDays += item.DelayDays;
+                            if (item.EarlyDays > 0) totalEarlyDays += item.EarlyDays;
+
+                            string statusColor = item.IsDelayed ? "#ef4444" : (item.EarlyDays > 0 ? "#10b981" : (item.ActualDate != null ? "#3b82f6" : "#64748b"));
+                            string statusText = item.IsDelayed ? "Gecikti" : (item.EarlyDays > 0 ? "Erken Bitti" : (item.ActualDate != null ? "Zamanında Bitti" : "Bekliyor"));
+                            
+                            string detailText = "-";
+                            if (item.IsDelayed) detailText = $"{item.DelayDays} Gün Gecikti";
+                            else if (item.EarlyDays > 0) detailText = $"{item.EarlyDays} Gün Erken";
+                            else if (item.ActualDate != null) detailText = "Zamanında";
+
+                            <tr>
+                                <td style="padding: 12px 16px; font-weight: 600; color: #1e293b;">@item.Title</td>
+                                <td style="padding: 12px 16px; color: #475569;">@(item.PlanDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                <td style="padding: 12px 16px; color: #475569;">@(item.ActualDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                                <td style="padding: 12px 16px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 6px; color: @statusColor; font-weight: 600; font-size: 0.85rem;">
+                                        <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> @statusText
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 16px; font-weight: 700; color: @statusColor; font-size: 0.9rem;">
+                                    @detailText
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot style="background: #f1f5f9;">
+                        <tr>
+                            <td colspan="4" style="padding: 16px; text-align: right; font-weight: 700; color: #0f172a; font-size: 0.95rem;">TOPLAM NET GECİKME:</td>
+                            <td style="padding: 16px; font-weight: 800; font-size: 1.1rem; color: @(totalDelayDays - totalEarlyDays > 0 ? "#ef4444" : "#10b981")">
+                                @{
+                                    int netDelay = totalDelayDays - totalEarlyDays;
+                                    if (netDelay > 0) {
+                                        <text>@netDelay Gün Gecikme</text>
+                                    } else if (netDelay < 0) {
+                                        <text>@Math.Abs(netDelay) Gün Kazanım</text>
+                                    } else {
+                                        <text>Tam Zamanında</text>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -1152,22 +1470,111 @@
             $('#' + tabId).addClass('active');
         }
 
+        // --- TALOS KUMAŞ TESTLERİ LOGIC ---
+        function updateTalosUI() {
+            var step1 = $('#talos_step1').is(':checked');
+            var step2 = $('#talos_step2').is(':checked');
+            var step3 = $('#talos_step3').is(':checked');
+            var step4 = $('input[name="talos_step4_radio"]:checked').val() === 'yes';
+            var step5 = $('input[name="talos_step5_radio"]:checked').val() === 'yes';
+
+            // Step 1 UI
+            $('#wrapper_step1').css({ 'background': step1 ? "#f0fdf4" : "transparent" });
+            $('#badge_step1').attr('class', step1 ? 'badge bg-success text-white' : 'badge bg-secondary text-white').text(step1 ? '✓ Alındı' : 'Alınmadı');
+
+            // Step 2 UI
+            $('#wrapper_step2').css({ 'background': step2 ? "#f0fdf4" : "transparent" });
+            $('#badge_step2').attr('class', step2 ? 'badge bg-success text-white' : 'badge bg-secondary text-white').text(step2 ? '✓ Gitti' : 'Gitmedi');
+
+            // Step 3 UI
+            $('#wrapper_step3').css({ 'background': step3 ? "#f0fdf4" : "transparent" });
+            $('#badge_step3').attr('class', step3 ? 'badge bg-success text-white' : 'badge bg-secondary text-white').text(step3 ? '✓ Geldi' : 'Gelmedi');
+
+            // Step 4 UI & Step 5 Visibility Logic
+            $('#wrapper_step4').css({ 'background': step4 ? "#fef2f2" : "transparent" });
+            $('#badge_step4').attr('class', step4 ? 'badge bg-danger text-white' : 'badge bg-success text-white').text(step4 ? '⚠ Kalır Değer Var' : '✓ Yok (Tüm Testler Geçti)');
+
+            if (step4) {
+                // Kalır Değer Var ise: Metin kutusunu ve 5. Adımı Göster
+                $('#tr_kalir_deger_txt').show();
+                $('#wrapper_step5').show();
+
+                $('#wrapper_step5').css({ 'background': step5 ? "#f0fdf4" : "#fffbe6" });
+                $('#badge_step5').attr('class', step5 ? 'badge bg-success text-white' : 'badge bg-warning text-dark').text(step5 ? '✓ OK (Onay Alındı)' : 'Onay Alınmadı');
+
+                if (!step5) {
+                    $('#div_islem_nedir').slideDown();
+                } else {
+                    $('#div_islem_nedir').slideUp();
+                }
+            } else {
+                // Kalır Değer Yok ise: Metin kutusunu, 5. Adımı ve İşlem Nedir kutusunu GİZLE!
+                $('#tr_kalir_deger_txt').hide();
+                $('#wrapper_step5').hide();
+                $('#div_islem_nedir').hide();
+            }
+
+            // Overall Badge
+            if (!step4 && step3) {
+                $('#badgeTalosOverall').attr('class', 'badge bg-success text-white').text('OK - ONAYLANDI');
+            } else if (step4 && step5) {
+                $('#badgeTalosOverall').attr('class', 'badge bg-success text-white').text('OK - ONAY ALINDI');
+            } else if (step4 && !step5) {
+                $('#badgeTalosOverall').attr('class', 'badge bg-danger text-white').text('KALIR DEĞER ONAYSIZ - AKSIYON GEREKLİ');
+            } else {
+                $('#badgeTalosOverall').attr('class', 'badge bg-warning text-dark').text('İŞLEM BEKLİYOR / DEVAM EDİYOR');
+            }
+        }
+
+        function saveTalosTestForm() {
+            var data = {
+                talos_step1: $('#talos_step1').is(':checked') ? "true" : "false",
+                talos_step2: $('#talos_step2').is(':checked') ? "true" : "false",
+                talos_step3: $('#talos_step3').is(':checked') ? "true" : "false",
+                talos_step4: $('input[name="talos_step4_radio"]:checked').val() === 'yes' ? "true" : "false",
+                talos_kalir_deger_txt: $('#talos_kalir_deger_txt').val(),
+                talos_step5: $('input[name="talos_step5_radio"]:checked').val() === 'yes' ? "true" : "false",
+                talos_islem_nedir: $('#talos_islem_nedir').val()
+            };
+
+            var jsonStr = JSON.stringify(data);
+
+            $.ajax({
+                url: '/ProcessTracking/SaveTalosTest',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ Id: orderId, TalosTestJson: jsonStr }),
+                success: function(res) {
+                    if(res.success) {
+                        showToast("TALOS test onayları kaydedildi.", "success");
+                        setTimeout(function() {
+                            window.location.hash = "timeline";
+                            location.reload();
+                        }, 800);
+                    } else {
+                        showToast("Hata: " + res.message, "danger");
+                    }
+                },
+                error: function() {
+                    showToast("Kayıt sırasında sunucu hatası oluştu.", "danger");
+                }
+            });
+        }
+
         // --- COMPARISON LOGIC ---
         function updateComparison(materialId, plannedQty) {
             const actualInput = $('#actual_qty_' + materialId);
-            const actualQty = parseFloat(actualInput.val()) || 0;
+            const availableStock = parseFloat(actualInput.val()) || 0;
             const compSpan = $('#comp_' + materialId);
             const isChecked = $('#chk_mat_' + materialId).is(':checked');
             
-            const diff = actualQty - plannedQty;
             if (isChecked) {
-                compSpan.text("TAM").css({ 'background': '#dcfce7', 'color': '#166534' });
-            } else if (Math.abs(diff) < 0.01) {
-                compSpan.text("TAM").css({ 'background': '#dcfce7', 'color': '#166534' });
-            } else if (diff > 0) {
-                compSpan.text("FAZLA (+" + diff.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ")").css({ 'background': '#e0e7ff', 'color': '#3730a3' });
+                compSpan.text("TAHSİS EDİLDİ").css({ 'background': '#dcfce7', 'color': '#166534' });
+            } else if (availableStock >= plannedQty) {
+                compSpan.text("STOK YETERLİ").css({ 'background': '#dcfce7', 'color': '#166534' });
             } else {
-                compSpan.text("EKSİK (" + diff.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ")").css({ 'background': '#fee2e2', 'color': '#991b1b' });
+                const eksik = plannedQty - availableStock;
+                compSpan.text("YETERSİZ STOK (-" + eksik.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ")").css({ 'background': '#fee2e2', 'color': '#991b1b' });
             }
         }
 
@@ -1176,11 +1583,13 @@
             const isChecked = $('#chk_mat_' + materialId).is(':checked');
             const plannedQtyStr = $('#chk_mat_' + materialId).attr('data-planned') || "0";
             
-            const actualQtyInput = $('#actual_qty_' + materialId).val().replace(',', '.');
-            const actualQty = parseFloat(actualQtyInput) || 0;
+            const availableStock = parseFloat($('#actual_qty_' + materialId).val()) || 0;
+            const plannedQty = parseFloat(plannedQtyStr.replace(',', '.')) || 0;
 
-            if (isChecked && actualQty <= 0) {
-                // Sadece stok uyarısı ver, ama engelleme.
+            if (isChecked && availableStock < plannedQty) {
+                showToast("Yetersiz stok. Lütfen önce alış faturası ile depoya giriş yapınız.", "danger");
+                $('#chk_mat_' + materialId).prop('checked', false);
+                return;
             }
             
             // Update wrapper div styling
@@ -1191,11 +1600,16 @@
             // Update row background color dynamically
             $('#chk_mat_' + materialId).closest('tr').css('background', isChecked ? "#f0fdf4" : "transparent");
             
-            $.post('/ProcessTracking/UpdateMaterialApproval', { materialId: materialId, actualQuantityStr: actualQtyInput, isApproved: isChecked }, function(res) {
+            // Backend'e gerceklesen miktar olarak "planlanan miktarı" gonderiyoruz, cunku tamami tahsis edilecek.
+            $.post('/ProcessTracking/UpdateMaterialApproval', { materialId: materialId, actualQuantityStr: plannedQtyStr, isApproved: isChecked }, function(res) {
                 if(res.success) {
-                    showToast("Malzeme onayı başarıyla güncellendi.", "success");
-                    // Update comparison dynamically using the new actualQty
-                    updateComparison(materialId, parseFloat(plannedQtyStr));
+                    showToast(isChecked ? "Siparişe stok tahsis edildi." : "Tahsis iptal edildi ve stok iade edildi.", "success");
+                    if (isChecked) {
+                        $('#actual_qty_' + materialId).val((availableStock - plannedQty).toString());
+                    } else {
+                        $('#actual_qty_' + materialId).val((availableStock + plannedQty).toString());
+                    }
+                    updateComparison(materialId, plannedQty);
                 } else {
                     showToast("Hata: " + res.message, "danger");
                     $('#chk_mat_' + materialId).prop('checked', !isChecked);
@@ -1203,7 +1617,7 @@
                         .css('background', !isChecked ? "#dcfce7" : "#fffbeb")
                         .css('border-color', !isChecked ? "#bbf7d0" : "#fef08a");
                     $('#chk_mat_' + materialId).closest('tr').css('background', !isChecked ? "#f0fdf4" : "transparent");
-                    updateComparison(materialId, parseFloat(plannedQtyStr));
+                    updateComparison(materialId, plannedQty);
                     
                     if ($('#varyant_select_' + materialId).length) {
                         $('#varyant_select_' + materialId).prop('disabled', !isChecked);
@@ -1451,6 +1865,7 @@
                     html += '<th style="padding: 8px 10px; text-align: center; font-weight: 700; color: #1e40af; border: 1px solid #bfdbfe; font-size: 0.75rem;">' + s + '</th>';
                 });
                 html += '<th style="padding: 8px 10px; text-align: center; font-weight: 700; color: #1e40af; border: 1px solid #bfdbfe; font-size: 0.75rem;">TOPLAM</th>';
+                html += '<th style="padding: 8px 10px; text-align: center; font-weight: 700; color: #1e40af; border: 1px solid #bfdbfe; font-size: 0.75rem;">PASTAL BOYU</th>';
                 html += '<th style="padding: 8px 10px; text-align: center; font-weight: 700; color: #1e40af; border: 1px solid #bfdbfe; font-size: 0.75rem;">TARİH</th>';
                 html += '</tr></thead><tbody>';
 
@@ -1458,6 +1873,8 @@
                 items.forEach((item, idx) => {
                     let cutName = item.CutName || ('Kesim ' + (idx + 1));
                     let qty = parseFloat(item.TotalQuantity) || 0;
+                    let markerLen = parseFloat(item.MarkerLength || item.PastalBoyu) || 0;
+                    let markerLenStr = markerLen > 0 ? markerLen.toFixed(2) + ' m' : '-';
                     grandPlanned += qty;
                     html += '<tr style="background: #eff6ff;">';
                     html += '<td style="padding: 6px 10px; text-align: center; font-weight: 700; color: #1e40af; border: 1px solid #dbeafe;">' + cutName + '</td>';
@@ -1470,6 +1887,7 @@
                         html += '<td style="padding: 6px 10px; text-align: center; color: #334155; border: 1px solid #dbeafe;">' + displayVal + '</td>';
                     });
                     html += '<td style="padding: 6px 10px; text-align: center; font-weight: 700; color: #1e40af; border: 1px solid #dbeafe;">' + qty + '</td>';
+                    html += '<td style="padding: 6px 10px; text-align: center; font-weight: 600; color: #0369a1; border: 1px solid #dbeafe;">' + markerLenStr + '</td>';
                     html += '<td style="padding: 6px 10px; text-align: center; color: #64748b; border: 1px solid #dbeafe; font-size: 0.8rem;">' + (item.Date || '-') + '</td>';
                     html += '</tr>';
                 });
@@ -1488,6 +1906,7 @@
                     html += '<td style="padding: 8px 10px; text-align: center; font-weight: 700; color: #1e40af; border: 1px solid #93c5fd;">' + displayTotal + '</td>';
                 });
                 html += '<td style="padding: 8px 10px; text-align: center; font-weight: 800; color: #1e40af; border: 1px solid #93c5fd; font-size: 1rem;">' + grandPlanned + '</td>';
+                html += '<td style="border: 1px solid #93c5fd;"></td>';
                 html += '<td style="border: 1px solid #93c5fd;"></td>';
                 html += '</tr>';
 

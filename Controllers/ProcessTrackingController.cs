@@ -113,15 +113,94 @@ namespace UretimPlanlama.Controllers
 
                 if (isApproved)
                 {
-                    if (material.StokVaryant != null) material.StokVaryant.MevcutMiktar -= actualQuantity;
-                    else if (material.StokKarti != null) material.StokKarti.MevcutMiktar -= actualQuantity;
+                    decimal siparisAlisMiktar = _context.StokHareketler
+                        .Where(sh => sh.OrderId == material.OrderId && sh.HareketTipi == "Giriş" && sh.StokKartiId == material.StokKartiId)
+                        .Sum(sh => (decimal?)sh.Miktar) ?? 0;
+
+                    decimal rawStock = material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : (material.StokKarti != null ? material.StokKarti.MevcutMiktar : 0);
+                    decimal availableStock = Math.Max(siparisAlisMiktar, Math.Max(0, rawStock));
+                    
+                    if (availableStock < actualQuantity)
+                    {
+                        return Json(new { success = false, message = "Yetersiz stok. Lütfen önce alış faturası ile depoya giriş yapınız." });
+                    }
+
+                    if (material.StokVaryant != null && material.StokVaryant.MevcutMiktar >= actualQuantity) 
+                        material.StokVaryant.MevcutMiktar -= actualQuantity;
+                    else if (material.StokVaryant != null)
+                        material.StokVaryant.MevcutMiktar = 0;
+
+                    if (material.StokKarti != null && material.StokKarti.MevcutMiktar >= actualQuantity) 
+                        material.StokKarti.MevcutMiktar -= actualQuantity;
+                    else if (material.StokKarti != null)
+                        material.StokKarti.MevcutMiktar = 0;
 
                     material.ActualQuantity = actualQuantity;
+
+                    string extraFeatures = "";
+                    if (!string.IsNullOrEmpty(material.OzelliklerJson))
+                    {
+                        try {
+                            using var doc = System.Text.Json.JsonDocument.Parse(material.OzelliklerJson);
+                            var parts = new System.Collections.Generic.List<string>();
+                            if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                                foreach(var i in doc.RootElement.EnumerateArray()) {
+                                    if (i.TryGetProperty("Key", out var k) && i.TryGetProperty("Value", out var v)) parts.Add($"{k.GetString()}: {v.GetString()}");
+                                }
+                            } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                                foreach(var prop in doc.RootElement.EnumerateObject()) parts.Add($"{prop.Name}: {prop.Value.GetString()}");
+                            }
+                            if (parts.Count > 0) extraFeatures = " [" + string.Join(" | ", parts) + "]";
+                        } catch {}
+                    }
+
+                    var hareket = new StokHareket {
+                        StokKartiId = material.StokKartiId,
+                        StokVaryantId = material.StokVaryantId,
+                        IslemTarihi = DateTime.Now,
+                        HareketTipi = "Çıkış",
+                        Miktar = actualQuantity,
+                        Aciklama = $"Sipariş Planlama Tahsisi - Otomatik Çıkış (Sipariş: {material.Order?.OrderCode ?? material.OrderId.ToString()}){extraFeatures}",
+                        OrderId = material.OrderId,
+                        Tedarikci = "KANUNİ TEKSTİL",
+                        KalanMiktar = (material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : (material.StokKarti != null ? material.StokKarti.MevcutMiktar : 0))
+                    };
+                    _context.StokHareketler.Add(hareket);
                 }
                 else
                 {
                     if (material.StokVaryant != null) material.StokVaryant.MevcutMiktar += material.ActualQuantity;
-                    else if (material.StokKarti != null) material.StokKarti.MevcutMiktar += material.ActualQuantity;
+                    if (material.StokKarti != null) material.StokKarti.MevcutMiktar += material.ActualQuantity;
+
+                    string extraFeatures = "";
+                    if (!string.IsNullOrEmpty(material.OzelliklerJson))
+                    {
+                        try {
+                            using var doc = System.Text.Json.JsonDocument.Parse(material.OzelliklerJson);
+                            var parts = new System.Collections.Generic.List<string>();
+                            if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                                foreach(var i in doc.RootElement.EnumerateArray()) {
+                                    if (i.TryGetProperty("Key", out var k) && i.TryGetProperty("Value", out var v)) parts.Add($"{k.GetString()}: {v.GetString()}");
+                                }
+                            } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                                foreach(var prop in doc.RootElement.EnumerateObject()) parts.Add($"{prop.Name}: {prop.Value.GetString()}");
+                            }
+                            if (parts.Count > 0) extraFeatures = " [" + string.Join(" | ", parts) + "]";
+                        } catch {}
+                    }
+
+                    var hareket = new StokHareket {
+                        StokKartiId = material.StokKartiId,
+                        StokVaryantId = material.StokVaryantId,
+                        IslemTarihi = DateTime.Now,
+                        HareketTipi = "Giriş",
+                        Miktar = material.ActualQuantity,
+                        Aciklama = $"Sipariş Planlama İptali - İade Girişi (Sipariş: {material.Order?.OrderCode ?? material.OrderId.ToString()}){extraFeatures}",
+                        OrderId = material.OrderId,
+                        Tedarikci = "KANUNİ TEKSTİL",
+                        KalanMiktar = (material.StokVaryant != null ? material.StokVaryant.MevcutMiktar : (material.StokKarti != null ? material.StokKarti.MevcutMiktar : 0))
+                    };
+                    _context.StokHareketler.Add(hareket);
 
                     material.ActualQuantity = 0;
                 }
@@ -299,6 +378,22 @@ namespace UretimPlanlama.Controllers
             
             return Json(new { success = true, message = "Dosya Kapama verileri kaydedildi" });
         }
+
+        [HttpPost]
+        public IActionResult SaveTalosTest([FromBody] TalosTestRequest request)
+        {
+            if (!User.HasPermission("Write") && !User.HasPermission("Edit"))
+                return Json(new { success = false, message = "Yetkiniz yok" });
+
+            var order = _context.Orders.FirstOrDefault(o => o.Id == request.Id);
+            if (order == null)
+                return Json(new { success = false, message = "Sipariş bulunamadı" });
+
+            order.TalosTestJson = request.TalosTestJson;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Kumaş Testleri (TALOS) kaydedildi." });
+        }
     }
 
     public class MaterialDispatchRequest
@@ -317,5 +412,11 @@ namespace UretimPlanlama.Controllers
     {
         public int Id { get; set; }
         public string FileClosingJson { get; set; } = string.Empty;
+    }
+
+    public class TalosTestRequest
+    {
+        public int Id { get; set; }
+        public string TalosTestJson { get; set; } = string.Empty;
     }
 }

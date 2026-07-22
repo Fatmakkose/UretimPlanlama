@@ -181,7 +181,29 @@
             {
                 <tr class="movement-row" data-type="@item.HareketTipi" data-stok="@item.StokKarti?.StokAdi.ToLower()" data-date="@item.IslemTarihi.ToString("yyyy-MM")">
                     <td>@item.IslemTarihi.ToString("dd.MM.yyyy")</td>
-                    <td><strong>@item.StokKarti?.StokKodu - @item.StokKarti?.StokAdi</strong></td>
+                    <td>
+                        <strong>@item.StokKarti?.StokKodu - @item.StokKarti?.StokAdi</strong>
+                        @if(item.StokVaryant != null)
+                        {
+                            string vName = item.StokVaryant.VaryantAdi;
+                            if (!string.IsNullOrEmpty(vName) && (vName.Trim().StartsWith("[") || vName.Trim().StartsWith("{")))
+                            {
+                                try {
+                                    using var doc = System.Text.Json.JsonDocument.Parse(vName);
+                                    var parts = new System.Collections.Generic.List<string>();
+                                    if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                                        foreach(var i in doc.RootElement.EnumerateArray()) {
+                                            if (i.TryGetProperty("Key", out var k) && i.TryGetProperty("Value", out var v)) parts.Add($"{k.GetString()}: {v.GetString()}");
+                                        }
+                                    } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                                        foreach(var prop in doc.RootElement.EnumerateObject()) parts.Add($"{prop.Name}: {prop.Value.GetString()}");
+                                    }
+                                    if (parts.Count > 0) vName = string.Join(" | ", parts);
+                                } catch {}
+                            }
+                            <br /><small style="color: #64748b; font-weight: 600;"><i class="fa-solid fa-tag" style="margin-right: 4px;"></i>Varyant: @vName</small>
+                        }
+                    </td>
                     <td>@(item.BelgeNo ?? "—")</td>
                     <td><span class="type-badge @item.HareketTipi">@item.HareketTipi</span></td>
                     <td style="color: #64748b; font-size: 0.9rem;">@(item.Aciklama ?? "—")</td>

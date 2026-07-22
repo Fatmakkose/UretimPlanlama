@@ -223,9 +223,17 @@
                 <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 10px; color: #94a3b8;"></i>
                 <input type="text" id="orderSearch" placeholder="Sipariş Ara..." class="input-field" style="padding-left: 32px;" />
             </div>
-            <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #475569;">
-                <input type="checkbox" id="showAllOrders" /> Tümünü Gör
-            </label>
+            <div style="display: flex; gap: 6px; margin-top: 2px;">
+                <button id="filterAll" onclick="setOrderFilter('all')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #475569; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;">
+                    Tümü
+                </button>
+                <button id="filterActive" onclick="setOrderFilter('active')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1.5px solid #16a34a; background: #dcfce7; color: #16a34a; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;">
+                    Aktif
+                </button>
+                <button id="filterPassive" onclick="setOrderFilter('passive')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;">
+                    Pasif
+                </button>
+            </div>
         </div>
         <div class="order-list" style="flex: 1; overflow-y: auto;">
             @if(allOrders != null)
@@ -1310,23 +1318,58 @@
     }
 
     // Sipariş arama ve filtreleme
+    var currentOrderFilter = 'all';
+
+    function setOrderFilter(mode) {
+        currentOrderFilter = mode;
+
+        // Buton stillerini güncelle
+        var btnAll = document.getElementById('filterAll');
+        var btnActive = document.getElementById('filterActive');
+        var btnPassive = document.getElementById('filterPassive');
+
+        // Tüm butonları pasif yap
+        [btnAll, btnActive, btnPassive].forEach(function(b) {
+            b.style.background = 'white';
+            b.style.borderColor = '#e2e8f0';
+            b.style.color = '#475569';
+        });
+
+        // Seçili butonu aktif yap
+        if (mode === 'all') {
+            btnAll.style.background = '#0369a1';
+            btnAll.style.borderColor = '#0369a1';
+            btnAll.style.color = 'white';
+        } else if (mode === 'active') {
+            btnActive.style.background = '#dcfce7';
+            btnActive.style.borderColor = '#16a34a';
+            btnActive.style.color = '#16a34a';
+        } else {
+            btnPassive.style.background = '#f1f5f9';
+            btnPassive.style.borderColor = '#94a3b8';
+            btnPassive.style.color = '#475569';
+        }
+
+        filterOrders();
+    }
+
     function filterOrders() {
         var searchValue = document.getElementById('orderSearch').value.toLowerCase();
-        var showAll = document.getElementById('showAllOrders').checked;
         var items = document.querySelectorAll('.order-list-item');
-        
+
         items.forEach(function(item) {
             var text = item.textContent.toLowerCase();
             var isActive = item.getAttribute('data-active') === 'true';
             var matchesSearch = text.includes(searchValue);
-            var matchesFilter = showAll || isActive;
-            
+            var matchesFilter = (currentOrderFilter === 'all') ||
+                                (currentOrderFilter === 'active' && isActive) ||
+                                (currentOrderFilter === 'passive' && !isActive);
+
             item.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
         });
     }
 
     document.getElementById('orderSearch').addEventListener('keyup', filterOrders);
-    document.getElementById('showAllOrders').addEventListener('change', filterOrders);
 
     // Yardımcı Fonksiyon: Sayı çevirici (11.800,25 gibi Türkçe formatları destekler)
     function parseTurkishFloat(str) {
@@ -2065,7 +2108,18 @@ function planGetTotalCutForSize(sizeName, cutType) {
         
     document.addEventListener('DOMContentLoaded', function() {
         planRenderCuttingTable();
-    calculateMRP();
+        calculateMRP();
+
+        // Sipariş listesi başlangıç filtresi: Aktif
+        var currentOrderFilterInit = 'active';
+        currentOrderFilter = currentOrderFilterInit;
+        filterOrders();
+
+        // Aktif siparişi listede görünür alana kaydır
+        var activeOrder = document.querySelector('.order-list-item.active');
+        if (activeOrder) {
+            activeOrder.scrollIntoView({ behavior: 'auto', block: 'center' });
+        }
 
     function bindCompletionValidation(formId, checkboxName, phaseName) {
         var form = document.getElementById(formId);

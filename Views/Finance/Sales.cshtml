@@ -239,7 +239,8 @@
                 {
                     foreach (var o in (List<UretimPlanlama.Models.Order>)ViewBag.Orders)
                     {
-                        <option value="@o.Id">@o.OrderCode - @o.ModelName</option>
+                        var colorStr = !string.IsNullOrWhiteSpace(o.Color) ? $" - {o.Color}" : "";
+                        <option value="@o.Id">@o.OrderCode - @o.ModelName@colorStr</option>
                     }
                 }
             </select>
