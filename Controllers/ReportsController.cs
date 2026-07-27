@@ -21,69 +21,14 @@ namespace UretimPlanlama.Controllers
             _context = context;
         }
 
-        public IActionResult Index(DateTime? startDate, DateTime? endDate)
+        public IActionResult Index()
         {
             if (!User.HasPermission("View"))
             {
                 return RedirectToAction("AccessDenied", "Account");
             }
 
-            var start = startDate ?? DateTime.Today.AddDays(-30);
-            var end = endDate ?? DateTime.Today;
-
-            ViewBag.StartDate = start.ToString("yyyy-MM-dd");
-            ViewBag.EndDate = end.ToString("yyyy-MM-dd");
-
-            var orders = _context.Orders
-                                 .Where(o => o.OrderDate >= start && o.OrderDate <= end)
-                                 .OrderByDescending(o => o.OrderDate)
-                                 .ToList();
-
-            var stokHareketleri = _context.StokHareketler
-                                          .Include(sh => sh.StokKarti)
-                                          .Where(sh => sh.OrderId != null && sh.HareketTipi == "Giriş")
-                                          .ToList();
-
-            var cariHareketler = _context.CariHareketler
-                                         .Where(ch => ch.OrderId != null && ch.IslemTipi == "Alış Faturası")
-                                         .ToList();
-
-            var analysisList = new List<ActualAnalysisItem>();
-
-            foreach (var o in orders)
-            {
-                var relatedStok = stokHareketleri.Where(sh => sh.OrderId == o.Id).ToList();
-                var relatedCari = cariHareketler.Where(ch => ch.OrderId == o.Id).ToList();
-
-                var actualFabric = relatedStok.Where(sh => sh.StokKarti != null && sh.StokKarti.Kategori == "Kumaş").Sum(sh => sh.Miktar);
-                var actualAccessory = relatedStok.Where(sh => sh.StokKarti != null && sh.StokKarti.Kategori != "Kumaş").Sum(sh => sh.Miktar);
-                
-                var actualCost = relatedCari.Sum(ch => ch.Tutar);
-
-                analysisList.Add(new ActualAnalysisItem
-                {
-                    OrderId = o.Id,
-                    OrderCode = o.OrderCode,
-                    ModelName = o.ModelName,
-                    OrderDate = o.OrderDate,
-                    OrderQuantity = o.Quantity,
-                    PlannedFabric = (decimal)(o.PlannedFabricMeterage ?? o.FabricMeterage ?? 0),
-                    ActualFabric = actualFabric,
-                    ActualAccessory = actualAccessory,
-                    ActualTotalCost = actualCost
-                });
-            }
-
-            var model = new ActualAnalysisViewModel
-            {
-                TotalOrders = analysisList.Count,
-                TotalPlannedFabric = analysisList.Sum(a => a.PlannedFabric),
-                TotalActualFabric = analysisList.Sum(a => a.ActualFabric),
-                TotalActualCost = analysisList.Sum(a => a.ActualTotalCost),
-                Items = analysisList
-            };
-
-            return View(model);
+            return View();
         }
 
         [HttpGet]

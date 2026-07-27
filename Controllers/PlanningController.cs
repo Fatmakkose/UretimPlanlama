@@ -31,10 +31,7 @@ namespace UretimPlanlama.Controllers
                 return RedirectToAction("AccessDenied", "Account");
             }
             var orders = _context.Orders.OrderByDescending(o => o.OrderDate).ToList();
-            ViewBag.AllOrders = orders;
-            ViewBag.Workshops = _context.Workshops.Where(w => w.IsActive).OrderBy(w => w.Name).ToList();
-            ViewBag.Fabricators = _context.Fabricators.Where(f => f.IsActive).OrderBy(f => f.Name).ToList();
-            return View("Plan", new Order());
+            return View(orders);
         }
 
         [HttpGet]

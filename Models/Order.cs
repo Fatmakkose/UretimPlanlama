@@ -199,6 +199,7 @@ namespace UretimPlanlama.Models
         public string? CuttingProcessJson { get; set; } // Günlük Kesim Kayıtları
         public string? PlannedCuttingJson { get; set; } // Kesim Planlaması Kayıtları
         public string? FileClosingJson { get; set; } // Dosya Kapama / Maliyet ve Kumaş Analizi Kayıtları
+        public string? PackingListJson { get; set; } // Çeki Listesi Kayıtları JSON
 
 
 

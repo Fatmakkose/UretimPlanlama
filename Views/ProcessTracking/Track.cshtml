@@ -166,7 +166,7 @@
                         <tr>
                             <th style="padding: 16px; text-align: left; font-weight: 600; color: #475569; font-size: 0.85rem; border-right: 1px solid #e2e8f0;">MALZEME</th>
                             <th style="padding: 16px; text-align: right; font-weight: 600; color: #b45309; font-size: 0.85rem; background: #fef08a; border-right: 1px solid #e2e8f0;">PLANLANAN MİKTAR</th>
-                            <th style="padding: 16px; text-align: center; font-weight: 600; color: #0284c7; font-size: 0.85rem; background: #e0f2fe; border-right: 1px solid #e2e8f0;">MEVCUT DEPO STOĞU</th>
+                            <th style="padding: 16px; text-align: center; font-weight: 600; color: #0284c7; font-size: 0.85rem; background: #e0f2fe; border-right: 1px solid #e2e8f0;">KNN DEPO</th>
                             <th style="padding: 16px; text-align: center; font-weight: 600; color: #475569; font-size: 0.85rem;">KARŞILAŞTIRMA</th>
                         </tr>
                     </thead>
@@ -382,8 +382,11 @@
                     </tbody>
                 </table>
             </div>
-            <div class="text-end mt-3 mb-2">
-                <button class="btn btn-primary" onclick="switchTab('timeline')">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
+            <div class="text-end mt-3 mb-2" style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-outline-secondary" style="background: white; border: 1px solid #cbd5e1; color: #475569;" onclick="printDispatchSlip()">
+                    <i class="fa-solid fa-print" style="margin-right: 6px;"></i> Çıkış Fişi Yazdır
+                </button>
+                <button class="btn btn-primary" onclick="processSevkExit()">Kaydet ve Devam Et <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>
             </div>
         </div>
     </div>
@@ -1084,7 +1087,10 @@
                             </div>
 
                             <!-- Kart -->
-                            <div style="background: @cardBg; border: 1px solid @cardBorder; border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); width: 100%; position: relative;">
+                            <div style="background: @cardBg; border: 1px solid @cardBorder; border-radius: 10px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); width: 100%; position: relative; @(item.Id == "sample_kumas_ytesti" ? "cursor: pointer; transition: transform 0.2s;" : "")" 
+                                 @(item.Id == "sample_kumas_ytesti" ? "onclick=toggleTalosSection()" : "") 
+                                 onmouseover="@(item.Id == "sample_kumas_ytesti" ? "this.style.transform='scale(1.03)'" : "")" 
+                                 onmouseout="@(item.Id == "sample_kumas_ytesti" ? "this.style.transform='scale(1)'" : "")">
                                 <!-- Etiketler -->
                                 <div style="position: absolute; top: -12px; right: 10px;">
                                     @if (item.IsDelayed)
@@ -1166,7 +1172,7 @@
                 }
             }
 
-            <div style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; padding: 24px; margin-top: 30px; margin-bottom: 35px;">
+            <div id="talos_section_container" style="display: none; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; padding: 24px; margin-top: 30px; margin-bottom: 35px;">
                 
                 <!-- Başlık ve Genel Durum Özeti -->
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px;">
@@ -1471,6 +1477,10 @@
         }
 
         // --- TALOS KUMAŞ TESTLERİ LOGIC ---
+        function toggleTalosSection() {
+            $('#talos_section_container').slideToggle();
+        }
+
         function updateTalosUI() {
             var step1 = $('#talos_step1').is(':checked');
             var step2 = $('#talos_step2').is(':checked');
@@ -2257,6 +2267,107 @@
                 toast.css('opacity', '0');
                 setTimeout(function () { toast.remove(); }, 500);
             }, 3000);
+        }
+
+        function processSevkExit() {
+            $.ajax({
+                url: '/ProcessTracking/ProcessSevkOnayStockExit',
+                type: 'POST',
+                data: { orderId: orderId },
+                success: function(res) {
+                    if (res.success) {
+                        showToast(res.message, "success");
+                        setTimeout(function() {
+                            switchTab('timeline');
+                            location.reload(); 
+                        }, 1500);
+                    } else {
+                        showToast("Hata: " + res.message, "danger");
+                    }
+                },
+                error: function() {
+                    showToast("İşlem sırasında bir hata oluştu.", "danger");
+                }
+            });
+        }
+
+        function printDispatchSlip() {
+            var dateStr = new Date().toLocaleDateString('tr-TR');
+            var timeStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+            
+            var printHtml = '<!DOCTYPE html>' +
+            '<' + 'html>' +
+            '<' + 'head>' +
+            '    <title>Malzeme Çıkış Fişi</title>' +
+            '    <style>' +
+            '        body { font-family: "Segoe UI", Arial, sans-serif; padding: 40px; color: #1e293b; }' +
+            '        .header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 15px; margin-bottom: 25px; }' +
+            '        h2 { margin: 0 0 5px 0; font-size: 24px; }' +
+            '        .sub-header { font-size: 16px; color: #475569; }' +
+            '        .info-box { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 15px; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }' +
+            '        table { width: 100%; border-collapse: collapse; margin-top: 10px; }' +
+            '        th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; font-size: 14px; }' +
+            '        th { background-color: #f1f5f9; font-weight: 700; color: #334155; }' +
+            '        .right { text-align: right; }' +
+            '        .footer { margin-top: 60px; display: flex; justify-content: space-between; font-size: 14px; }' +
+            '        .sign-box { width: 220px; border-top: 1px solid #334155; text-align: center; padding-top: 10px; font-weight: 600; }' +
+            '    </style>' +
+            '<' + '/head>' +
+            '<' + 'body>' +
+            '    <div class="header">' +
+            '        <h2>KNN DEPO - MALZEME ÇIKIŞ FİŞİ</h2>' +
+            '        <div class="sub-header">Sipariş No: <strong>@Model.OrderCode</strong></div>' +
+            '    </div>' +
+            '    <div class="info-box">' +
+            '        <div>' +
+            '            <strong>Müşteri:</strong> @Model.Customer <br/>' +
+            '            <strong>Model:</strong> @Model.ModelName <br/>' +
+            '            <strong>Planlanan Miktar:</strong> @Model.CalculatedQuantity' +
+            '        </div>' +
+            '        <div style="text-align: right;">' +
+            '            <strong>Tarih:</strong> ' + dateStr + ' <br/>' +
+            '            <strong>Saat:</strong> ' + timeStr +
+            '        </div>' +
+            '    </div>' +
+            '    <table>' +
+            '        <thead>' +
+            '            <tr>' +
+            '                <th>Malzeme / Stok Adı</th>' +
+            '                <th class="right" style="width: 150px;">Çıkan Miktar</th>' +
+            '            </tr>' +
+            '        </thead>' +
+            '        <tbody>';
+            
+            var itemsFound = false;
+            $('#purchase tbody tr').each(function() {
+                if ($(this).find('.badge').text().includes('STOK YETERLİ')) {
+                    itemsFound = true;
+                    var matName = $(this).find('td:eq(0)').text().trim();
+                    var qty = $(this).find('td:eq(1)').text().trim();
+                    printHtml += '<tr><td>' + matName + '</td><td class="right"><strong>' + qty + '</strong></td></tr>';
+                }
+            });
+
+            printHtml += '        <'+'/tbody>    <'+'/table>';
+            
+            if (!itemsFound) {
+                printHtml += '    <p style="text-align:center; margin-top: 30px; color: #dc2626; font-weight: bold;">Çıkış yapılacak (stoğu yeterli) malzeme bulunamadı.</p>';
+            }
+            
+            printHtml += '    <div class="footer">' +
+            '        <div class="sign-box">Depo Yetkilisi<br><span style="font-size: 12px; font-weight: normal; color: #64748b;">(İmza)</span></div>' +
+            '        <div class="sign-box">Teslim Alan<br><span style="font-size: 12px; font-weight: normal; color: #64748b;">(İmza)</span></div>' +
+            '    </div>' +
+            '<' + '/body>' +
+            '<' + '/html>';
+
+            var printWin = window.open('', '_blank', 'width=850,height=700');
+            printWin.document.open();
+            printWin.document.write(printHtml);
+            printWin.document.close();
+            setTimeout(function() { 
+                printWin.print(); 
+            }, 500);
         }
     </script>
 }

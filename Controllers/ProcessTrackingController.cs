@@ -283,6 +283,27 @@ namespace UretimPlanlama.Controllers
             var order = _context.Orders.Find(orderId);
             if (order == null) return Json(new { success = false, message = "Sipariş bulunamadı" });
 
+            if (key == "sample_kumas_ytesti")
+            {
+                var talosDict = new Dictionary<string, string>();
+                if (!string.IsNullOrEmpty(order.TalosTestJson))
+                {
+                    try { talosDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.TalosTestJson) ?? new Dictionary<string, string>(); } catch {}
+                }
+                string GetT(string k) => talosDict.ContainsKey(k) ? talosDict[k] : "";
+                
+                bool step5 = GetT("talos_step5") == "true" || GetT("talos_kalir_approval_status") == "EVET_OK";
+                bool step4 = GetT("talos_step4") == "true" || GetT("talos_kalir_val_status") == "VAR_KALIR";
+                bool step3 = GetT("talos_step3") == "true" || (GetT("talos_test_result_status") != "" && GetT("talos_test_result_status") != "BEKLENIYOR");
+
+                bool isTalosApproved = step5 || (step3 && !step4);
+                
+                if (!isTalosApproved)
+                {
+                    return Json(new { success = false, message = "TALOS Kumaş Test değerleri tam olarak onaylanmadan Kumaş Y-Testi onayı (gerçekleşen tarih) girilemez! Lütfen önce tablodaki TALOS onaylarını tamamlayıp kaydediniz." });
+                }
+            }
+
             string targetKey = key + "_actual";
             string today = DateTime.Now.ToString("yyyy-MM-dd");
 
@@ -380,6 +401,282 @@ namespace UretimPlanlama.Controllers
         }
 
         [HttpPost]
+        public IActionResult ProcessSevkOnayStockExit(int orderId)
+        {
+            if (!User.HasPermission("Write")) return Json(new { success = false, message = "Yetkisiz işlem." });
+
+            var order = _context.Orders
+                .Include(o => o.OrderMaterials)
+                    .ThenInclude(m => m.StokKarti)
+                        .ThenInclude(s => s.Varyantlar)
+                .Include(o => o.OrderMaterials)
+                    .ThenInclude(m => m.StokVaryant)
+                .FirstOrDefault(o => o.Id == orderId);
+
+            if (order == null) return Json(new { success = false, message = "Sipariş bulunamadı." });
+
+            var purchaseMovements = _context.StokHareketler
+                .Where(sh => sh.OrderId == orderId && sh.HareketTipi == "Giriş")
+                .ToList();
+
+            var existingExits = _context.StokHareketler
+                .Where(sh => sh.OrderId == orderId && sh.HareketTipi == "Çıkış")
+                .ToList();
+
+            var purDataTrack = new Dictionary<string, string>();
+            if (!string.IsNullOrEmpty(order.PurchasingMaterialsJson))
+            {
+                try { purDataTrack = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.PurchasingMaterialsJson) ?? new Dictionary<string, string>(); } catch { }
+            }
+
+            var trackColors = new List<string>();
+            if (!string.IsNullOrEmpty(order.Color))
+            {
+                trackColors = order.Color.Split(new[] { ',', '-' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim().ToUpper()).ToList();
+            }
+            if (!trackColors.Any()) trackColors.Add("GENEL");
+
+            Func<string, double> parseTr = (string v) => {
+                if (string.IsNullOrWhiteSpace(v)) return 0;
+                v = v.Trim();
+                if (v.Contains(",") && v.Contains(".")) v = v.Replace(".", "").Replace(",", ".");
+                else if (v.Contains(",")) v = v.Replace(",", ".");
+                else if (v.Contains(".") && v.IndexOf(".") == v.Length - 4) v = v.Replace(".", "");
+                double.TryParse(v, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r);
+                return r;
+            };
+
+            Func<string, string, string?> extractFromOzellikler = (string json, string keyContains) => {
+                if (string.IsNullOrEmpty(json)) return null;
+                try {
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array) {
+                        foreach(var item in doc.RootElement.EnumerateArray()) {
+                            if (item.TryGetProperty("Key", out var k) && item.TryGetProperty("Value", out var v)) {
+                                if (k.GetString() != null && k.GetString()!.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) return v.GetString();
+                            }
+                        }
+                    } else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object) {
+                        foreach(var prop in doc.RootElement.EnumerateObject()) {
+                            if (prop.Name.Contains(keyContains, StringComparison.OrdinalIgnoreCase)) {
+                                return prop.Value.GetString();
+                            }
+                        }
+                    }
+                } catch {}
+                return null;
+            };
+
+            int deductedCount = 0;
+            int alreadyDeductedCount = 0;
+            int insufficientCount = 0;
+            var resultList = new List<object>();
+
+            foreach (var mat in order.OrderMaterials)
+            {
+                var stokKarti = mat.StokKarti;
+                string dynBoyut = extractFromOzellikler(mat.OzelliklerJson, "BOYUT") ?? extractFromOzellikler(mat.OzelliklerJson, "EBAT") ?? extractFromOzellikler(mat.OzelliklerJson, "BÜYÜKLÜK") ?? extractFromOzellikler(mat.OzelliklerJson, "BOY");
+                string extraInfo = !string.IsNullOrEmpty(dynBoyut) ? dynBoyut : mat.Aciklama;
+
+                string dynMatBirim = extractFromOzellikler(mat.OzelliklerJson, "TELA BİRİM") 
+                    ?? extractFromOzellikler(mat.OzelliklerJson, "BİRİM KULLANIM") 
+                    ?? extractFromOzellikler(mat.OzelliklerJson, "BİRİM") 
+                    ?? extractFromOzellikler(mat.OzelliklerJson, "BIRIM");
+
+                if (!string.IsNullOrEmpty(dynMatBirim)) {
+                    if (string.IsNullOrEmpty(extraInfo)) {
+                        extraInfo = $"BİRİM: {dynMatBirim}";
+                    } else if (!extraInfo.Contains("BİRİM", StringComparison.OrdinalIgnoreCase) && !extraInfo.Contains("BIRIM", StringComparison.OrdinalIgnoreCase)) {
+                        extraInfo = $"{extraInfo} | BİRİM: {dynMatBirim}";
+                    }
+                }
+
+                string matName = !string.IsNullOrEmpty(extraInfo) ? $"{stokKarti?.StokAdi ?? "Bilinmeyen Malzeme"} ({extraInfo})" : (stokKarti?.StokAdi ?? "Belirtilmemiş Malzeme");
+
+                double totalIstenen = 0;
+                string itemKey = "stk_" + mat.StokKartiId;
+                string cat = (stokKarti?.Kategori ?? "").Trim().ToUpperInvariant();
+
+                foreach(var c in trackColors) {
+                    string sipAdetiStr = purDataTrack.ContainsKey($"pur_color_{c}_siparis_adeti") ? purDataTrack[$"pur_color_{c}_siparis_adeti"] : order.CalculatedQuantity.ToString();
+                    double siparisAdeti = parseTr(sipAdetiStr);
+                    if (siparisAdeti == 0) siparisAdeti = order.CalculatedQuantity;
+
+                    string bedenMiktarStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : "0";
+                    double bedenMiktar = parseTr(bedenMiktarStr);
+
+                    string bedenCikacakStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_cikacak") ? purDataTrack[$"pur_color_{c}_beden_cikacak"] : "0";
+                    double bedenCikacak = parseTr(bedenCikacakStr);
+
+                    double jobQty = bedenMiktar > 0 ? bedenCikacak : siparisAdeti;
+                    
+                    if (cat == "KUMAŞ" || cat == "KUMAS") {
+                        string kumasIstenenStr = purDataTrack.ContainsKey($"pur_color_{c}_beden_miktar") ? purDataTrack[$"pur_color_{c}_beden_miktar"] : null;
+                        double dKumas = 0;
+                        if (kumasIstenenStr != null) {
+                            dKumas = parseTr(kumasIstenenStr);
+                        }
+                        
+                        if (dKumas == 0) {
+                            string kumasIhtiyacStr = purDataTrack.ContainsKey($"pur_color_{c}_istenen_kumas_miktar") ? purDataTrack[$"pur_color_{c}_istenen_kumas_miktar"] : null;
+                            if (kumasIhtiyacStr != null) {
+                                dKumas = parseTr(kumasIhtiyacStr);
+                            }
+                        }
+                        
+                        if (dKumas > 0) {
+                            totalIstenen += dKumas;
+                        } else {
+                            string metrajStr = extractFromOzellikler(mat.OzelliklerJson, "METRAJ") ?? mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            double metraj = 0; double.TryParse(metrajStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out metraj);
+                            totalIstenen += Math.Round(jobQty * metraj);
+                        }
+                    } else if (cat == "TELA") {
+                        string dynBirim = extractFromOzellikler(mat.OzelliklerJson, "TELA BİRİM") ?? extractFromOzellikler(mat.OzelliklerJson, "BİRİM");
+                        string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        string birimStr = purDataTrack.ContainsKey($"pur_color_{c}_tela_birim_{itemKey}") ? purDataTrack[$"pur_color_{c}_tela_birim_{itemKey}"] : defBirim;
+                        double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
+                        totalIstenen += Math.Ceiling(jobQty * birim);
+                    } else if (cat == "ETİKET" || cat == "ETIKET") {
+                        string dynFire = extractFromOzellikler(mat.OzelliklerJson, "FİRE (%)") ?? extractFromOzellikler(mat.OzelliklerJson, "FIRE") ?? extractFromOzellikler(mat.OzelliklerJson, "FİRE");
+                        string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : "0";
+                        string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_label_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_label_fire_{itemKey}"] : defFire;
+                        double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
+                        double tmp = jobQty * 1; 
+                        totalIstenen += Math.Round(tmp + Math.Round(tmp * (fire / 100.0)));
+                    } else {
+                        string dynBirim = extractFromOzellikler(mat.OzelliklerJson, "BİRİM KULLANIM") ?? extractFromOzellikler(mat.OzelliklerJson, "BİRİM") ?? extractFromOzellikler(mat.OzelliklerJson, "BIRIM");
+                        string defBirim = !string.IsNullOrEmpty(dynBirim) ? dynBirim : mat.Miktar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        string birimStr = purDataTrack.ContainsKey($"pur_color_{c}_birim_{itemKey}") ? purDataTrack[$"pur_color_{c}_birim_{itemKey}"] : defBirim;
+                        double birim = 0; double.TryParse(birimStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out birim);
+                        
+                        string dynFire = extractFromOzellikler(mat.OzelliklerJson, "FİRE (%)") ?? extractFromOzellikler(mat.OzelliklerJson, "FIRE") ?? extractFromOzellikler(mat.OzelliklerJson, "FİRE");
+                        string defFire = !string.IsNullOrEmpty(dynFire) ? dynFire : (order.WastageRate ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        string fireStr = purDataTrack.ContainsKey($"pur_color_{c}_fire_{itemKey}") ? purDataTrack[$"pur_color_{c}_fire_{itemKey}"] : defFire;
+                        double fire = 0; double.TryParse(fireStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out fire);
+                        
+                        double toplam = jobQty * birim;
+                        double fazla = Math.Round(toplam * (fire / 100.0));
+                        totalIstenen += Math.Round(toplam + fazla);
+                    }
+                }
+
+                double planMiktar = totalIstenen > 0 ? totalIstenen : (double)mat.Miktar;
+
+                double siparisAlisMiktar = 0;
+                if (mat.StokVaryantId.HasValue && mat.StokVaryantId > 0) {
+                    siparisAlisMiktar = (double)purchaseMovements.Where(p => p.StokKartiId == mat.StokKartiId && p.StokVaryantId == mat.StokVaryantId).Sum(p => p.Miktar);
+                } else if (!string.IsNullOrEmpty(mat.OzelliklerJson) && stokKarti != null && stokKarti.Varyantlar != null) {
+                    var vMatch = stokKarti.Varyantlar.FirstOrDefault(v => v.VaryantAdi == mat.OzelliklerJson.Trim());
+                    if (vMatch != null) {
+                        siparisAlisMiktar = (double)purchaseMovements.Where(p => p.StokKartiId == mat.StokKartiId && p.StokVaryantId == vMatch.Id).Sum(p => p.Miktar);
+                    }
+                }
+                if (siparisAlisMiktar == 0) {
+                    siparisAlisMiktar = (double)purchaseMovements.Where(p => p.StokKartiId == mat.StokKartiId).Sum(p => p.Miktar);
+                }
+
+                double rawDepoStok = 0;
+                if (mat.StokVaryant != null) {
+                    rawDepoStok = (double)mat.StokVaryant.MevcutMiktar;
+                } else if (!string.IsNullOrEmpty(mat.OzelliklerJson) && stokKarti != null && stokKarti.Varyantlar != null) {
+                    var vMatch = stokKarti.Varyantlar.FirstOrDefault(v => v.VaryantAdi == mat.OzelliklerJson.Trim());
+                    if (vMatch != null) {
+                        rawDepoStok = (double)vMatch.MevcutMiktar;
+                    } else if (stokKarti != null) {
+                        rawDepoStok = (double)stokKarti.MevcutMiktar;
+                    }
+                } else if (stokKarti != null) {
+                    rawDepoStok = (double)stokKarti.MevcutMiktar;
+                }
+                double mevcutDepoStok = Math.Max(0, rawDepoStok);
+                double sevkMiktar = Math.Max(siparisAlisMiktar, mevcutDepoStok);
+                bool isStokYeterli = sevkMiktar >= planMiktar;
+
+                // Daha önce çıkış yapılmış mı kontrol et
+                bool alreadyExited = existingExits.Any(e => e.StokKartiId == mat.StokKartiId && (mat.StokVaryantId == null || e.StokVaryantId == mat.StokVaryantId)) || mat.IsApproved;
+
+                string statusStr = "";
+                double cikanMiktar = 0;
+
+                if (isStokYeterli)
+                {
+                    if (!alreadyExited)
+                    {
+                        decimal decMiktar = (decimal)planMiktar;
+                        if (mat.StokVaryant != null)
+                        {
+                            mat.StokVaryant.MevcutMiktar = Math.Max(0, mat.StokVaryant.MevcutMiktar - decMiktar);
+                        }
+                        if (mat.StokKarti != null)
+                        {
+                            mat.StokKarti.MevcutMiktar = Math.Max(0, mat.StokKarti.MevcutMiktar - decMiktar);
+                        }
+
+                        mat.ActualQuantity = decMiktar;
+                        mat.IsApproved = true;
+
+                        var hareket = new StokHareket
+                        {
+                            StokKartiId = mat.StokKartiId,
+                            StokVaryantId = mat.StokVaryantId,
+                            IslemTarihi = DateTime.Now,
+                            HareketTipi = "Çıkış",
+                            Miktar = decMiktar,
+                            Aciklama = $"Sevk Onay Depo Çıkışı (Sipariş: {order.OrderCode})",
+                            OrderId = order.Id,
+                            Tedarikci = "KANUNİ TEKSTİL",
+                            KalanMiktar = (mat.StokVaryant != null ? mat.StokVaryant.MevcutMiktar : (mat.StokKarti != null ? mat.StokKarti.MevcutMiktar : 0)),
+                            IsApproved = true
+                        };
+                        _context.StokHareketler.Add(hareket);
+                        deductedCount++;
+                        cikanMiktar = planMiktar;
+                        statusStr = "DÜŞÜM YAPILDI";
+                    }
+                    else
+                    {
+                        alreadyDeductedCount++;
+                        cikanMiktar = (double)mat.ActualQuantity > 0 ? (double)mat.ActualQuantity : planMiktar;
+                        statusStr = "ÖNCEDEN DÜŞÜLDÜ";
+                    }
+                }
+                else
+                {
+                    insufficientCount++;
+                    statusStr = "YETERSİZ STOK";
+                }
+
+                double kalanDepoStok = mat.StokVaryant != null ? (double)mat.StokVaryant.MevcutMiktar : (mat.StokKarti != null ? (double)mat.StokKarti.MevcutMiktar : 0);
+
+                resultList.Add(new {
+                    MaterialName = matName,
+                    PlanMiktar = planMiktar,
+                    SevkMiktar = sevkMiktar,
+                    CikanMiktar = cikanMiktar,
+                    KalanStok = kalanDepoStok,
+                    IsStokYeterli = isStokYeterli,
+                    Status = statusStr
+                });
+            }
+
+            _context.SaveChanges();
+
+            return Json(new {
+                success = true,
+                message = $"{deductedCount} malzeme stoktan düşüldü, {alreadyDeductedCount} malzeme önceden düşülmüştü, {insufficientCount} malzeme yetersiz.",
+                deductedCount = deductedCount,
+                alreadyDeductedCount = alreadyDeductedCount,
+                insufficientCount = insufficientCount,
+                materials = resultList,
+                orderCode = order.OrderCode,
+                modelName = order.ModelName,
+                customer = order.Customer,
+                date = DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+            });
+        }
+
+        [HttpPost]
         public IActionResult SaveTalosTest([FromBody] TalosTestRequest request)
         {
             if (!User.HasPermission("Write") && !User.HasPermission("Edit"))
@@ -393,6 +690,22 @@ namespace UretimPlanlama.Controllers
             _context.SaveChanges();
 
             return Json(new { success = true, message = "Kumaş Testleri (TALOS) kaydedildi." });
+        }
+
+        [HttpPost]
+        public IActionResult UpdatePackingList([FromBody] PackingListRequest request)
+        {
+            if (!User.HasPermission("Write") && !User.HasPermission("Edit"))
+                return Json(new { success = false, message = "Yetkiniz yok" });
+
+            var order = _context.Orders.FirstOrDefault(o => o.Id == request.Id);
+            if (order == null)
+                return Json(new { success = false, message = "Sipariş bulunamadı" });
+
+            order.PackingListJson = request.PackingListJson;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Çeki Listesi kaydedildi." });
         }
     }
 
@@ -418,5 +731,11 @@ namespace UretimPlanlama.Controllers
     {
         public int Id { get; set; }
         public string TalosTestJson { get; set; } = string.Empty;
+    }
+
+    public class PackingListRequest
+    {
+        public int Id { get; set; }
+        public string PackingListJson { get; set; } = string.Empty;
     }
 }

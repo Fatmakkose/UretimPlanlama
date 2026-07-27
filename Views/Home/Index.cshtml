@@ -1,6 +1,26 @@
 @model List<UretimPlanlama.Models.Order>
 @{
     ViewData["Title"] = "Üretim Genel Bakış";
+
+    string GetKpiBucket(UretimPlanlama.Models.Order o)
+    {
+        var pDict = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(o.ProductionJson)) { 
+            try { pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(o.ProductionJson); } catch {} 
+        }
+        bool HasP(string key) => pDict != null && pDict.ContainsKey(key) && !string.IsNullOrEmpty(pDict[key]);
+
+        bool isPaketBitis = o.PackagingEndDate.HasValue || HasP("prod_paket_bitis_actual");
+        bool isPaket = o.PackagingStartDate.HasValue || HasP("prod_paket_baslangic_actual") || isPaketBitis;
+        bool isDikimBitis = o.SewingEndDate.HasValue || HasP("prod_dikim_bitis_actual");
+        bool isDikim = o.SewingStartDate.HasValue || HasP("prod_dikim_baslangic_actual") || isDikimBitis || isPaket;
+        bool isKesimBitis = o.CuttingEndDate.HasValue || HasP("prod_kesim_bitis_actual") || isDikim;
+        bool isKesim = o.CuttingStartDate.HasValue || HasP("prod_kesim_baslangic_actual") || isKesimBitis;
+
+        if (isKesimBitis) return "completed";
+        if (isKesim) return "cutting";
+        return "waiting";
+    }
 }
 
 <style>
@@ -181,6 +201,65 @@
         font-size: 0.7rem;
         color: #64748b;
     }
+
+    /* Tıklanabilir KPI İstatistik Kartları Stilleri */
+    .clickable-stat-card {
+        cursor: pointer;
+        transition: all 0.25s ease;
+        user-select: none;
+        position: relative;
+    }
+    .clickable-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 22px rgba(2, 132, 199, 0.12);
+        border-color: #0284c7 !important;
+    }
+    .clickable-stat-card.active-kpi-card {
+        border: 2px solid #0284c7 !important;
+        background: #f0f9ff !important;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.18);
+    }
+    .kpi-active-badge {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background: #0284c7;
+        color: white;
+        display: none;
+    }
+    .clickable-stat-card.active-kpi-card .kpi-active-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .kpi-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .kpi-detail-btn {
+        font-size: 0.75rem;
+        color: #0369a1;
+        background: rgba(3, 105, 161, 0.08);
+        border: 1px solid rgba(3, 105, 161, 0.2);
+        padding: 3px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 600;
+    }
+    .kpi-detail-btn:hover {
+        background: #0369a1;
+        color: white;
+    }
 </style>
 
 <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -188,9 +267,9 @@
         <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Üretim Genel Bakış</h1>
     </div>
     <div class="header-actions" style="display: flex; gap: 10px;">
-        <a href="/Order/Create" class="btn btn-primary" style="background: #0047bb; color: white; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-plus"></i> Yeni Sipariş</a>
-        <a href="/Planning" class="btn btn-success" style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-calendar-days"></i> Planlama</a>
-        <a href="/Order" class="btn btn-secondary" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-list"></i> Tüm Siparişler</a>
+        <a href="/Order/Create" class="btn" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-plus"></i> Yeni Sipariş</a>
+        <a href="/Planning" class="btn" style="background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-calendar-days"></i> Planlama</a>
+        <a href="/Reports" class="btn" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600;"><i class="fa-solid fa-chart-bar"></i> Gerçekleşen</a>
     </div>
 </div>
 
@@ -232,11 +311,16 @@
 
 <div class="stat-cards" style="margin-bottom: 25px;">
     <!-- Toplam Sipariş -->
-    <div class="stat-card">
+    <div class="stat-card clickable-stat-card active-kpi-card" data-kpi="all" onclick="filterKpiCard('all', event)">
         <div class="stat-content">
             <div class="stat-title">TOPLAM SİPARİŞ</div>
             <div class="stat-value">@((ViewBag.TotalOrdersQty ?? 0).ToString("N0"))</div>
             <div class="stat-desc">Sistemdeki siparişlerin toplam adedi</div>
+            <div class="kpi-card-actions">
+                <button type="button" class="kpi-detail-btn" onclick="event.stopPropagation(); openKpiModal('all', 'Tüm Siparişler');">
+                    <i class="fa-solid fa-list"></i> Detaylı Liste
+                </button>
+            </div>
         </div>
         <div class="stat-icon icon-teal">
             <i class="fa-solid fa-cart-shopping"></i>
@@ -244,11 +328,16 @@
     </div>
     
     <!-- Üretim Bekleyen -->
-    <div class="stat-card">
+    <div class="stat-card clickable-stat-card" data-kpi="waiting" onclick="filterKpiCard('waiting', event)">
         <div class="stat-content">
             <div class="stat-title">ÜRETİM BEKLEYEN</div>
             <div class="stat-value">@((ViewBag.WaitingQty ?? 0).ToString("N0"))</div>
             <div class="stat-desc">Kesime başlamayı bekleyen adet</div>
+            <div class="kpi-card-actions">
+                <button type="button" class="kpi-detail-btn" onclick="event.stopPropagation(); openKpiModal('waiting', 'Üretim Bekleyen Siparişler');">
+                    <i class="fa-solid fa-hourglass-start"></i> Detaylı Liste
+                </button>
+            </div>
         </div>
         <div class="stat-icon" style="background: #e0f2fe; color: #0284c7; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
             <i class="fa-solid fa-hourglass-start"></i>
@@ -256,11 +345,16 @@
     </div>
 
     <!-- Kesimdeki Adet -->
-    <div class="stat-card">
+    <div class="stat-card clickable-stat-card" data-kpi="cutting" onclick="filterKpiCard('cutting', event)">
         <div class="stat-content">
             <div class="stat-title">AKTİF KESİMDE</div>
             <div class="stat-value">@((ViewBag.CuttingQty ?? 0).ToString("N0"))</div>
             <div class="stat-desc">Atölyelerde kesim sürecinde olanlar</div>
+            <div class="kpi-card-actions">
+                <button type="button" class="kpi-detail-btn" onclick="event.stopPropagation(); openKpiModal('cutting', 'Aktif Kesimdeki Siparişler');">
+                    <i class="fa-solid fa-scissors"></i> Detaylı Liste
+                </button>
+            </div>
         </div>
         <div class="stat-icon" style="background: #e0f2fe; color: #0ea5e9; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
             <i class="fa-solid fa-scissors"></i>
@@ -268,11 +362,16 @@
     </div>
     
     <!-- Tamamlanan -->
-    <div class="stat-card">
+    <div class="stat-card clickable-stat-card" data-kpi="completed" onclick="filterKpiCard('completed', event)">
         <div class="stat-content">
             <div class="stat-title">TAMAMLANAN</div>
             <div class="stat-value">@((ViewBag.CompletedQty ?? 0).ToString("N0"))</div>
             <div class="stat-desc">Kesim süreci başarıyla biten adet</div>
+            <div class="kpi-card-actions">
+                <button type="button" class="kpi-detail-btn" onclick="event.stopPropagation(); openKpiModal('completed', 'Kesimi Tamamlanan Siparişler');">
+                    <i class="fa-solid fa-circle-check"></i> Detaylı Liste
+                </button>
+            </div>
         </div>
         <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #10b981;">
             <i class="fa-solid fa-circle-check"></i>
@@ -304,7 +403,7 @@
                     {
                         var daysLeft = (u.EffectiveTerminDate.Value.Date - DateTime.Today).Days;
                         var badgeColor = daysLeft <= 3 ? "#dc2626" : (daysLeft <= 7 ? "#eab308" : "#16a34a");
-                        <li class="workshop-item" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/ProcessTracking/Track/@u.Id'" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
+                        <li class="workshop-item" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/ProcessTracking/Track/@u.Id#timeline'" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
                             <div>
                                 <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">@u.OrderCode</div>
                                 <div style="font-size: 0.75rem; color: #64748b;">@u.ModelName</div>
@@ -365,9 +464,15 @@
 
 <div class="middle-grid">
     <!-- Aktif Üretim Bantları Tablosu -->
-    <div class="table-card">
-        <div class="card-header">
-            <h2 class="card-title">Aktif Üretim Bantları</h2>
+    <div class="table-card" id="activeOrdersTableCard">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h2 class="card-title" id="activeOrdersTitle" style="margin: 0;">Aktif Üretim Bantları</h2>
+                <span id="kpiFilterBadge" style="display: none; background: #0284c7; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;"></span>
+                <button id="btnResetKpiFilter" onclick="filterKpiCard('all', event)" style="display: none; background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                    <i class="fa-solid fa-rotate-left"></i> Filtreyi Temizle
+                </button>
+            </div>
             <div style="font-size: 0.75rem; color: #64748b; display: flex; gap: 12px;">
                 <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Aktif</span>
                 <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> Durakladı</span>
@@ -384,14 +489,15 @@
                         <th style="text-align: right;">HEDEF TARİH</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="activeOrdersTbody">
                     @{
                         var activeOrdersList = Model.Where(o => 
                             o.Status != "Tamamlandı" && o.Status != "İptal Edildi"
                         ).ToList();
                     }
-                    @foreach (var order in activeOrdersList.Take(6))
+                    @foreach (var order in activeOrdersList)
                     {
+                        var rowKpiBucket = GetKpiBucket(order);
                         var areaName = order.Status ?? (string.IsNullOrEmpty(order.ProductionPlace) ? "PLANLAMA" : order.ProductionPlace.ToUpper());
                         var areaColor = "#0369a1";
                         var areaBg = "#e0f2fe";
@@ -450,7 +556,7 @@
                         var isPaused = areaName == "Bekleniyor";
                         var progressColor = isPaused ? "#ef4444" : "#0d9488";
 
-                        <tr style="cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/ProcessTracking/Track/@order.Id'" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
+                        <tr class="kpi-table-row" data-kpi-status="@rowKpiBucket" style="cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/ProcessTracking/Track/@order.Id'" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
                             <td class="order-code-td">@order.OrderCode</td>
                             <td class="order-model-td">@order.ModelName @(!string.IsNullOrEmpty(order.Color) ? $"({order.Color})" : "")</td>
                             <td>
@@ -482,7 +588,7 @@
             </table>
         </div>
         <div class="card-footer">
-            <span class="footer-text">Toplam @activeOrdersList.Count aktif iş emri listeleniyor.</span>
+            <span class="footer-text" id="activeOrdersFooterText">Toplam @activeOrdersList.Count aktif iş emri listeleniyor.</span>
             <a href="/Order" class="footer-link">Tümünü Görüntüle</a>
         </div>
     </div>
@@ -537,46 +643,245 @@
     </div>
 </div>
 
+<!-- KPI Sipariş Detay Modalı -->
+<div id="kpiDetailModal" class="custom-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="custom-modal-content" style="background: white; border-radius: 12px; width: 92%; max-width: 950px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; animation: modalFadeIn 0.2s ease;">
+        <!-- Modal Header -->
+        <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+            <div>
+                <h3 id="modalKpiTitle" style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-list-check" style="color: #0284c7;"></i> <span id="modalKpiTitleText">Sipariş Detayları</span>
+                </h3>
+                <span id="modalKpiCount" style="font-size: 0.8rem; color: #64748b; margin-top: 2px; display: block;"></span>
+            </div>
+            <button type="button" onclick="closeKpiModal()" style="background: transparent; border: none; font-size: 1.2rem; color: #64748b; cursor: pointer; padding: 4px 8px; border-radius: 4px;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <!-- Modal Body & Search -->
+        <div style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; background: #fff;">
+            <div style="position: relative;">
+                <i class="fa-solid fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                <input type="text" id="kpiModalSearch" placeholder="Model adı, sipariş kodu veya müşteri ara..." oninput="filterModalOrders()" style="width: 100%; padding: 8px 12px 8px 36px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;" />
+            </div>
+        </div>
+        <div style="flex: 1; overflow-y: auto; padding: 0 24px;">
+            <table class="clean-table" style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; font-size: 0.75rem; color: #64748b;">
+                        <th style="padding: 10px;">SİPARİŞ KODU</th>
+                        <th style="padding: 10px;">MODEL</th>
+                        <th style="padding: 10px;">MÜŞTERİ / RENK</th>
+                        <th style="padding: 10px; text-align: right;">ADET</th>
+                        <th style="padding: 10px;">AŞAMA / DURUM</th>
+                        <th style="padding: 10px; text-align: center;">İŞLEM</th>
+                    </tr>
+                </thead>
+                <tbody id="modalOrdersTbody">
+                </tbody>
+            </table>
+        </div>
+        <!-- Modal Footer -->
+        <div style="padding: 12px 24px; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: #64748b;">Tüm listenin yönetimi için Siparişler sayfasına geçebilirsiniz.</span>
+            <div style="display: flex; gap: 10px;">
+                <a id="btnGoToOrdersPage" href="/Order" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; padding: 6px 14px; border-radius: 6px; text-decoration: none; background: #0284c7; color: white; font-weight: 600;">
+                    <i class="fa-solid fa-arrow-right-long"></i> Tümünü Siparişler Sayfasında Gör
+                </a>
+                <button type="button" onclick="closeKpiModal()" style="padding: 6px 14px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-weight: 600;">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    var allOrdersKpiData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(o => new {
+        id = o.Id,
+        code = o.OrderCode,
+        model = o.ModelName,
+        customer = string.IsNullOrEmpty(o.Customer) ? "-" : o.Customer,
+        color = string.IsNullOrEmpty(o.Color) ? "" : o.Color,
+        qty = o.CalculatedQuantity,
+        status = string.IsNullOrEmpty(o.Status) ? "Yeni Kayıt" : o.Status,
+        kpiBucket = GetKpiBucket(o),
+        date = o.OrderDate.ToString("dd.MM.yyyy")
+    })));
+
+    var currentModalKpi = 'all';
+
+    function filterKpiCard(kpiBucket, event) {
+        if (event) event.stopPropagation();
+
+        // Kart aktif sınıflarını güncelle
+        document.querySelectorAll('.clickable-stat-card').forEach(function(card) {
+            if (card.getAttribute('data-kpi') === kpiBucket) {
+                card.classList.add('active-kpi-card');
+            } else {
+                card.classList.remove('active-kpi-card');
+            }
+        });
+
+        // Tablo satırlarını süz
+        var rows = document.querySelectorAll('.kpi-table-row');
+        var visibleCount = 0;
+
+        rows.forEach(function(row) {
+            var rowBucket = row.getAttribute('data-kpi-status');
+            if (kpiBucket === 'all' || rowBucket === kpiBucket) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Başlık ve Filtre Rozetini Güncelle
+        var titleEl = document.getElementById('activeOrdersTitle');
+        var badgeEl = document.getElementById('kpiFilterBadge');
+        var resetBtn = document.getElementById('btnResetKpiFilter');
+        var footerText = document.getElementById('activeOrdersFooterText');
+
+        if (kpiBucket === 'all') {
+            titleEl.textContent = 'Aktif Üretim Bantları';
+            badgeEl.style.display = 'none';
+            resetBtn.style.display = 'none';
+            if (footerText) footerText.textContent = 'Toplam ' + visibleCount + ' aktif iş emri listeleniyor.';
+        } else {
+            var labels = {
+                'waiting': 'Üretim Bekleyenler',
+                'cutting': 'Aktif Kesimde Olanlar',
+                'completed': 'Kesimi Tamamlananlar'
+            };
+            var labelText = labels[kpiBucket] || kpiBucket;
+            titleEl.textContent = 'Aktif Üretim Bantları';
+            badgeEl.textContent = labelText + ' (' + visibleCount + ' sipariş)';
+            badgeEl.style.display = 'inline-block';
+            resetBtn.style.display = 'inline-block';
+            if (footerText) footerText.textContent = labelText + ' kapsamında ' + visibleCount + ' iş emri gösteriliyor.';
+        }
+
+        // Tıklandığında tabloya yumuşak kaydır
+        if (event && event.type === 'click') {
+            var tableCard = document.getElementById('activeOrdersTableCard');
+            if (tableCard) {
+                tableCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    }
+
+    function openKpiModal(kpiBucket, titleText) {
+        currentModalKpi = kpiBucket;
+        document.getElementById('kpiModalSearch').value = '';
+        var titleElem = document.getElementById('modalKpiTitleText');
+        if (titleElem) titleElem.textContent = titleText || 'Sipariş Detayları';
+
+        var btnOrders = document.getElementById('btnGoToOrdersPage');
+        if (btnOrders) {
+            btnOrders.href = '/Order?status=' + kpiBucket;
+        }
+
+        renderModalOrders();
+        var modal = document.getElementById('kpiDetailModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeKpiModal() {
+        var modal = document.getElementById('kpiDetailModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function filterModalOrders() {
+        renderModalOrders();
+    }
+
+    function renderModalOrders() {
+        var tbody = document.getElementById('modalOrdersTbody');
+        if (!tbody) return;
+
+        var searchQuery = (document.getElementById('kpiModalSearch').value || '').toLowerCase().trim();
+
+        var filtered = allOrdersKpiData.filter(function(o) {
+            var matchesKpi = (currentModalKpi === 'all' || o.kpiBucket === currentModalKpi);
+            if (!matchesKpi) return false;
+
+            if (!searchQuery) return true;
+
+            var matchCode = (o.code || '').toLowerCase().includes(searchQuery);
+            var matchModel = (o.model || '').toLowerCase().includes(searchQuery);
+            var matchCustomer = (o.customer || '').toLowerCase().includes(searchQuery);
+            return matchCode || matchModel || matchCustomer;
+        });
+
+        document.getElementById('modalKpiCount').textContent = 'Toplam ' + filtered.length + ' sipariş listelendi.';
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: #94a3b8;">Aradığınız kriterlere uygun sipariş bulunamadı.</td></tr>';
+            return;
+        }
+
+        var html = '';
+        filtered.forEach(function(o) {
+            var badgeBg = '#e0f2fe';
+            var badgeColor = '#0284c7';
+            if (o.kpiBucket === 'cutting') { badgeBg = '#fef3c7'; badgeColor = '#d97706'; }
+            else if (o.kpiBucket === 'completed') { badgeBg = '#dcfce7'; badgeColor = '#15803d'; }
+
+            html += '<tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'transparent\'">' +
+                '<td style="padding: 10px; font-weight: 700; color: #0369a1; font-family: monospace;">' + o.code + '</td>' +
+                '<td style="padding: 10px; font-weight: 600; color: #1e293b;">' + o.model + '</td>' +
+                '<td style="padding: 10px; color: #64748b; font-size: 0.85rem;">' + o.customer + (o.color ? ' <span style="font-size:0.75rem; background:#f1f5f9; color:#475569; padding:2px 6px; border-radius:4px; margin-left: 4px;">' + o.color + '</span>' : '') + '</td>' +
+                '<td style="padding: 10px; text-align: right; font-weight: 700; color: #0f172a;">' + (o.qty ? o.qty.toLocaleString('tr-TR') : '0') + ' Adet</td>' +
+                '<td style="padding: 10px;"><span style="background:' + badgeBg + '; color:' + badgeColor + '; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">' + o.status + '</span></td>' +
+                '<td style="padding: 10px; text-align: center;"><a href="/ProcessTracking/Track/' + o.id + '" style="background: #0369a1; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-diagram-project"></i> İşleme Git</a></td>' +
+                '</tr>';
+        });
+
+        tbody.innerHTML = html;
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
-        var ctx = document.getElementById('stageChart').getContext('2d');
-        
-        var stageData = @Html.Raw(Json.Serialize(ViewBag.StageDistribution ?? new[] { 0, 0, 0, 0 }));
-        
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Yeni Kayıt / Bekleyen', 'Kesim Aşamasında', 'Dikim Aşamasında', 'Paketleme / Sevk'],
-                datasets: [{
-                    data: stageData,
-                    backgroundColor: [
-                        '#94a3b8', // gri
-                        '#0284c7', // mavi
-                        '#16a34a', // yeşil
-                        '#4f46e5'  // lacivert
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: {
-                                size: 11
+        var ctx = document.getElementById('stageChart')?.getContext('2d');
+        if (ctx) {
+            var stageData = @Html.Raw(Json.Serialize(ViewBag.StageDistribution ?? new[] { 0, 0, 0, 0 }));
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Yeni Kayıt / Bekleyen', 'Kesim Aşamasında', 'Dikim Aşamasında', 'Paketleme / Sevk'],
+                    datasets: [{
+                        data: stageData,
+                        backgroundColor: [
+                            '#94a3b8', // gri
+                            '#0284c7', // mavi
+                            '#16a34a', // yeşil
+                            '#4f46e5'  // lacivert
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 11
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
 
         // Bildirimleri Temizle Butonu
         document.getElementById('btnClearNotifications')?.addEventListener('click', function() {
@@ -596,6 +901,14 @@
                 .catch(err => {
                     alert('Bir hata oluştu.');
                 });
+            }
+        });
+
+        // Dışarı tıklandığında modalı kapat
+        window.addEventListener('click', function(e) {
+            var modal = document.getElementById('kpiDetailModal');
+            if (e.target === modal) {
+                closeKpiModal();
             }
         });
     });

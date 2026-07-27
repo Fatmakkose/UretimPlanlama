@@ -1,83 +1,96 @@
 @model List<UretimPlanlama.Models.Order>
 @{
     ViewData["Title"] = "Planlama";
+
+    int waitingQty = 0;
+    int cuttingQty = 0;
+    int completedQty = 0;
+
+    string GetOrderKpiBucket(UretimPlanlama.Models.Order o)
+    {
+        var pDict = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(o.ProductionJson)) { try { pDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(o.ProductionJson); } catch {} }
+
+        bool HasP(string key) => pDict != null && pDict.ContainsKey(key) && !string.IsNullOrEmpty(pDict[key]);
+
+        bool isPaketBitis = o.PackagingEndDate.HasValue || HasP("prod_paket_bitis_actual");
+        bool isPaket = o.PackagingStartDate.HasValue || HasP("prod_paket_baslangic_actual") || isPaketBitis;
+        bool isDikimBitis = o.SewingEndDate.HasValue || HasP("prod_dikim_bitis_actual");
+        bool isDikim = o.SewingStartDate.HasValue || HasP("prod_dikim_baslangic_actual") || isDikimBitis || isPaket;
+        bool isKesimBitis = o.CuttingEndDate.HasValue || HasP("prod_kesim_bitis_actual") || isDikim;
+        bool isKesim = o.CuttingStartDate.HasValue || HasP("prod_kesim_baslangic_actual") || isKesimBitis;
+
+        if (isKesimBitis) return "completed";
+        if (isKesim) return "cutting";
+        return "waiting";
+    }
+
+    foreach (var o in Model)
+    {
+        var bucket = GetOrderKpiBucket(o);
+        if (bucket == "completed") completedQty += o.CalculatedQuantity;
+        else if (bucket == "cutting") cuttingQty += o.CalculatedQuantity;
+        else waitingQty += o.CalculatedQuantity;
+    }
 }
 
 <style>
-    .premium-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .premium-table tr:hover {
-        background-color: #f8fafc;
-    }
-    .status-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    
-    .timeline-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.8rem;
-    }
-    .timeline-step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: var(--text-muted);
-        position: relative;
-    }
-    .timeline-step.active {
-        color: var(--primary-color);
-        font-weight: 600;
-    }
-    .timeline-step.completed {
-        color: #10b981;
-    }
-    .timeline-line {
-        height: 2px;
-        width: 25px;
-        background-color: var(--border-color);
-        margin-top: -15px;
-    }
-    .timeline-line.active {
-        background-color: #10b981;
-    }
-    .btn-plan {
-        background-color: #0369a1;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
-        transition: background-color 0.2s;
-    }
-    .btn-plan:hover {
-        background-color: #0284c7;
-        color: white;
-    }
+    .clean-table th { border-bottom: 2px solid #e2e8f0; padding: 12px 16px; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: white; }
+    .clean-table td { padding: 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; font-size: 0.85rem; }
+    .clean-table tr:hover td { background-color: #f8fafc; }
+
+    .action-btn { background: #f1f5f9; border: 1px solid #e2e8f0; color: #0369a1; cursor: pointer; padding: 6px 12px; border-radius: 4px; transition: all 0.2s; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .action-btn:hover { background-color: #0369a1; color: white; border-color: #0369a1; }
 </style>
 
 <div class="dashboard-header" style="margin-bottom: 25px;">
     <div class="header-title">
-        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Planlama</h1>
+        <h1 style="font-size: 1.8rem; margin: 0; color: var(--text-main);">Planlama Listesi</h1>
     </div>
-    <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
-        <a href="/Planning/ExportToExcel" class="btn-planner" style="border-radius: 8px; font-size: 0.95rem; padding: 10px 18px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background-color: #16a34a; border-color: #16a34a; color: white;">
-            <i class="fa-solid fa-file-excel"></i> Excel Raporu
-        </a>
+    <div class="header-actions" style="display: flex; gap: 12px;">
+    </div>
+</div>
+
+<div class="stat-cards" style="margin-bottom: 25px;">
+    <div class="stat-card clickable-stat-card active-kpi-card" data-kpi="all" onclick="filterOrderTableByKpi('all')" style="cursor: pointer;">
+        <div class="stat-content">
+            <div class="stat-title">Toplam Sipariş Adeti</div>
+            <div class="stat-value">@Model.Sum(o => o.CalculatedQuantity).ToString("N0")</div>
+            <div class="stat-desc">Sistemdeki siparişlerin toplam adeti</div>
+        </div>
+        <div class="stat-icon icon-teal">
+            <i class="fa-solid fa-briefcase"></i>
+        </div>
+    </div>
+    <div class="stat-card clickable-stat-card" data-kpi="waiting" onclick="filterOrderTableByKpi('waiting')" style="cursor: pointer;">
+        <div class="stat-content">
+            <div class="stat-title">Yeni Kayıt / Bekleyen</div>
+            <div class="stat-value">@waitingQty.ToString("N0")</div>
+            <div class="stat-desc text-info">Kesime başlamayı bekleyen adet</div>
+        </div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0284c7;">
+            <i class="fa-solid fa-circle-info"></i>
+        </div>
+    </div>
+    <div class="stat-card clickable-stat-card" data-kpi="cutting" onclick="filterOrderTableByKpi('cutting')" style="cursor: pointer;">
+        <div class="stat-content">
+            <div class="stat-title">Aktif Üretimde</div>
+            <div class="stat-value">@cuttingQty.ToString("N0")</div>
+            <div class="stat-desc text-warning">Kesim sürecinde olan adet</div>
+        </div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706;">
+            <i class="fa-solid fa-spinner"></i>
+        </div>
+    </div>
+    <div class="stat-card clickable-stat-card" data-kpi="completed" onclick="filterOrderTableByKpi('completed')" style="cursor: pointer;">
+        <div class="stat-content">
+            <div class="stat-title">Tamamlanan</div>
+            <div class="stat-value">@completedQty.ToString("N0")</div>
+            <div class="stat-desc text-success">Kesim süreci biten toplam adet</div>
+        </div>
+        <div class="stat-icon icon-light-teal" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #10b981;">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
     </div>
 </div>
 
@@ -88,130 +101,213 @@
     </div>
 }
 
-<div class="schedule-list" style="overflow-x: auto; background: transparent; border: none; padding: 0;">
-    <table class="premium-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
-        <colgroup>
-            <col style="width: 25%;" />
-            <col style="width: 25%;" />
-            <col style="width: 35%;" />
-            <col style="width: 15%;" />
-        </colgroup>
-        <thead>
-            <tr style="background: #f8fafc; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;">
-                <th style="padding: 14px 16px; width: 25%;">SİPARİŞ BİLGİSİ</th>
-                <th style="padding: 14px 16px; width: 25%;">KUMAŞ DURUMU</th>
-                <th style="padding: 14px 16px; width: 35%;">PLANLANAN ÜRETİM SÜRECİ</th>
-                <th style="padding: 14px 16px; width: 15%; text-align: center;">AKSİYON</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in Model)
-            {
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="padding: 16px;">
-                        <a href="/Planning/Plan/@order.Id" style="color: var(--text-main); font-size: 0.95rem; font-weight: 700; display: block; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-color)';" onmouseout="this.style.color='var(--text-main)';">@order.OrderCode</a>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">@order.ModelName - <span style="color:#0284c7; font-weight:600;">@order.Color</span></span>
-                        <div style="margin-top: 4px; font-size: 0.8rem;">
-                            <span style="color: #64748b;">@(order.Quantity) Adet</span>
-                        </div>
-                        @{
-                            bool hasMissingMaterials = false;
-                            if (!string.IsNullOrEmpty(order.PurchasingMaterialsJson))
-                            {
-                                try {
-                                    var purDict = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, string>>(order.PurchasingMaterialsJson);
-                                    if (purDict != null && purDict.TryGetValue("pur_has_missing_materials", out string missingVal) && missingVal == "true")
-                                    {
-                                        hasMissingMaterials = true;
-                                    }
-                                } catch {}
-                            }
-                        }
-                        @if (hasMissingMaterials)
+<div class="schedule-section" style="background: white; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 0; margin-bottom: 24px;">
+    <!-- Top Toolbar -->
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: #fafafa; border-radius: 8px 8px 0 0;">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <div class="search-box" style="width: 250px; margin: 0; background: white; position: relative; display: flex; align-items: center;">
+                <i class="fa-solid fa-search" style="color: #94a3b8; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); z-index: 1;"></i>
+                <input type="text" id="orderSearchInput" placeholder="Model, Sipariş Kodu..." style="padding: 10px 12px 10px 36px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; outline: none; box-sizing: border-box; position: relative;" />
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <a href="/Planning/ExportToExcel" class="btn-secondary" style="display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-weight: 600; color: #334155; cursor: pointer; text-decoration: none;">
+                <i class="fa-solid fa-download"></i> Excel Dışa Aktar
+            </a>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x: auto; padding: 0;">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div style="text-align: center; color: var(--text-muted); padding: 60px 10px;">
+                <i class="fa-solid fa-clipboard-list" style="font-size: 3.5rem; margin-bottom: 15px; opacity: 0.5; color: #0369a1;"></i>
+                <p style="font-size: 1.2rem; margin: 0; font-weight: 500;">Henüz aktif bir sipariş kaydı bulunmuyor.</p>
+            </div>
+        }
+        else
+        {
+            <table class="clean-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr>
+                        <th style="padding-left: 24px;">SİPARİŞ KODU</th>
+                        <th>TARİH</th>
+                        <th>MODEL</th>
+                        <th>DETAY</th>
+                        <th>KUMAŞÇI</th>
+                        <th>ATÖLYE</th>
+                        <th style="text-align: right;">SİPARİŞ ADEDİ</th>
+                        <th style="text-align: center; width: 120px; padding-right: 24px;">İŞLEM</th>
+                    </tr>
+                </thead>
+                <tbody id="orderTableBody">
+                    @foreach (var orderGroup in Model.GroupBy(o => o.OrderCode))
+                    {
+                        var firstOrder = orderGroup.First();
+                        var totalQty = orderGroup.Sum(o => o.CalculatedQuantity);
+                        var colors = orderGroup.Select(o => new { Color = o.Color, Brand = o.Brand }).Distinct().ToList();
+                        var groupKpiBucket = GetOrderKpiBucket(firstOrder);
+                        
+                        if (orderGroup.Count() == 1)
                         {
-                            <div style="margin-top: 8px;">
-                                <span style="background-color: #fef2f2; color: #dc2626; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #fecaca; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> Eksik Malzeme
-                                </span>
-                            </div>
+                            <tr class="order-row main-order-row hover-row" data-kpi-status="@groupKpiBucket" style="border-bottom: 1px solid #f1f5f9; background: #fff; cursor: pointer;" onclick="window.location.href='/Planning/Plan/@firstOrder.Id'">
+                                <td style="padding-left: 24px;">
+                                    <span style="color: #0369a1; font-weight: 700;">@firstOrder.OrderCode</span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+                                        <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>@firstOrder.OrderDate.ToString("dd.MM.yyyy")
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #1e293b; font-size: 0.9rem; display: block;">@firstOrder.ModelName</strong>
+                                    <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 2px;">@(string.IsNullOrEmpty(firstOrder.ModelNo) ? "-" : firstOrder.ModelNo)</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                        <span style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@firstOrder.Color</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-truck" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@firstOrder.FabricSupplier</span>
+                                </td>
+                                <td>
+                                    @{
+                                        string atolyeStr = "-";
+                                        if(!string.IsNullOrEmpty(firstOrder.ProductionJson)) {
+                                            try {
+                                                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(firstOrder.ProductionJson);
+                                                if(dict != null && dict.ContainsKey("prod_dikim_atolyesi") && !string.IsNullOrEmpty(dict["prod_dikim_atolyesi"])) {
+                                                    atolyeStr = dict["prod_dikim_atolyesi"];
+                                                }
+                                            } catch {}
+                                        }
+                                    }
+                                    <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-industry" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@atolyeStr</span>
+                                </td>
+                                <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #0f172a;">
+                                    @firstOrder.CalculatedQuantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                </td>
+                                <td style="text-align: center; padding-right: 24px;">
+                                    <a href="/Planning/Plan/@firstOrder.Id" class="action-btn" onclick="event.stopPropagation();"><i class="fa-solid fa-calendar-check"></i> Planla</a>
+                                </td>
+                            </tr>
                         }
-                    </td>
-                    
-                    <td style="padding: 16px;">
-                        <div style="font-size: 0.85rem;">
-                            @if (!string.IsNullOrEmpty(order.FabricSupplier))
+                        else
+                        {
+                            var groupClass = "sub-row-" + firstOrder.OrderCode.Replace(" ", "").Replace("-", "");
+
+                            <tr class="order-row main-order-row" data-kpi-status="@groupKpiBucket" data-groupclass="@groupClass" style="cursor: pointer; border-bottom: 2px solid #e2e8f0; background: #fff;" onclick="$('.@groupClass').toggle(); $(this).find('.toggle-icon').toggleClass('fa-rotate-90');">
+                                <td style="padding-left: 24px; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-chevron-right toggle-icon" style="color: #94a3b8; font-size: 0.8rem; transition: transform 0.2s;"></i>
+                                    <span style="color: #0369a1; font-weight: 700;">@firstOrder.OrderCode</span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 500;">
+                                        <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>@firstOrder.OrderDate.ToString("dd.MM.yyyy")
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style="color: #1e293b; font-size: 0.9rem; display: block;">@firstOrder.ModelName</strong>
+                                    <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 2px;">@(string.IsNullOrEmpty(firstOrder.ModelNo) ? "-" : firstOrder.ModelNo)</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                        @foreach(var c in colors)
+                                        {
+                                            <span style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@c.Color</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="color: #94a3b8; font-size: 0.8rem; font-style:italic;">Çoklu (Genişletiniz)</span>
+                                </td>
+                                <td>
+                                    <span style="color: #94a3b8; font-size: 0.8rem; font-style:italic;">Çoklu (Genişletiniz)</span>
+                                </td>
+                                <td style="text-align: right; font-weight: 700; font-size: 1rem; color: #0f172a;">
+                                    @totalQty.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                </td>
+                                <td style="text-align: center; padding-right: 24px;">
+                                    <i class="fa-solid fa-layer-group" style="color:#94a3b8;" title="Çoklu Sipariş"></i>
+                                </td>
+                            </tr>
+
+                            foreach (var order in orderGroup)
                             {
-                                <strong><i class="fa-solid fa-truck" style="margin-right:4px;"></i>@order.FabricSupplier</strong>
-                                <br />
+                                <tr class="order-row @groupClass hover-row" style="display: none; background: #f8fafc; border-bottom: 1px dashed #cbd5e1; cursor: pointer;" onclick="window.location.href='/Planning/Plan/@order.Id'">
+                                    <td style="padding-left: 50px;">
+                                        <span style="font-size:0.8rem; color:#94a3b8;"><i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i></span>
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                            <span style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">@order.Color</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-truck" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@order.FabricSupplier</span>
+                                    </td>
+                                    <td>
+                                        @{
+                                            string childAtolyeStr = "-";
+                                            if(!string.IsNullOrEmpty(order.ProductionJson)) {
+                                                try {
+                                                    var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(order.ProductionJson);
+                                                    if(dict != null && dict.ContainsKey("prod_dikim_atolyesi") && !string.IsNullOrEmpty(dict["prod_dikim_atolyesi"])) {
+                                                        childAtolyeStr = dict["prod_dikim_atolyesi"];
+                                                    }
+                                                } catch {}
+                                            }
+                                        }
+                                        <span style="color: #334155; font-size: 0.85rem;"><i class="fa-solid fa-industry" style="margin-right: 8px; color: #94a3b8; width: 14px;"></i>@childAtolyeStr</span>
+                                    </td>
+                                    <td style="text-align: right; font-weight: 600; font-size: 0.95rem; color: #0f172a;">
+                                        @order.CalculatedQuantity.ToString("N0") <span style="font-weight: 500; font-size: 0.75rem; color: #64748b;">Adet</span>
+                                    </td>
+                                    <td style="text-align: center; padding-right: 24px;">
+                                        <a href="/Planning/Plan/@order.Id" class="action-btn" onclick="event.stopPropagation();"><i class="fa-solid fa-calendar-check"></i> Planla</a>
+                                    </td>
+                                </tr>
                             }
-                            else
-                            {
-                                <span style="color:var(--danger-text);">Kumaşçı Atanmadı</span>
-                                <br />
-                            }
-                            
-                            @if(order.FabricArrivalAgreedDate.HasValue)
-                            {
-                                <span style="color:var(--text-muted);">Hedef: @order.FabricArrivalAgreedDate.Value.ToString("dd.MM.yyyy")</span>
-                                <br />
-                            }
-                            
-                            @{
-                                var fs = order.FabricStatus ?? "Bekleniyor";
-                                var fsClass = "badge-scheduled";
-                                if (fs == "Tamamlandı" || fs == "Kumaş Tam") fsClass = "badge-progress";
-                                else if (fs == "Kısmi Geldi" || fs == "Gecikti") fsClass = "badge-medium";
-                                else if (fs == "Bekleniyor" || fs == "Eksik") fsClass = "badge-high";
-                            }
-                            <div style="margin-top: 6px;">
-                                <span class="badge @fsClass" style="font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; font-weight: 600; display: inline-block; background-color: #fee2e2; color: #ef4444;">
-                                    @fs
-                                </span>
-                            </div>
-                        </div>
-                    </td>
-                    
-                    <td style="padding: 16px;">
-                        <div class="timeline-container">
-                            <div class="timeline-step @(order.PlannedCuttingStartDate.HasValue ? "completed" : "")">
-                                <i class="fa-solid fa-scissors" style="font-size: 1.1rem; margin-bottom: 4px;"></i>
-                                <span>Kesim</span>
-                                @if (order.PlannedCuttingStartDate.HasValue) {
-                                    <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">@order.PlannedCuttingStartDate.Value.ToString("dd.MM")</span>
-                                }
-                            </div>
-                            <div class="timeline-line @(order.PlannedCuttingEndDate.HasValue ? "active" : "")"></div>
-                            
-                            <div class="timeline-step @(order.PlannedSewingStartDate.HasValue ? "completed" : "")">
-                                <i class="fa-solid fa-shirt" style="font-size: 1.1rem; margin-bottom: 4px;"></i>
-                                <span>Dikim</span>
-                                @if(!string.IsNullOrEmpty(order.SewingWorkshop))
-                                {
-                                    <span style="font-size: 0.65rem; color: #0284c7; font-weight: 600; margin-top:2px;">@order.SewingWorkshop.ToUpper()</span>
-                                }
-                                @if (order.PlannedSewingStartDate.HasValue) {
-                                    <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">@order.PlannedSewingStartDate.Value.ToString("dd.MM")</span>
-                                }
-                            </div>
-                            <div class="timeline-line @(order.PlannedSewingEndDate.HasValue ? "active" : "")"></div>
-                            
-                            <div class="timeline-step @(order.PlannedPackagingStartDate.HasValue ? "completed" : "")">
-                                <i class="fa-solid fa-box" style="font-size: 1.1rem; margin-bottom: 4px;"></i>
-                                <span>Paket</span>
-                                @if (order.PlannedPackagingStartDate.HasValue) {
-                                    <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">@order.PlannedPackagingStartDate.Value.ToString("dd.MM")</span>
-                                }
-                            </div>
-                        </div>
-                    </td>
-                    
-                    <td style="padding: 16px; text-align: center;">
-                        <a href="/Planning/Plan/@order.Id" class="btn-plan">
-                            <i class="fa-solid fa-calendar-days"></i> Planla
-                        </a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        function filterOrderTableByKpi(kpiBucket) {
+            $('.clickable-stat-card').removeClass('active-kpi-card');
+            $(`[data-kpi="${kpiBucket}"]`).addClass('active-kpi-card');
+
+            if (kpiBucket === 'all') {
+                $('.main-order-row').show();
+            } else {
+                $('.main-order-row').hide();
+                $(`.main-order-row[data-kpi-status="${kpiBucket}"]`).show();
+            }
+            
+            // Alt satırları gizle
+            $('.order-row[class*="sub-row-"]').hide();
+            $('.toggle-icon').removeClass('fa-rotate-90');
+        }
+
+        $(document).ready(function () {
+            $("#orderSearchInput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#orderTableBody .main-order-row").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+                // Alt satırları gizle
+                $('.order-row[class*="sub-row-"]').hide();
+                $('.toggle-icon').removeClass('fa-rotate-90');
+            });
+        });
+    </script>
+}

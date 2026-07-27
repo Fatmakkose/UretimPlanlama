@@ -213,68 +213,15 @@
 </style>
 
 <div class="planning-layout">
-    <!-- Sol Menü: Sipariş Listesi -->
-    <div class="sidebar-orders">
-        <div class="sidebar-header">
-            <i class="fa-solid fa-list"></i> SİPARİŞ LİSTESİ
-        </div>
-        <div style="padding: 12px; border-bottom: 1px solid var(--border-color);">
-            <div class="search-box" style="position: relative; margin-bottom: 8px;">
-                <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 10px; color: #94a3b8;"></i>
-                <input type="text" id="orderSearch" placeholder="Sipariş Ara..." class="input-field" style="padding-left: 32px;" />
-            </div>
-            <div style="display: flex; gap: 6px; margin-top: 2px;">
-                <button id="filterAll" onclick="setOrderFilter('all')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #475569; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;">
-                    Tümü
-                </button>
-                <button id="filterActive" onclick="setOrderFilter('active')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1.5px solid #16a34a; background: #dcfce7; color: #16a34a; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;">
-                    Aktif
-                </button>
-                <button id="filterPassive" onclick="setOrderFilter('passive')" style="flex: 1; padding: 5px 8px; border-radius: 6px; border: 1.5px solid #e2e8f0; background: white; color: #64748b; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;">
-                    Pasif
-                </button>
-            </div>
-        </div>
-        <div class="order-list" style="flex: 1; overflow-y: auto;">
-            @if(allOrders != null)
-            {
-                foreach (var o in allOrders)
-                {
-                    bool isActive = o.Status != "Tamamlandı" && o.Status != "İptal Edildi";
-                    string displayStyle = isActive ? "block" : "none";
-                    <a href="/Planning/Plan/@o.Id" class="order-list-item @(o.Id == Model.Id ? "active" : "")" data-active="@isActive.ToString().ToLower()" style="display: @displayStyle;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <strong style="font-size: 1rem; color: #0f172a;">@o.OrderCode</strong>
-                            @if(isActive) {
-                                <span style="font-size: 0.7rem; font-weight: 700; color: #16a34a;">AKTİF</span>
-                            } else {
-                                <span style="font-size: 0.7rem; font-weight: 700; color: #64748b;">PASİF</span>
-                            }
-                        </div>
-                        <div style="font-size: 0.85rem; color: #334155; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                            <span>@o.ModelName</span>
-                            @if (!string.IsNullOrEmpty(o.Color))
-                            {
-                                <span style="color: #0369a1; background: #e0f2fe; padding: 2px 8px; border-radius: 6px; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;">@o.Color</span>
-                            }
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #475569; font-weight: 600;">
-                            <span style="color: #94a3b8; font-weight: 500;">MÜŞTERİ: @o.Customer</span>
-                            <span>ADET: @o.CalculatedQuantity.ToString("N0")</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 4px;">
-                            TARİH: @o.OrderDate.ToString("dd.MM.yyyy")
-                        </div>
-                    </a>
-                }
-            }
-        </div>
-    </div>
-
     <!-- Sağ İçerik: Planlama Detayı -->
     @if (Model != null && Model.Id > 0)
     {
         <div class="main-planning">
+            <div style="margin-bottom: 20px;">
+                <a href="/Planning" style="text-decoration: none; color: #0369a1; font-weight: 600; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #f1f5f9; border-radius: 6px; border: 1px solid #e2e8f0; transition: all 0.2s;">
+                    <i class="fa-solid fa-arrow-left"></i> Planlama Listesine Dön
+                </a>
+            </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <div>
                 <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">PLANLAMA DETAYI</span>
